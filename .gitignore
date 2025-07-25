@@ -214,6 +214,7 @@ secrets/
 !data/
 !cache/
 !public/
+!.github/
 
 # Ignore environment file
 .env
