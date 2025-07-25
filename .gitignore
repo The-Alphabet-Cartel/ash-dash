@@ -208,7 +208,7 @@ __marimo__/
 
 secrets/
 
-.github/*
+.github
 
 # Ignore contents but keep directories
 logs/*
