@@ -208,11 +208,9 @@ __marimo__/
 
 secrets/
 
-.github
-
 # Ignore contents but keep directories
-logs/*
-!logs/.gitkeep
+!logs/*
+logs/.gitkeep
 data/*
 !data/.gitkeep
 cache/*
