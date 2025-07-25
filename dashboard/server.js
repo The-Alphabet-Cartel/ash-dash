@@ -111,8 +111,50 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Dashboard metrics endpoint
+// Proxy routes to Ash Bot API
+app.get('/api/status', async (req, res) => {
+  try {
+    const response = await axios.get(`${config.ashBotApi}/api/status`, { timeout: 5000 });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('Error proxying status request:', error.message);
+    res.status(500).json({ error: 'Failed to fetch status from bot API' });
+  }
+});
+
 app.get('/api/metrics', async (req, res) => {
+  try {
+    const response = await axios.get(`${config.ashBotApi}/api/metrics`, { timeout: 5000 });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('Error proxying metrics request:', error.message);
+    res.status(500).json({ error: 'Failed to fetch metrics from bot API' });
+  }
+});
+
+app.get('/api/learning-stats', async (req, res) => {
+  try {
+    const response = await axios.get(`${config.ashBotApi}/api/learning-stats`, { timeout: 5000 });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('Error proxying learning stats request:', error.message);
+    res.status(500).json({ error: 'Failed to fetch learning stats from bot API' });
+  }
+});
+
+app.get('/api/crisis-trends', async (req, res) => {
+  try {
+    const timeframe = req.query.timeframe || '24h';
+    const response = await axios.get(`${config.ashBotApi}/api/crisis-trends?timeframe=${timeframe}`, { timeout: 5000 });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('Error proxying crisis trends request:', error.message);
+    res.status(500).json({ error: 'Failed to fetch crisis trends from bot API' });
+  }
+});
+
+// Dashboard metrics endpoint
+app.get('/api/dashboard-metrics', async (req, res) => {
   try {
     const cacheKey = 'dashboard_metrics';
     let metrics = cache.get(cacheKey);
