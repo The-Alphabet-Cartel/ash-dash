@@ -1,0 +1,109 @@
+services:
+  ash-dash:
+    # For local development: build locally
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+
+    # For production: pull from GitHub Container Registry
+    image: ghcr.io/the-alphabet-cartel/ash-dash:latest
+
+    container_name: ash-dash
+    restart: unless-stopped
+    networks:
+      - ash-network
+    ports:
+      - "${DASH_PORT:-3000}:3000"
+    
+    # Load environment variables from .env file
+    env_file:
+      - .env
+    
+    environment:
+      # Core Node.js settings
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      
+      # Service endpoints - connects to other Ash services
+      - ASH_BOT_API=${ASH_BOT_API:-http://ash:8080}
+      - ASH_NLP_API=${ASH_NLP_API:-http://10.20.30.16:8881}
+      
+      # Cache and performance settings
+      - CACHE_TTL=${CACHE_TTL:-300}
+      - ENABLE_ANALYTICS=${ENABLE_ANALYTICS:-true}
+      - ANALYTICS_RETENTION_DAYS=${ANALYTICS_RETENTION_DAYS:-90}
+      
+      # Logging configuration
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FILE=${LOG_FILE:-ash-dash.log}
+      
+      # Security settings
+      - ENABLE_CORS=${ENABLE_CORS:-true}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-900000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      
+      # Real-time updates
+      - ENABLE_SOCKET_IO=${ENABLE_SOCKET_IO:-true}
+      - METRICS_UPDATE_INTERVAL=${METRICS_UPDATE_INTERVAL:-300}
+      
+      # Dashboard configuration
+      - DASHBOARD_TITLE=${DASHBOARD_TITLE:-Ash Analytics Dashboard}
+      - DASHBOARD_SUBTITLE=${DASHBOARD_SUBTITLE:-The Alphabet Cartel Crisis Detection Analytics}
+      - COMMUNITY_NAME=${COMMUNITY_NAME:-The Alphabet Cartel}
+      - COMMUNITY_DISCORD=${COMMUNITY_DISCORD:-https://discord.gg/alphabetcartel}
+    
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./cache:/app/cache
+      - ./public:/app/public:ro
+      - ./dashboard:/app/dashboard:ro
+    
+    depends_on:
+      - ash-redis
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+
+  ash-redis:
+    image: redis:7-alpine
+    container_name: ash-dash-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - ash-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  ash-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
