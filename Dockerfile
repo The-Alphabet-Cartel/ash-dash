@@ -39,7 +39,7 @@ WORKDIR /app
 # Copy built application from builder
 COPY --from=builder --chown=dashuser:dashuser /app/dist ./dist 2>/dev/null || true
 COPY --from=builder --chown=dashuser:dashuser /app/node_modules ./node_modules
-COPY --from=builder --chown=dashuser:dashuser /app/package*.json ./
+COPY --from=builder --chown=dashuser:dashuser /app/dashboard/package*.json ./
 
 # Copy server files from dashboard subdirectory
 COPY --chown=dashuser:dashuser dashboard/server.js ./
@@ -54,8 +54,8 @@ USER dashuser
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3000
-ENV ASH_BOT_API=http://ash:8080
+ENV PORT=8883
+ENV ASH_BOT_API=http://10.20.30.253:8882
 ENV ASH_NLP_API=http://10.20.30.16:8881
 ENV CACHE_TTL=300
 ENV LOG_LEVEL=info
@@ -63,7 +63,7 @@ ENV ENABLE_ANALYTICS=true
 ENV ANALYTICS_RETENTION_DAYS=90
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8883
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
