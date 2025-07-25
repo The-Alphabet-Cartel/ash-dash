@@ -211,16 +211,16 @@ secrets/
 # Ignore contents but keep directories
 !logs/*
 logs/.gitkeep
-data/*
-!data/.gitkeep
-cache/*
-!cache/.gitkeep
-public/assets/*
-!public/assets/.gitkeep
-public/css/*
-!public/css/.gitkeep
-public/js/*
-!public/js/.gitkeep
+!data/*
+data/.gitkeep
+!cache/*
+cache/.gitkeep
+!public/assets/*
+public/assets/.gitkeep
+!public/css/*
+public/css/.gitkeep
+!public/js/*
+public/js/.gitkeep
 
 # Ignore environment file
 .env
