@@ -1,9 +1,9 @@
 services:
   ash-dash:
     # For local development: build locally
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
 
     # For production: pull from GitHub Container Registry
     image: ghcr.io/the-alphabet-cartel/ash-dash:latest
@@ -13,19 +13,15 @@ services:
     networks:
       - ash-network
     ports:
-      - "${DASH_PORT:-3000}:3000"
-    
-    # Load environment variables from .env file
-    env_file:
-      - .env
-    
+      - 8883:8883
+
     environment:
       # Core Node.js settings
       - NODE_ENV=${NODE_ENV:-production}
-      - PORT=3000
+      - PORT=8883
       
       # Service endpoints - connects to other Ash services
-      - ASH_BOT_API=${ASH_BOT_API:-http://ash:8080}
+      - ASH_BOT_API=${ASH_BOT_API:-http://10.20.30.253:8882}
       - ASH_NLP_API=${ASH_NLP_API:-http://10.20.30.16:8881}
       
       # Cache and performance settings
@@ -63,7 +59,7 @@ services:
       - ash-redis
     
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8883/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -104,6 +100,6 @@ volumes:
 networks:
   ash-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+#    ipam:
+#      config:
+#        - subnet: 172.20.0.0/16
