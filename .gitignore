@@ -208,4 +208,21 @@ __marimo__/
 
 secrets/
 
-#.github/
+.github/*
+!.github/workflows/ash-build.yml
+
+# Ignore contents but keep directories
+logs/*
+!logs/.gitkeep
+
+data/*
+!data/.gitkeep
+
+cache/*
+!cache/.gitkeep
+
+# Ignore environment file
+.env
+
+# Ignore node_modules
+dashboard/node_modules/
