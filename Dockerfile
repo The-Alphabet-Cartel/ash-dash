@@ -15,7 +15,7 @@ RUN npm ci --only=production
 COPY dashboard/ ./
 
 # Copy public files if they exist at root level
-COPY public/ ./public/ 2>/dev/null || true
+COPY public/ ./public/
 
 # Build the application
 RUN npm run build
@@ -39,7 +39,7 @@ WORKDIR /app
 # Copy built application from builder
 COPY --from=builder --chown=dashuser:dashuser /app/dist ./dist 2>/dev/null || true
 COPY --from=builder --chown=dashuser:dashuser /app/node_modules ./node_modules
-COPY --from=builder --chown=dashuser:dashuser /app/dashboard/package*.json ./
+COPY --from=builder --chown=dashuser:dashuser /app/package*.json ./
 
 # Copy server files from dashboard subdirectory
 COPY --chown=dashuser:dashuser dashboard/server.js ./
