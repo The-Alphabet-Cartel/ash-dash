@@ -181,7 +181,7 @@ app.get('/api/status', async (req, res) => {
         }
       };
       
-      cache.set(cacheKey, cachedStatus, 30); // Cache for 30 seconds
+              cache.set(cacheKey, cachedStatus, 60); // Cache for 60 seconds
     }
     
     res.json(cachedStatus);
@@ -203,7 +203,7 @@ app.get('/api/metrics', async (req, res) => {
       try {
         const response = await botAPI.get('/api/metrics');
         metrics = response.data;
-        cache.set(cacheKey, metrics, 60); // Cache for 1 minute
+        cache.set(cacheKey, metrics, 120); // Cache for 2 minutes
       } catch (error) {
         logger.warn('Bot API unavailable, using fallback metrics');
         metrics = {
@@ -237,7 +237,7 @@ app.get('/api/crisis-trends', async (req, res) => {
       try {
         const response = await botAPI.get(`/api/crisis-trends?hours=${hours}`);
         trends = response.data;
-        cache.set(cacheKey, trends, 300); // Cache for 5 minutes
+        cache.set(cacheKey, trends, 600); // Cache for 10 minutes
       } catch (error) {
         logger.warn('Bot API unavailable, generating mock trend data');
         trends = generateMockTrendData(hours);
@@ -263,7 +263,7 @@ app.get('/api/learning-stats', async (req, res) => {
       try {
         const response = await nlpAPI.get('/learning_statistics');
         stats = response.data;
-        cache.set(cacheKey, stats, 120); // Cache for 2 minutes
+        cache.set(cacheKey, stats, 180); // Cache for 3 minutes
       } catch (error) {
         logger.warn('NLP API unavailable, using fallback learning stats');
         stats = {
@@ -296,7 +296,7 @@ app.get('/api/nlp-metrics', async (req, res) => {
       try {
         const response = await nlpAPI.get('/metrics');
         metrics = response.data;
-        cache.set(cacheKey, metrics, 60); // Cache for 1 minute
+        cache.set(cacheKey, metrics, 120); // Cache for 2 minutes
       } catch (error) {
         logger.warn('NLP API unavailable, using fallback metrics');
         metrics = {
@@ -358,12 +358,45 @@ app.use((req, res) => {
   });
 });
 
+// SSL Certificate generation function
+function generateSelfSignedCert() {
+  const { execSync } = require('child_process');
+  const certDir = path.dirname(config.sslCertPath);
+  
+  try {
+    // Create certs directory if it doesn't exist
+    if (!fs.existsSync(certDir)) {
+      fs.mkdirSync(certDir, { recursive: true });
+      logger.info(`📁 Created certificates directory: ${certDir}`);
+    }
+    
+    // Generate self-signed certificate
+    const cmd = `openssl req -x509 -newkey rsa:2048 -keyout "${config.sslKeyPath}" -out "${config.sslCertPath}" -days 365 -nodes -subj "/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.16"`;
+    execSync(cmd, { stdio: 'pipe' });
+    
+    logger.info(`🔐 Generated self-signed SSL certificate`);
+    return true;
+  } catch (error) {
+    logger.error('Failed to generate SSL certificate:', error.message);
+    return false;
+  }
+}
+
 // Server initialization
 let server;
 
 if (config.enableSSL) {
   // HTTPS server with SSL
   try {
+    // Check if SSL files exist, if not, try to generate them
+    if (!fs.existsSync(config.sslCertPath) || !fs.existsSync(config.sslKeyPath)) {
+      logger.info('🔍 SSL certificates not found, attempting to generate...');
+      
+      if (!generateSelfSignedCert()) {
+        throw new Error('Could not generate SSL certificates');
+      }
+    }
+    
     const sslOptions = {
       key: fs.readFileSync(config.sslKeyPath),
       cert: fs.readFileSync(config.sslCertPath)
@@ -372,8 +405,9 @@ if (config.enableSSL) {
     server = https.createServer(sslOptions, app);
     logger.info(`🔒 SSL enabled using cert: ${config.sslCertPath}`);
   } catch (error) {
-    logger.error('SSL setup failed, falling back to HTTP:', error.message);
+    logger.warn(`SSL setup failed, falling back to HTTP: ${error.message}`);
     server = http.createServer(app);
+    logger.info('🔓 Running in HTTP mode due to SSL failure');
   }
 } else {
   // HTTP server
