@@ -46,8 +46,8 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       
       # DOCKER SECRETS CONFIGURATION
-      - SSL_CERT_PATH=${SSL_CERT_PATH:-/run/secrets/ssl_cert}
-      - SSL_KEY_PATH=${SSL_KEY_PATH:-/run/secrets/ssl_key}
+      - SSL_CERT_PATH=${SSL_CERT_PATH:-/app/certs/cert.pem}
+      - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/certs/key.pem}
       - SESSION_SECRET=${SESSION_SECRET:-/run/secrets/session_secret}
     volumes:
       - ./logs:/app/logs
