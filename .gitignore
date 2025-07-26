@@ -206,7 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-secrets/
+#secrets/
 .gitkeep
 
 # Ignore contents but keep directories
