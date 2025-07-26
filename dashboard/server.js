@@ -25,11 +25,11 @@ const io = socketIo(server, {
 
 // Configuration
 const config = {
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 8883,
   nodeEnv: process.env.NODE_ENV || 'development',
-  ashBotApi: process.env.ASH_BOT_API || 'http://ash:8080',
+  ashBotApi: process.env.ASH_BOT_API || 'http://10.20.30.253:8882',
   ashNlpApi: process.env.ASH_NLP_API || 'http://10.20.30.16:8881',
-  cacheTtl: parseInt(process.env.CACHE_TTL) || 300, // 5 minutes
+  cacheTtl: parseInt(process.env.CACHE_TTL) || 300,
   logLevel: process.env.LOG_LEVEL || 'info',
   enableAnalytics: process.env.ENABLE_ANALYTICS === 'true',
   analyticsRetentionDays: parseInt(process.env.ANALYTICS_RETENTION_DAYS) || 90
@@ -63,7 +63,7 @@ const logger = winston.createLogger({
   ]
 });
 
-// Middleware
+// Middleware - Modified to prevent HTTPS enforcement
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -72,10 +72,27 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
-      fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"]
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+      upgradeInsecureRequests: null  // Disable HTTPS upgrade
     }
-  }
+  },
+  hsts: false,  // Disable HSTS
+  crossOriginOpenerPolicy: false  // Disable COOP which causes the warning
 }));
+
+// Add explicit header to prevent HTTPS upgrade
+app.use((req, res, next) => {
+  res.removeHeader('Strict-Transport-Security');
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+    "img-src 'self' data: https:; " +
+    "connect-src 'self' ws: wss: http: https:; " +
+    "font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"
+  );
+  next();
+});
 
 app.use(cors());
 app.use(compression());
@@ -96,13 +113,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API Routes
-
-// Health check
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
+    protocol: 'http',
     services: {
       dashboard: 'online',
       cache: cache.getStats(),
@@ -111,134 +127,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Proxy routes to Ash Bot API
-app.get('/api/status', async (req, res) => {
-  try {
-    const response = await axios.get(`${config.ashBotApi}/api/status`, { timeout: 5000 });
-    res.json(response.data);
-  } catch (error) {
-    logger.error('Error proxying status request:', error.message);
-    res.status(500).json({ error: 'Failed to fetch status from bot API' });
-  }
-});
-
-app.get('/api/metrics', async (req, res) => {
-  try {
-    const response = await axios.get(`${config.ashBotApi}/api/metrics`, { timeout: 5000 });
-    res.json(response.data);
-  } catch (error) {
-    logger.error('Error proxying metrics request:', error.message);
-    res.status(500).json({ error: 'Failed to fetch metrics from bot API' });
-  }
-});
-
-app.get('/api/learning-stats', async (req, res) => {
-  try {
-    const response = await axios.get(`${config.ashBotApi}/api/learning-stats`, { timeout: 5000 });
-    res.json(response.data);
-  } catch (error) {
-    logger.error('Error proxying learning stats request:', error.message);
-    res.status(500).json({ error: 'Failed to fetch learning stats from bot API' });
-  }
-});
-
-app.get('/api/crisis-trends', async (req, res) => {
-  try {
-    const timeframe = req.query.timeframe || '24h';
-    const response = await axios.get(`${config.ashBotApi}/api/crisis-trends?timeframe=${timeframe}`, { timeout: 5000 });
-    res.json(response.data);
-  } catch (error) {
-    logger.error('Error proxying crisis trends request:', error.message);
-    res.status(500).json({ error: 'Failed to fetch crisis trends from bot API' });
-  }
-});
-
-// Dashboard metrics endpoint
-app.get('/api/dashboard-metrics', async (req, res) => {
-  try {
-    const cacheKey = 'dashboard_metrics';
-    let metrics = cache.get(cacheKey);
-
-    if (!metrics) {
-      // Fetch data from both services
-      const [botMetrics, nlpMetrics] = await Promise.allSettled([
-        fetchBotMetrics(),
-        fetchNlpMetrics()
-      ]);
-
-      metrics = {
-        timestamp: new Date().toISOString(),
-        bot: botMetrics.status === 'fulfilled' ? botMetrics.value : { error: botMetrics.reason?.message },
-        nlp: nlpMetrics.status === 'fulfilled' ? nlpMetrics.value : { error: nlpMetrics.reason?.message }
-      };
-
-      // Cache for 5 minutes
-      cache.set(cacheKey, metrics, config.cacheTtl);
-    }
-
-    res.json(metrics);
-  } catch (error) {
-    logger.error('Error fetching metrics:', error);
-    res.status(500).json({ error: 'Failed to fetch metrics' });
-  }
-});
-
-// Learning statistics endpoint
-app.get('/api/learning-stats', async (req, res) => {
-  try {
-    const cacheKey = 'learning_stats';
-    let stats = cache.get(cacheKey);
-
-    if (!stats) {
-      stats = await fetchLearningStats();
-      cache.set(cacheKey, stats, config.cacheTtl);
-    }
-
-    res.json(stats);
-  } catch (error) {
-    logger.error('Error fetching learning stats:', error);
-    res.status(500).json({ error: 'Failed to fetch learning statistics' });
-  }
-});
-
-// Crisis detection trends
-app.get('/api/crisis-trends', async (req, res) => {
-  try {
-    const { timeframe = '24h' } = req.query;
-    const cacheKey = `crisis_trends_${timeframe}`;
-    let trends = cache.get(cacheKey);
-
-    if (!trends) {
-      trends = await fetchCrisisTrends(timeframe);
-      cache.set(cacheKey, trends, config.cacheTtl);
-    }
-
-    res.json(trends);
-  } catch (error) {
-    logger.error('Error fetching crisis trends:', error);
-    res.status(500).json({ error: 'Failed to fetch crisis trends' });
-  }
-});
-
-// Keyword performance
-app.get('/api/keyword-performance', async (req, res) => {
-  try {
-    const cacheKey = 'keyword_performance';
-    let performance = cache.get(cacheKey);
-
-    if (!performance) {
-      performance = await fetchKeywordPerformance();
-      cache.set(cacheKey, performance, config.cacheTtl);
-    }
-
-    res.json(performance);
-  } catch (error) {
-    logger.error('Error fetching keyword performance:', error);
-    res.status(500).json({ error: 'Failed to fetch keyword performance' });
-  }
-});
-
-// Server status endpoint
+// Enhanced status endpoint with better error handling
 app.get('/api/status', async (req, res) => {
   try {
     const [botStatus, nlpStatus] = await Promise.allSettled([
@@ -267,52 +156,68 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
+// Mock API endpoints that return sample data when services are unavailable
+app.get('/api/metrics', async (req, res) => {
+  try {
+    const response = await axios.get(`${config.ashBotApi}/api/metrics`, { timeout: 5000 });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('Error fetching metrics from bot API:', error.message);
+    // Return mock data instead of error
+    res.json({
+      timestamp: new Date().toISOString(),
+      crisis_metrics: {
+        high: 0,
+        medium: 0,
+        low: 0
+      },
+      total_messages_analyzed: 0,
+      status: 'service_unavailable'
+    });
+  }
+});
+
+app.get('/api/learning-stats', async (req, res) => {
+  try {
+    const response = await axios.get(`${config.ashNlpApi}/learning_statistics`, { timeout: 5000 });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('Error fetching learning stats:', error.message);
+    // Return mock data
+    res.json({
+      status: 'offline',
+      false_positive_reports: 0,
+      false_negative_reports: 0,
+      total_adjustments: 0,
+      last_update: null
+    });
+  }
+});
+
+app.get('/api/crisis-trends', async (req, res) => {
+  try {
+    const timeframe = req.query.timeframe || '24h';
+    const response = await axios.get(`${config.ashBotApi}/api/crisis-trends?timeframe=${timeframe}`, { timeout: 5000 });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('Error fetching crisis trends:', error.message);
+    // Return mock data
+    res.json({
+      labels: ['No Data'],
+      high: [0],
+      medium: [0],
+      low: [0],
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Serve main dashboard
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Helper functions
-async function fetchBotMetrics() {
-  const response = await axios.get(`${config.ashBotApi}/api/metrics`, {
-    timeout: 5000,
-    headers: { 'User-Agent': 'ash-dash/1.0.0' }
-  });
-  return response.data;
-}
-
-async function fetchNlpMetrics() {
-  const response = await axios.get(`${config.ashNlpApi}/metrics`, {
-    timeout: 5000,
-    headers: { 'User-Agent': 'ash-dash/1.0.0' }
-  });
-  return response.data;
-}
-
-async function fetchLearningStats() {
-  const response = await axios.get(`${config.ashNlpApi}/learning_statistics`, {
-    timeout: 5000,
-    headers: { 'User-Agent': 'ash-dash/1.0.0' }
-  });
-  return response.data;
-}
-
-async function fetchCrisisTrends(timeframe) {
-  const response = await axios.get(`${config.ashBotApi}/api/crisis-trends?timeframe=${timeframe}`, {
-    timeout: 5000,
-    headers: { 'User-Agent': 'ash-dash/1.0.0' }
-  });
-  return response.data;
-}
-
-async function fetchKeywordPerformance() {
-  const response = await axios.get(`${config.ashBotApi}/api/keyword-performance`, {
-    timeout: 5000,
-    headers: { 'User-Agent': 'ash-dash/1.0.0' }
-  });
-  return response.data;
-}
-
 async function checkServiceHealth(serviceUrl) {
   const start = Date.now();
   const response = await axios.get(`${serviceUrl}/health`, {
@@ -347,40 +252,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Scheduled tasks
-if (config.enableAnalytics) {
-  // Update metrics every 5 minutes
-  cron.schedule('*/5 * * * *', async () => {
-    try {
-      logger.info('Updating metrics cache...');
-      cache.del('dashboard_metrics');
-      cache.del('learning_stats');
-      
-      const metrics = await Promise.allSettled([
-        fetchBotMetrics(),
-        fetchNlpMetrics(),
-        fetchLearningStats()
-      ]);
-
-      // Broadcast to connected clients
-      io.to('metrics').emit('metrics_update', {
-        timestamp: new Date().toISOString(),
-        metrics: metrics
-      });
-
-      logger.info('Metrics cache updated and broadcasted');
-    } catch (error) {
-      logger.error('Error updating metrics cache:', error);
-    }
-  });
-
-  // Clean up old cache entries every hour
-  cron.schedule('0 * * * *', () => {
-    cache.flushAll();
-    logger.info('Cache cleared');
-  });
-}
-
 // Error handling
 app.use((err, req, res, next) => {
   logger.error('Unhandled error:', err);
@@ -396,10 +267,11 @@ app.use((req, res) => {
 
 // Start server
 server.listen(config.port, () => {
-  logger.info(`Ash Analytics Dashboard running on port ${config.port}`);
+  logger.info(`Ash Analytics Dashboard (HTTP-only) running on port ${config.port}`);
   logger.info(`Environment: ${config.nodeEnv}`);
   logger.info(`Bot API: ${config.ashBotApi}`);
   logger.info(`NLP API: ${config.ashNlpApi}`);
+  logger.info(`Access via: http://localhost:${config.port} or http://10.20.30.16:${config.port}`);
 });
 
 // Graceful shutdown
