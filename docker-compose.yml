@@ -16,45 +16,46 @@ services:
       - 8883:8883
 
     environment:
-      # Core Node.js settings
       - NODE_ENV=${NODE_ENV:-production}
-      - PORT=8883
+      - PORT=${PORT:-8883}
+      - DASH_PORT=${DASH_PORT:-8883}
       
-      # Service endpoints - connects to other Ash services
+      # SSL Configuration
+      - ENABLE_SSL=${ENABLE_SSL:-true}
+      - SSL_CERT_PATH=${SSL_CERT_PATH:-/app/certs/cert.pem}
+      - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/certs/key.pem}
+      
+      # Ash Bot API (Discord Bot with Crisis Detection)
       - ASH_BOT_API=${ASH_BOT_API:-http://10.20.30.253:8882}
-      - ASH_NLP_API=${ASH_NLP_API:-http://10.20.30.16:8881}
+      - ASH_BOT_API_TIMEOUT=${ASH_BOT_API_TIMEOUT:-5000}
       
-      # Cache and performance settings
+      # Ash NLP Server API (Machine Learning Analysis)
+      - ASH_NLP_API=${ASH_NLP_API:-http://10.20.30.16:8881}
+      - ASH_NLP_API_TIMEOUT=${ASH_NLP_API_TIMEOUT:-10000}
+      
+      # Cache Settings
       - CACHE_TTL=${CACHE_TTL:-300}
       - ENABLE_ANALYTICS=${ENABLE_ANALYTICS:-true}
       - ANALYTICS_RETENTION_DAYS=${ANALYTICS_RETENTION_DAYS:-90}
       
-      # Logging configuration
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - LOG_FILE=${LOG_FILE:-ash-dash.log}
-      
-      # Security settings
-      - ENABLE_CORS=${ENABLE_CORS:-true}
-      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-900000}
-      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
-      
-      # Real-time updates
+      # Real-time Updates
       - ENABLE_SOCKET_IO=${ENABLE_SOCKET_IO:-true}
-      - METRICS_UPDATE_INTERVAL=${METRICS_UPDATE_INTERVAL:-300}
+      - METRICS_UPDATE_INTERVAL=${METRICS_UPDATE_INTERVAL:-30000}
+
+      # LOGGING & MONITORING
+      - LOG_LEVEL=${LOG_LEVEL:-info}
       
-      # Dashboard configuration
-      - DASHBOARD_TITLE=${DASHBOARD_TITLE:-Ash Analytics Dashboard}
-      - DASHBOARD_SUBTITLE=${DASHBOARD_SUBTITLE:-The Alphabet Cartel Crisis Detection Analytics}
-      - COMMUNITY_NAME=${COMMUNITY_NAME:-The Alphabet Cartel}
-      - COMMUNITY_DISCORD=${COMMUNITY_DISCORD:-https://discord.gg/alphabetcartel}
-    
+      # DOCKER SECRETS CONFIGURATION
+      - SSL_CERT_PATH=${SSL_CERT_PATH:-/run/secrets/ssl_cert}
+      - SSL_KEY_PATH=${SSL_KEY_PATH:-/run/secrets/ssl_key}
+      - SESSION_SECRET=${SESSION_SECRET:-/run/secrets/session_secret}
     volumes:
       - ./logs:/app/logs
       - ./data:/app/data
       - ./cache:/app/cache
       - ./public:/app/public:ro
       - ./dashboard:/app/dashboard:ro
-    
+      - ./secrets:/run/secrets:ro
     depends_on:
       - ash-redis
     
