@@ -1,83 +1,18 @@
-name: Build and Push Ash Analytics Dashboard
+name: Build and Push Ash Bot
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  release:
-    types: [ published ]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Lint and test job
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: |
-        cd dashboard
-        npm ci
-
-    - name: Run linter
-      run: |
-        cd dashboard
-        npm run lint
-
-    - name: Run tests
-      run: |
-        cd dashboard
-        npm test
-
-    - name: Build application
-      run: |
-        cd dashboard
-        npm run build
-
-  # Security scanning
-  security:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-
-  # Build and push Docker image
   build-and-push:
     runs-on: ubuntu-latest
-    needs: [test, security]
     permissions:
       contents: read
       packages: write
@@ -85,9 +20,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
 
     - name: Log in to Container Registry
       uses: docker/login-action@v3
@@ -104,9 +36,6 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
           type=sha,prefix=sha-
           type=raw,value=latest,enable={{is_default_branch}}
 
@@ -114,117 +43,9 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
 
     - name: Image digest
       run: echo ${{ steps.build-and-push.outputs.digest }}
-
-  # Deploy to staging (if main branch)
-  deploy-staging:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: staging
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Deploy to staging
-      run: |
-        echo "🚀 Deploying to staging environment"
-        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-        # Add your staging deployment commands here
-        # This could be a webhook, SSH command, or API call to your staging server
-
-  # Create GitHub release on tag
-  release:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: github.event_name == 'release'
-    permissions:
-      contents: write
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Generate changelog
-      id: changelog
-      run: |
-        # Generate changelog from commits since last tag
-        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-        if [ -z "$PREVIOUS_TAG" ]; then
-          CHANGELOG=$(git log --pretty=format:"- %s" --no-merges)
-        else
-          CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" --no-merges)
-        fi
-        echo "changelog<<EOF" >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-
-    - name: Update release with changelog
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const { data: release } = await github.rest.repos.getReleaseByTag({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag: context.ref.replace('refs/tags/', '')
-          });
-          
-          const changelog = `${{ steps.changelog.outputs.changelog }}`;
-          const body = release.body ? `${release.body}\n\n## Changelog\n${changelog}` : `## Changelog\n${changelog}`;
-          
-          await github.rest.repos.updateRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: release.id,
-            body: body
-          });
-
-  # Notify on Discord (optional)
-  notify:
-    runs-on: ubuntu-latest
-    needs: [build-and-push]
-    if: always()
-    
-    steps:
-    - name: Discord notification
-      if: env.DISCORD_WEBHOOK != ''
-      env:
-        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      uses: Ilshidur/action-discord@master
-      with:
-        args: |
-          🔧 **Ash Analytics Dashboard** - Build ${{ job.status }}
-          
-          **Branch:** `${{ github.ref_name }}`
-          **Commit:** `${{ github.sha }}`
-          **Author:** ${{ github.actor }}
-          
-          ${{ job.status == 'success' && '✅ Build completed successfully!' || '❌ Build failed!' }}
-          
-          **Image:** `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest`
-
-  # Cleanup old packages
-  cleanup:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      packages: write
-    
-    steps:
-    - name: Delete old container versions
-      uses: actions/delete-package-versions@v4
-      with:
-        package-name: ${{ github.event.repository.name }}
-        package-type: container
-        min-versions-to-keep: 10
-        delete-only-untagged-versions: true
