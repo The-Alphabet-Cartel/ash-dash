@@ -409,8 +409,8 @@
             initializeChart();
             loadInitialData();
             
-            // Auto-refresh every 30 seconds
-            setInterval(loadInitialData, 30000);
+            // Auto-refresh every 2 minutes
+            setInterval(loadInitialData, 120000);
         });
 
         function initializeSocketIO() {
