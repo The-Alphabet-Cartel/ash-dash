@@ -1,387 +1,340 @@
-# Ash-Dash - Analytics Dashboard
+# 📊 Ash Dashboard (ash-dash) v2.1
 
-**Part of the Ash Ecosystem** | **Main Repository:** https://github.com/the-alphabet-cartel/ash
+**Analytics Dashboard for Crisis Detection and Community Support**  
+**Repository:** https://github.com/the-alphabet-cartel/ash-dash  
+**Part of:** [The Alphabet Cartel](https://discord.gg/alphabetcartel) Ash Ecosystem
 
-This repository contains **only the analytics dashboard component** of the Ash crisis detection system. For the complete ecosystem including Discord bot, NLP server, and testing suite, see the [main Ash repository](https://github.com/the-alphabet-cartel/ash).
+## 🌟 Overview
 
-**Discord Community:** https://discord.gg/alphabetcartel  
-**Website:** http://alphabetcartel.org  
-**Organization:** https://github.com/the-alphabet-cartel
+Ash Dashboard is the comprehensive analytics and monitoring interface for the Ash Crisis Detection ecosystem. It provides real-time insights, team management capabilities, and detailed reporting for Discord community mental health support.
 
-## 📊 About Ash-Dash
+### 🎯 Key Features
 
-Ash-Dash is the analytics and monitoring center for The Alphabet Cartel's crisis detection system. It provides real-time insights into bot performance, crisis detection accuracy, community health metrics, and team coordination tools for crisis response management.
+- **Real-Time Crisis Monitoring** - Live dashboard with active crisis situations
+- **Analytics & Reporting** - Detailed metrics on crisis detection accuracy and response times
+- **Team Management** - Crisis Response team coordination and role management
+- **Historical Analysis** - Long-term trends and pattern recognition
+- **Integration Hub** - Central monitoring for all Ash ecosystem components
+- **Secure Access** - Role-based access control with audit logging
 
-### 🏗️ Architecture Position
+## 🏗️ Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Discord Bot   │◄──►│   NLP Server    │◄──►│   Dashboard     │
-│   (ash-bot)     │    │   (ash-nlp)     │    │   (THIS REPO)   │
-│                 │    │                 │    │                 │
-│ 10.20.30.253    │    │ 10.20.30.16     │    │ 10.20.30.16     │
-│ Port: 8882      │    │ Port: 8881      │    │ Port: 8883      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                 ▲
-                                 │
-                       ┌─────────────────┐
-                       │  Testing Suite  │
-                       │  (ash-thrash)   │
-                       │                 │
-                       │ 10.20.30.16     │
-                       │ Port: 8884      │
-                       └─────────────────┘
-```
+The dashboard integrates with all Ash ecosystem components:
+
+- **ash-bot** (10.20.30.253:8882) - Discord bot crisis detection events
+- **ash-nlp** (10.20.30.253:8881) - NLP analysis results and confidence scores
+- **ash-thrash** (10.20.30.253:8884) - Testing results and validation metrics
+- **Dashboard Server** (10.20.30.253:8883) - Main dashboard application
+
+### 🌐 Access Points
+
+- **Primary URL:** https://dashboard.alphabetcartel.net
+- **Direct Access:** https://10.20.30.253:8883
+- **Development:** http://localhost:8883
 
 ## 🚀 Quick Start
 
-### For Dashboard Development
-If you're working on the dashboard specifically:
+### Production Deployment (Submodule Method)
 
 ```bash
-# Clone this repository
-git clone https://github.com/the-alphabet-cartel/ash-dash.git
-cd ash-dash
-
-# Setup development environment
-npm install
+# Clone main Ash repository (includes all submodules)
+git clone --recursive https://github.com/the-alphabet-cartel/ash.git
+cd ash/ash-dash
 
 # Configure environment
 cp .env.template .env
-# Edit .env with API endpoints and configuration
+# Edit .env with your configuration
 
-# Run development server
-npm run dev
+# Deploy with Docker
+docker-compose up -d
+
+# Verify deployment
+curl https://10.20.30.253:8883/health
 ```
 
-### For Complete Ecosystem
-If you need the full Ash system (recommended):
+### Standalone Deployment
 
 ```bash
-# Clone the main ecosystem repository
-git clone --recursive https://github.com/the-alphabet-cartel/ash.git
-cd ash
+# Clone dashboard repository directly
+git clone https://github.com/the-alphabet-cartel/ash-dash.git
+cd ash-dash
 
-# Follow setup instructions in main repository
-# This includes ash-dash as a submodule along with all other components
-```
-
-## 🔧 Core Features
-
-### Real-Time Monitoring
-- **System Health Dashboard**: Live status of all Ash ecosystem components
-- **Crisis Alert Management**: Real-time crisis detection alerts and response coordination
-- **Performance Metrics**: Bot response times, NLP accuracy, and system throughput
-- **Resource Monitoring**: Server CPU, memory, and GPU utilization tracking
-
-### Analytics & Insights
-- **Detection Accuracy Tracking**: Historical crisis detection performance metrics
-- **Community Health Metrics**: Trends in community well-being and support needs
-- **Response Team Coordination**: Crisis response workflow management and team assignments
-- **Historical Data Analysis**: Long-term trends and pattern identification
-
-### Team Management
-- **Crisis Response Workflow**: Streamlined tools for crisis intervention coordination
-- **Team Member Dashboard**: Individual team member performance and availability
-- **Alert Routing**: Intelligent alert distribution based on team member expertise
-- **Training Integration**: Continuous improvement through testing suite integration
-
-## 📦 Repository Structure
-
-```
-ash-dash/                         # THIS REPOSITORY
-├── backend/                      # Node.js API server
-│   ├── src/                      # Server source code
-│   │   ├── app.js               # Express.js application setup
-│   │   ├── routes/              # API route definitions
-│   │   ├── middleware/          # Express middleware
-│   │   ├── services/            # Business logic services
-│   │   └── utils/               # Utility functions
-│   ├── config/                   # Server configuration
-│   └── tests/                    # Backend unit tests
-├── frontend/                     # Vue.js dashboard interface
-│   ├── src/                      # Frontend source code
-│   │   ├── components/          # Vue components
-│   │   ├── views/               # Dashboard pages
-│   │   ├── store/               # Vuex state management
-│   │   ├── router/              # Vue Router configuration
-│   │   └── assets/              # Static assets
-│   ├── public/                   # Public static files
-│   └── tests/                    # Frontend unit tests
-├── shared/                       # Shared utilities and types
-├── docs/                         # Dashboard-specific documentation
-├── docker/                       # Docker configuration
-├── scripts/                      # Build and deployment scripts
-├── .env.template                 # Environment configuration template
-├── docker-compose.yml            # Docker deployment configuration
-├── package.json                  # Node.js dependencies
-└── README.md                     # This file
-```
-
-## 🛠️ Development
-
-### Prerequisites
-- Node.js 18+ and npm
-- Access to Ash ecosystem APIs (bot, NLP, testing)
-- Docker (for containerized deployment)
-- Modern web browser with ES6+ support
-
-### Environment Configuration
-
-Create `.env` file from template:
-```bash
+# Setup environment
 cp .env.template .env
+
+# Configure service endpoints in .env
+# ASH_BOT_API=http://10.20.30.253:8882
+# ASH_NLP_API=http://10.20.30.253:8881
+# ASH_TESTING_API=http://10.20.30.253:8884
+
+# Deploy
+docker-compose up -d
 ```
 
-Required environment variables:
-```bash
-# Dashboard Configuration
-API_PORT=8883
-API_HOST=0.0.0.0
-NODE_ENV=development
+## 🔧 Configuration
 
-# Ash Ecosystem Integration
-BOT_API_URL=http://10.20.30.253:8882
-NLP_API_URL=http://10.20.30.16:8881
-THRASH_API_URL=http://10.20.30.16:8884
-
-# Database Configuration (Optional)
-DATABASE_URL=postgresql://user:pass@localhost:5432/ash_dash
-REDIS_URL=redis://localhost:6379
-
-# Authentication
-JWT_SECRET=your-secure-jwt-secret
-SESSION_SECRET=your-secure-session-secret
-
-# Dashboard Features
-ENABLE_REAL_TIME_UPDATES=true
-ALERT_REFRESH_INTERVAL=5000
-METRICS_RETENTION_DAYS=90
-```
-
-### Development Setup
-
-**Backend Development:**
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-**Frontend Development:**
-```bash
-cd frontend
-npm install
-npm run serve
-```
-
-**Full Stack Development:**
-```bash
-# Run both backend and frontend
-npm run dev:full
-```
-
-### Testing
+### Essential Environment Variables
 
 ```bash
-# Run all tests
-npm test
+# Server Configuration
+NODE_ENV=production
+PORT=8883
+ENABLE_SSL=true
 
-# Backend tests only
-npm run test:backend
+# Service Endpoints
+ASH_BOT_API=http://10.20.30.253:8882
+ASH_NLP_API=http://10.20.30.253:8881
+ASH_TESTING_API=http://10.20.30.253:8884
 
-# Frontend tests only
-npm run test:frontend
+# Performance Settings (Optimized for dedicated server)
+CACHE_TTL=300
+HEALTH_CHECK_INTERVAL=60000
+METRICS_UPDATE_INTERVAL=30000
 
-# E2E tests
-npm run test:e2e
+# Security Settings
+ENABLE_CORS=true
+RATE_LIMIT_MAX=200
+ENABLE_DDoS_PROTECTION=true
+
+# Team Management
+ENABLE_RBAC=true
+ENABLE_AUDIT_LOG=true
+DEFAULT_ROLE=observer
 ```
 
-### Docker Deployment
+### Hardware Optimization
 
-```bash
-# Build and run locally
-docker-compose up --build
-
-# Production deployment
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## 🔗 Integration with Ash Ecosystem
-
-### Data Sources Integration
-- **Bot Metrics**: Real-time statistics from ash-bot API
-- **NLP Performance**: Analysis accuracy and processing times from ash-nlp
-- **Test Results**: Continuous validation data from ash-thrash
-- **System Health**: Combined health monitoring across all services
-
-### API Endpoints
-```javascript
-// Dashboard API endpoints
-GET  /api/dashboard/overview          // System overview
-GET  /api/alerts/active              // Current crisis alerts
-GET  /api/metrics/performance        // Performance statistics
-GET  /api/team/status                // Team member availability
-POST /api/alerts/respond             // Crisis response actions
-GET  /api/testing/results            // Latest test results
-```
-
-### Real-Time Features
-- **WebSocket Connection**: Live updates for crisis alerts and system status
-- **Server-Sent Events**: Streaming metrics and performance data
-- **Auto-Refresh**: Configurable refresh intervals for different data types
-- **Push Notifications**: Browser notifications for critical alerts
+**Server Specifications:**
+- **OS:** Debian 12 Linux
+- **CPU:** AMD Ryzen 7 5800X
+- **GPU:** NVIDIA RTX 3060
+- **RAM:** 64GB
+- **Network:** 10.20.30.253 (Internal IP)
 
 ## 📊 Dashboard Features
 
-### Main Dashboard Views
+### Crisis Response Dashboard
+- **Active Incidents** - Real-time crisis situations requiring attention
+- **Response Teams** - Team member availability and current assignments
+- **Escalation Tracking** - Crisis severity changes and intervention progress
+- **Communication Logs** - Secure record of crisis interventions
 
-**System Overview:**
-- Real-time status of all Ash ecosystem components
-- Current crisis alert summary
-- System performance metrics
-- Quick action buttons for common tasks
+### Analytics Portal
+- **Detection Accuracy** - NLP model performance metrics and trends
+- **Response Metrics** - Average response times and resolution rates
+- **Community Health** - Overall community mental health indicators
+- **Predictive Insights** - Early warning systems and trend analysis
 
-**Crisis Management:**
-- Active crisis alert queue with priority sorting
-- Crisis response workflow tracking
-- Team member assignment and coordination
-- Historical crisis response analytics
+### Team Management
+- **Role-Based Access** - Hierarchical permissions for different team roles
+- **Shift Management** - Crisis response team scheduling and availability
+- **Training Metrics** - Team member competency tracking and development
+- **Communication Hub** - Secure team coordination and messaging
 
-**Performance Analytics:**
-- Detection accuracy trends over time
-- Response time metrics and optimization insights
-- Resource utilization monitoring
-- Comparative analysis of detection methods
+### System Monitoring
+- **Service Health** - Real-time status of all Ash ecosystem components
+- **Performance Metrics** - System resource usage and optimization insights
+- **Error Tracking** - Centralized logging and error analysis
+- **Capacity Planning** - Usage trends and scaling recommendations
 
-**Testing Integration:**
-- Live test suite results from ash-thrash
-- Goal achievement tracking and progress visualization
-- Detailed failure analysis with corrective action suggestions
-- One-click test execution and result review
+## 🔗 Integration
 
-### User Interface
+### Ash Ecosystem Integration
 
-**Responsive Design:**
-- Mobile-first responsive layout
-- Dark/light theme support
-- Accessibility compliance (WCAG 2.1)
-- Touch-friendly interface for tablet use
+**ash-bot Integration:**
+- Real-time crisis event streaming
+- Discord user context and history
+- Bot command execution and monitoring
+- Community engagement metrics
 
-**Data Visualization:**
-- Real-time charts and graphs using Chart.js
-- Interactive data exploration
-- Customizable dashboard layouts
-- Export functionality for reports
+**ash-nlp Integration:**
+- Live NLP analysis results
+- Model confidence scores and accuracy
+- Performance monitoring and optimization
+- Custom model deployment status
 
-## 🧪 Testing
+**ash-thrash Integration:**
+- Automated testing results display
+- Testing schedule management
+- Performance regression alerts
+- Historical testing trends
 
-This repository includes comprehensive testing for dashboard functionality. Integration testing with the complete Ash ecosystem is coordinated through the main repository.
+### External Integrations
 
+**Discord Integration:**
+- OAuth2 authentication with Discord
+- Server member verification
+- Role synchronization
+- Direct message capabilities (for authorized personnel)
+
+**Monitoring Integration:**
+- Health check endpoints for external monitoring
+- Metrics export for Prometheus/Grafana
+- Alert webhook integration
+- Log aggregation support
+
+## 🛡️ Security & Privacy
+
+### Access Control
+- **OAuth2 Authentication** - Secure Discord-based login
+- **Role-Based Permissions** - Granular access control by team role
+- **Session Management** - Secure session handling with timeout
+- **Audit Logging** - Complete access and action logging
+
+### Data Protection
+- **Encrypted Communications** - All data transmission encrypted
+- **Privacy Compliance** - GDPR-compliant data handling
+- **Data Retention** - Configurable data retention policies
+- **Anonymization** - Personal data anonymization for analytics
+
+### Operational Security
+- **Rate Limiting** - DDoS protection and abuse prevention
+- **Input Validation** - Comprehensive input sanitization
+- **Security Headers** - Modern web security headers implemented
+- **Regular Updates** - Automated security patch management
+
+## 🧪 Testing & Validation
+
+### Automated Testing
 ```bash
-# Dashboard-specific testing
-npm run test:unit
+# Run dashboard tests
+npm test
 
-# Integration testing with APIs
+# Integration testing with other services
 npm run test:integration
-
-# UI/UX testing
-npm run test:e2e
 
 # Performance testing
 npm run test:performance
+
+# Security testing
+npm run test:security
 ```
 
-## 📈 Performance & Monitoring
+### Manual Testing
+```bash
+# Health check
+curl https://10.20.30.253:8883/health
 
-### Performance Specifications
-- **Server**: Windows 11 (10.20.30.16)
-- **Resources**: 2GB RAM, 1 CPU core
-- **Response Time**: <200ms for dashboard views
-- **Concurrent Users**: 50+ simultaneous users
-- **Data Refresh**: Real-time updates with 5-second intervals
+# Service connectivity
+curl https://10.20.30.253:8883/api/services/status
 
-### Monitoring
-- **Health Endpoint**: `http://10.20.30.16:8883/health`
-- **Performance Metrics**: Built-in dashboard performance tracking
-- **Error Monitoring**: Comprehensive error logging and alerting
-- **User Analytics**: Dashboard usage statistics and optimization insights
+# Authentication test
+curl -H "Authorization: Bearer $TOKEN" https://10.20.30.253:8883/api/user/profile
+```
 
-## 🔐 Security & Access Control
+## 📚 Documentation
 
-### Authentication
-- **JWT-based Authentication**: Secure token-based user sessions
-- **Role-Based Access Control**: Different permission levels for team members
-- **Session Management**: Configurable session timeouts and security policies
-- **API Security**: Rate limiting and request validation
+### Complete Documentation Suite
 
-### Data Protection
-- **Encrypted Communication**: HTTPS/TLS for all data transmission
-- **Data Minimization**: Only displays necessary information for crisis response
-- **Privacy Compliance**: Adheres to privacy-first principles of Ash ecosystem
-- **Audit Logging**: Comprehensive logs of all user actions and system changes
+- **[Deployment Guide](docs/deployment_v2_1.md)** - Production and development deployment
+- **[GitHub Release Guide](docs/github_release_v2_1.md)** - Release management procedures
+- **[Team Guide](docs/team/team_guide_v2_1.md)** - Crisis Response team procedures
+- **[API Documentation](docs/tech/api_v2_1.md)** - Complete REST API reference
+- **[Architecture Guide](docs/tech/architecture_v2_1.md)** - System design and components
+- **[Implementation Guide](docs/tech/implementation_v2_1.md)** - Technical setup and configuration
+- **[Troubleshooting Guide](docs/tech/troubleshooting_v2_1.md)** - Common issues and solutions
+
+### Quick Reference
+
+**Essential Commands:**
+```bash
+# Health check
+curl https://10.20.30.253:8883/health
+
+# Restart services
+docker-compose restart
+
+# View logs
+docker-compose logs ash-dash -f
+
+# Update deployment
+git pull && docker-compose up -d --build
+```
+
+**Key URLs:**
+- Dashboard: https://dashboard.alphabetcartel.net
+- API Documentation: https://10.20.30.253:8883/docs
+- Health Status: https://10.20.30.253:8883/health
+- Metrics: https://10.20.30.253:8883/metrics
+
+## 🔧 Development
+
+### Development Setup
+
+```bash
+# Clone for development
+git clone https://github.com/the-alphabet-cartel/ash-dash.git
+cd ash-dash
+
+# Install dependencies
+npm install
+
+# Setup development environment
+cp .env.template .env.development
+
+# Start development server
+npm run dev
+```
+
+### Development Workflow
+
+1. **Create Feature Branch** - `git checkout -b feature/description`
+2. **Develop and Test** - Implement changes with comprehensive testing
+3. **Integration Testing** - Test with other Ash components
+4. **Documentation Updates** - Update relevant documentation
+5. **Pull Request** - Submit PR with detailed description
+6. **Code Review** - Collaborative review and approval
+7. **Deployment** - Merge and deploy via CI/CD pipeline
 
 ## 🤝 Contributing
 
-### Development Process
-1. **Fork this repository** (ash-dash specifically)
-2. **Create feature branch** for your changes
-3. **Write comprehensive tests** for new features
-4. **Test integration** with Ash ecosystem APIs
-5. **Validate responsive design** across devices
-6. **Update documentation** as needed
-7. **Submit pull request** to this repository
+### Contributing Guidelines
 
-### UI/UX Development
-- **Design System**: Follow established component library and design patterns
-- **Accessibility**: Ensure WCAG 2.1 compliance for all new features
-- **Performance**: Optimize for fast loading and smooth interactions
-- **Mobile Support**: Test thoroughly on mobile and tablet devices
+1. **Fork Repository** - Create your own fork for development
+2. **Feature Branches** - Use descriptive branch names
+3. **Code Standards** - Follow established coding conventions
+4. **Testing Required** - All changes must include appropriate tests
+5. **Documentation** - Update documentation for any new features
+6. **Review Process** - All PRs require team review and approval
 
-### Main Ecosystem
-For changes affecting multiple components, coordinate with the [main ash repository](https://github.com/the-alphabet-cartel/ash) which includes this repository as a submodule.
+### Development Standards
+
+- **Code Style** - ESLint and Prettier configurations enforced
+- **Testing** - Minimum 80% code coverage required
+- **Security** - Security review required for all changes
+- **Performance** - Performance impact assessment for UI changes
+- **Accessibility** - WCAG 2.1 AA compliance required
 
 ## 📞 Support
 
-### Dashboard-Specific Issues
-- **GitHub Issues**: [ash-dash/issues](https://github.com/the-alphabet-cartel/ash-dash/issues)
-- **Discord Support**: #ash-dash-support in https://discord.gg/alphabetcartel
+### Community Support
+- **Discord:** https://discord.gg/alphabetcartel - #tech-support channel
+- **GitHub Issues:** https://github.com/the-alphabet-cartel/ash-dash/issues
+- **Documentation:** Comprehensive guides available in `/docs`
 
-### Ecosystem-Wide Issues
-- **Main Repository**: [ash/issues](https://github.com/the-alphabet-cartel/ash/issues)
-- **General Discussion**: #tech-help in https://discord.gg/alphabetcartel
+### Technical Support
+- **Crisis Response Teams:** Priority support for operational issues
+- **Development Support:** GitHub Discussions for development questions
+- **Security Issues:** security@alphabetcartel.org
 
-### User Experience Issues
-- **UI/UX Problems**: Include screenshots and browser information
-- **Performance Issues**: Include network timing and system specifications
-- **Access Issues**: Include user role and permission details
+### Support Escalation
+1. **Self-Service** - Documentation and troubleshooting guides
+2. **Community Support** - Discord #tech-support channel
+3. **GitHub Issues** - Bug reports and feature requests
+4. **Direct Contact** - For urgent production issues
 
 ## 📜 License
 
-This project is part of The Alphabet Cartel's open-source initiatives. See [LICENSE](LICENSE) file for details.
+This project is part of The Alphabet Cartel ecosystem. See individual component licenses for specific terms.
+
+## 🏷️ Version History
+
+- **v2.1.0** - Submodule integration and dedicated server deployment
+- **v2.0.0** - Complete dashboard redesign with advanced analytics
+- **v1.5.0** - Team management and role-based access control
+- **v1.0.0** - Initial dashboard with basic monitoring capabilities
 
 ---
 
-## ⚠️ Important Notes
-
-### Repository Scope
-This repository contains **ONLY the analytics dashboard component**. For:
-- **Discord Bot**: See [ash-bot](https://github.com/the-alphabet-cartel/ash-bot)
-- **NLP Server**: See [ash-nlp](https://github.com/the-alphabet-cartel/ash-nlp)
-- **Testing Suite**: See [ash-thrash](https://github.com/the-alphabet-cartel/ash-thrash)
-- **Complete System**: See [main ash repository](https://github.com/the-alphabet-cartel/ash)
-
-### Development Recommendations
-- **New Contributors**: Start with the [main ash repository](https://github.com/the-alphabet-cartel/ash) for complete system overview
-- **Dashboard-Specific Work**: Use this repository for UI/UX and analytics development
-- **System Integration**: Test changes against the full ecosystem APIs
-
-### Data Dependencies
-The dashboard requires active connections to ash-bot, ash-nlp, and ash-thrash APIs for full functionality. It can operate in limited mode if some services are unavailable.
-
-### Crisis Response Tool
-This dashboard is designed for crisis response team members and contains sensitive information related to community member welfare. Access should be restricted to authorized team members only.
-
----
-
-**Built with 🖤 for LGBTQIA+ gaming communities by [The Alphabet Cartel](https://discord.gg/alphabetcartel)**
+**The Alphabet Cartel** - Building inclusive gaming communities through technology.  
+🌈 **Discord:** https://discord.gg/alphabetcartel | 🌐 **Website:** http://alphabetcartel.org

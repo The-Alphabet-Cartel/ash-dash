@@ -1,638 +1,469 @@
-# 👥 Ash Analytics Dashboard Team Guide
+# 👥 Ash Dashboard Team Guide v2.1
 
-User-focused guide for Crisis Response teams using ash-dash v2.1
+**Crisis Response Team Operations Manual**  
+**Repository:** https://github.com/the-alphabet-cartel/ash-dash  
+**Dashboard Access:** https://dashboard.alphabetcartel.net
 
----
+## 📋 Overview
 
-## 🌟 Welcome to Your Dashboard
+This guide provides comprehensive instructions for Crisis Response team members using the Ash Dashboard for community mental health support within The Alphabet Cartel Discord community.
 
-The Ash Analytics Dashboard is your central hub for monitoring the mental health crisis detection system serving [The Alphabet Cartel](https://discord.gg/alphabetcartel) Discord community. This guide will help you understand, navigate, and effectively use the dashboard to support your community's wellbeing.
+### 🎯 Mission Statement
 
-### **What You Can Do**
+The Ash Dashboard serves as the central command center for our crisis response operations, providing real-time monitoring, analytics, and coordination tools to ensure effective and compassionate mental health support for our LGBTQIA+ gaming community.
 
-- **Monitor Crisis Detection**: Track how well the system is identifying and responding to mental health concerns
-- **View Learning Progress**: See how the AI system improves based on your team's feedback
-- **Check Service Health**: Ensure all components are running smoothly
-- **Access Testing Results**: Review comprehensive testing data and performance metrics
-- **Export Data**: Generate reports for analysis and record-keeping
-- **Manage Team Access**: Control who can view what information (admin roles)
+### 🏗️ Team Structure
 
----
+**Crisis Response Hierarchy:**
+- **Crisis Response Lead** - Overall team coordination and critical decision making
+- **Senior Crisis Responders** - Experienced team members who handle complex situations
+- **Crisis Responders** - Trained team members who provide direct support
+- **Observer/Trainee** - New team members in training phase
+- **Analytics Specialists** - Focus on data analysis and trend identification
 
 ## 🚀 Getting Started
 
-### **Accessing the Dashboard**
+### Dashboard Access
 
-**Primary URL**: https://10.20.30.16:8883
+**Primary Access Methods:**
+- **Public URL:** https://dashboard.alphabetcartel.net
+- **Direct IP:** https://10.20.30.253:8883 (internal network)
+- **Mobile Access:** Responsive design supports mobile devices
 
-**What You'll Need:**
-- Modern web browser (Chrome, Firefox, Edge, Safari)
-- Network access to the server (usually automatic within your organization)
-- Team member account (contact your administrator if needed)
+**First-Time Login:**
+1. Navigate to dashboard URL
+2. Click "Login with Discord"
+3. Authorize The Alphabet Cartel application
+4. Your role will be automatically assigned based on Discord permissions
+5. Complete mandatory training modules before active duty
 
-**First Login:**
-1. Navigate to https://10.20.30.16:8883
-2. You may see a security warning about certificates - this is normal for internal tools
-3. Click "Advanced" → "Proceed to site" (exact wording varies by browser)
-4. The dashboard will load automatically
+### Account Setup
 
-### **Dashboard Layout**
+**Initial Configuration:**
+1. **Profile Setup** - Complete personal preferences and contact information
+2. **Notification Settings** - Configure alert preferences and escalation methods
+3. **Schedule Availability** - Set your available hours for crisis response
+4. **Training Status** - Complete required training modules
+5. **Emergency Contacts** - Provide backup contact methods
 
-**Header Section:**
-- Service status indicators (green = good, red = issues)
-- Last update timestamp
-- Quick navigation menu
+**Role-Based Access:**
+- **Observer:** Read-only access to anonymized data and training materials
+- **Responder:** Active crisis monitoring and response capabilities
+- **Senior Responder:** Advanced analytics and team coordination features
+- **Lead:** Full administrative access and team management capabilities
 
-**Main Content:**
-- Crisis detection metrics and trends
-- Learning system progress
-- Testing suite results
-- Interactive charts and graphs
+## 📊 Dashboard Interface
 
-**Footer:**
-- Links to documentation
-- Team contact information
-- System version information
+### Main Dashboard
+
+**Live Crisis Monitor:**
+- **Active Incidents** - Current situations requiring attention
+- **Response Queue** - Pending cases awaiting assignment
+- **Team Status** - Current availability and workload of team members
+- **System Health** - Status of all Ash ecosystem components
+
+**Key Metrics Display:**
+- **Community Wellness Index** - Overall mental health indicator
+- **Response Times** - Average time from detection to first contact
+- **Resolution Rates** - Percentage of successfully resolved situations
+- **Team Performance** - Individual and collective response metrics
+
+### Crisis Response Interface
+
+**Incident Management:**
+```
+📍 Active Crisis Alert
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 Severity: HIGH
+👤 User: [Anonymized ID: AC_USER_1234]
+⏰ Detected: 2025-01-28 14:32:18
+🎯 Confidence: 94.2%
+📝 Trigger: "I can't take this anymore..."
+
+🔍 Analysis:
+- Suicidal ideation indicators detected
+- Recent pattern of isolation behavior
+- Previous interaction history available
+- No active responder assigned
+
+🎯 Recommended Actions:
+1. Immediate private message contact
+2. Assessment of immediate safety
+3. Offer of support resources
+4. Follow-up scheduling
+
+[ASSIGN TO ME] [ESCALATE] [VIEW HISTORY]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Response Workflow:**
+1. **Alert Reception** - Crisis detected and assigned to available responder
+2. **Initial Assessment** - Review available context and user history
+3. **Contact Initiation** - Reach out via appropriate channel
+4. **Safety Assessment** - Evaluate immediate risk and safety concerns
+5. **Support Provision** - Offer resources, coping strategies, and ongoing support
+6. **Follow-up Planning** - Schedule check-ins and continued monitoring
+7. **Case Documentation** - Record intervention details and outcomes
+
+### Analytics Dashboard
+
+**Community Health Metrics:**
+- **Trend Analysis** - Mental health indicators over time
+- **Risk Patterns** - Identification of high-risk periods and triggers
+- **Intervention Effectiveness** - Success rates of different support approaches
+- **Resource Utilization** - Usage patterns of support resources and services
+
+**Team Performance Analytics:**
+- **Response Time Analysis** - Individual and team response speed metrics
+- **Case Load Distribution** - Workload balance across team members
+- **Success Rate Tracking** - Resolution effectiveness by responder
+- **Training Progress** - Team skill development and certification status
+
+## 🚨 Crisis Response Procedures
+
+### Severity Classification
+
+**🔴 HIGH CRISIS (Immediate Intervention Required):**
+- Active suicidal ideation or self-harm statements
+- Immediate danger to self or others
+- Substance abuse crisis with safety concerns
+- Severe mental health episode requiring immediate attention
+
+**Response Time:** < 5 minutes  
+**Required Actions:** Immediate private contact, safety assessment, possible emergency service contact
+
+**🟡 MEDIUM CRISIS (Close Monitoring Required):**
+- Depression or anxiety escalation
+- Relationship or social difficulties causing distress
+- Identity or acceptance struggles
+- Financial or housing instability affecting mental health
+
+**Response Time:** < 15 minutes  
+**Required Actions:** Supportive contact, resource provision, follow-up scheduling
+
+**🟢 LOW CRISIS (Supportive Monitoring):**
+- General stress or life challenges
+- Minor conflicts or disappointments
+- Seeking advice or community support
+- Preventive wellness check-ins
+
+**Response Time:** < 30 minutes  
+**Required Actions:** Supportive engagement, community connection, resource sharing
+
+### Response Protocols
+
+#### Initial Contact Protocol
+
+**Step 1: Immediate Response (Within 5 minutes for HIGH, 15 for MEDIUM)**
+```
+Private Message Template:
+
+"Hi [Name], 
+
+I'm [Your Name] from The Alphabet Cartel's Crisis Response team. I noticed 
+you might be going through a tough time right now, and I wanted to reach 
+out to see if you'd like someone to talk to.
+
+Your wellbeing matters to us, and you're not alone. Would you be comfortable 
+chatting about what's going on? I'm here to listen without judgment and 
+help connect you with resources if you'd like.
+
+Take care,
+[Your Name]
+Crisis Response Team - The Alphabet Cartel"
+```
+
+**Step 2: Safety Assessment**
+- Ask directly about suicidal thoughts or self-harm intentions
+- Assess immediate safety and availability of means
+- Evaluate support system and current circumstances
+- Determine need for emergency services involvement
+
+**Step 3: Support Provision**
+- Active listening and validation of feelings
+- Coping strategy suggestions and grounding techniques
+- Resource sharing (hotlines, professional services, community resources)
+- Collaborative safety planning if appropriate
+
+**Step 4: Follow-up Planning**
+- Schedule check-in conversations
+- Connect with ongoing support resources
+- Coordinate with other team members if needed
+- Document interaction and plan in dashboard
+
+#### Escalation Procedures
+
+**When to Escalate:**
+- User expresses immediate suicide plan with means and intent
+- Active self-harm behavior reported
+- Threats of violence toward others
+- Severe mental health crisis beyond team capabilities
+- User becomes non-responsive after expressing high-risk ideation
+
+**Escalation Process:**
+1. **Immediate Notification** - Alert Crisis Response Lead via dashboard escalation button
+2. **Emergency Assessment** - Lead evaluates need for emergency services
+3. **Professional Referral** - Connect with mental health crisis services
+4. **Follow-up Coordination** - Ensure continuity of care and support
+5. **Team Debriefing** - Process the incident and identify learning opportunities
+
+### Documentation Requirements
+
+**Required Documentation (All Cases):**
+- Initial contact time and method
+- User response and engagement level
+- Safety assessment results
+- Resources provided and referrals made
+- Follow-up plan and schedule
+- Case resolution or ongoing status
+
+**Additional Documentation (High/Medium Crisis):**
+- Detailed conversation summary
+- Risk assessment rationale
+- Escalation decisions and reasoning
+- Professional service contacts made
+- Team consultation and input
+
+## 📚 Resources & Tools
+
+### Crisis Intervention Resources
+
+**Immediate Crisis Support:**
+- **National Suicide Prevention Lifeline:** 988
+- **Crisis Text Line:** Text HOME to 741741
+- **Trans Lifeline:** 877-565-8860
+- **LGBT National Hotline:** 1-888-843-4564
+- **Trevor Project (LGBTQ+ Youth):** 1-866-488-7386
+
+**Professional Services:**
+- **Psychology Today:** Find local therapists
+- **SAMHSA Treatment Locator:** Substance abuse treatment
+- **NAMI (National Alliance on Mental Illness):** Local support groups
+- **PFLAG:** Family support for LGBTQIA+ individuals
+
+**Online Resources:**
+- **7 Cups:** Free emotional support chat
+- **BetterHelp/Talkspace:** Online therapy platforms
+- **Mindfulness Apps:** Headspace, Calm, Insight Timer
+- **LGBTQIA+ Support Communities:** Various Discord servers and forums
+
+### Safety Planning Tools
+
+**Crisis Safety Plan Template:**
+```
+🛡️ SAFETY PLAN
+
+Warning Signs (Things that might lead to crisis):
+1. [User-identified trigger]
+2. [User-identified trigger]
+3. [User-identified trigger]
+
+Coping Strategies (Things I can do alone):
+1. [Self-soothing activity]
+2. [Grounding technique]
+3. [Physical activity]
+
+Social Contacts (People who help me feel better):
+1. [Supportive friend/family member]
+2. [Crisis responder or mental health professional]
+3. [Community member or mentor]
+
+Professional Contacts:
+- Therapist: [Name and number if applicable]
+- Crisis Line: 988
+- Emergency: 911
+
+Safe Environment:
+- Remove or restrict access to means of self-harm
+- Identify safe spaces and people
+- Plan for crisis situations
+
+Reasons for Living:
+1. [Personal meaning/purpose]
+2. [Important relationships]
+3. [Future goals or experiences]
+```
+
+### Communication Guidelines
+
+**Do's:**
+- Use person-first language ("person experiencing depression" vs "depressed person")
+- Validate feelings and experiences
+- Ask direct questions about safety
+- Offer specific, concrete help
+- Respect boundaries and consent
+- Maintain confidentiality within team protocols
+
+**Don'ts:**
+- Minimize or dismiss concerns ("it could be worse")
+- Offer simplistic solutions ("just think positive")
+- Make promises you can't keep
+- Share personal crisis stories unless specifically helpful
+- Break confidentiality outside established protocols
+- Take on more than your capacity allows
+
+## 🏥 Training & Development
+
+### Required Training Modules
+
+**Module 1: Crisis Recognition and Assessment**
+- Identifying mental health crisis indicators
+- Assessing suicide risk and safety
+- Understanding trauma-informed approaches
+- Recognizing LGBTQIA+ specific challenges
+
+**Module 2: Communication and De-escalation**
+- Active listening techniques
+- Empathetic communication skills
+- De-escalation strategies
+- Cultural competency and sensitivity
+
+**Module 3: Resource Navigation and Referrals**
+- Mental health service landscape
+- LGBTQIA+ affirming resources
+- Emergency service coordination
+- Community-based support options
+
+**Module 4: Self-Care and Team Support**
+- Secondary trauma prevention
+- Burnout recognition and prevention
+- Team support and consultation
+- Personal boundaries and limits
+
+### Ongoing Development
+
+**Monthly Team Meetings:**
+- Case consultation and peer support
+- Skill development workshops
+- Resource updates and new tools
+- Team building and wellness activities
+
+**Quarterly Training Updates:**
+- Advanced crisis intervention techniques
+- New research and best practices
+- Community-specific issue focus
+- Guest expert presentations
+
+**Annual Certification:**
+- Comprehensive knowledge assessment
+- Practical skill demonstration
+- Ethics and confidentiality review
+- Professional development planning
+
+## 💪 Self-Care & Support
+
+### Team Member Wellness
+
+**Mandatory Self-Care Practices:**
+- Regular supervision and consultation
+- Workload limits and break requirements
+- Access to Employee Assistance Programs
+- Peer support and debriefing opportunities
+
+**Recommended Wellness Activities:**
+- Personal therapy or counseling
+- Mindfulness and stress reduction practices
+- Physical activity and healthy lifestyle
+- Hobbies and interests outside crisis work
+
+### Preventing Burnout
+
+**Warning Signs to Monitor:**
+- Decreased empathy or emotional numbing
+- Increased irritability or cynicism
+- Physical symptoms (headaches, sleep issues)
+- Avoiding crisis response duties
+- Feeling overwhelmed or hopeless
+
+**Prevention Strategies:**
+- Regular self-assessment using dashboard wellness tools
+- Proactive schedule management and time off
+- Seeking supervision when struggling
+- Participating in team support activities
+- Maintaining boundaries between work and personal life
+
+## 📞 Support & Resources
+
+### Team Support Channels
+
+**Primary Support:**
+- **Discord:** #crisis-response-team (private channel)
+- **Dashboard:** Built-in team communication tools
+- **Emergency Contact:** Crisis Response Lead 24/7 hotline
+
+**Professional Support:**
+- **Team Supervisor:** Available for consultation and guidance
+- **Mental Health Consultant:** Licensed professional for complex cases
+- **Employee Assistance:** Confidential counseling for team members
+
+### Emergency Procedures
+
+**Team Member Crisis:**
+If a team member is experiencing a personal crisis:
+1. Immediate safety assessment and support
+2. Remove from active duty temporarily
+3. Connect with professional resources
+4. Provide ongoing team support
+5. Gradual return to duty with supervision
+
+**System Outages:**
+If dashboard or Ash systems are unavailable:
+1. Switch to backup communication channels
+2. Manual crisis monitoring via Discord
+3. Document all interventions for later input
+4. Escalate critical cases via direct contact
+5. Resume normal operations when systems restored
+
+## 📊 Performance & Evaluation
+
+### Individual Performance Metrics
+
+**Response Quality Indicators:**
+- Response time to crisis alerts
+- User engagement and rapport building
+- Successful crisis resolution rates
+- Appropriate resource utilization
+- Follow-up consistency and effectiveness
+
+**Professional Development Goals:**
+- Skill advancement in specific intervention techniques
+- Leadership development and mentoring capabilities
+- Specialized training in particular populations or issues
+- Community engagement and relationship building
+
+### Team Performance Assessment
+
+**Quarterly Team Reviews:**
+- Overall response effectiveness and outcomes
+- Team coordination and communication quality
+- Resource utilization and development needs
+- Community feedback and satisfaction
+- System improvement recommendations
+
+**Annual Team Evaluation:**
+- Comprehensive program assessment
+- Individual and team goal achievement
+- Training effectiveness and knowledge retention
+- Community impact and outcome measurement
+- Strategic planning and program development
 
 ---
 
-## 📊 Understanding the Dashboard
+## 🌟 Team Values & Commitment
 
-### **Service Status Row**
+As a member of The Alphabet Cartel Crisis Response Team, we commit to:
 
-The top of your dashboard shows the health of all system components:
-
-#### **🤖 Ash Bot Status**
-- **Green**: Bot is online and responding to crisis situations
-- **Yellow**: Bot is experiencing some delays but still functional
-- **Red**: Bot is offline or having serious issues - immediate attention needed
-
-*What this means*: This is your Discord bot that actually detects and responds to crisis situations in chat.
-
-#### **🧠 NLP Server Status**  
-- **Green**: AI analysis system is working normally
-- **Yellow**: Some performance issues but still analyzing messages
-- **Red**: AI system is down - detection accuracy may be reduced
-
-*What this means*: This is the "brain" that uses machine learning to understand crisis language.
-
-#### **🧪 Testing Suite Status**
-- **Green**: Automated testing is running and passing
-- **Yellow**: Some tests failing but core functionality works
-- **Red**: Major testing failures - system reliability uncertain
-
-*What this means*: This continuously tests the system to ensure it's working correctly.
-
-#### **📊 Dashboard Status**
-- **Green**: This dashboard is working normally  
-- **Yellow**: Some features may be slow or unavailable
-- **Red**: Dashboard is having problems - refresh the page
-
-*What this means*: The health of this monitoring system itself.
-
-### **Crisis Detection Metrics**
-
-These numbers show how the system is performing at its core mission:
-
-#### **Crisis Level Breakdown (Last 24 Hours)**
-- **🔴 High Crisis (X alerts)**: Immediate intervention situations detected
-- **🟡 Medium Crisis (X alerts)**: Concerning situations requiring monitoring
-- **🟢 Low Crisis (X alerts)**: Mild concerns with gentle support offered
-- **📝 Total Messages (X analyzed)**: All messages the system reviewed
-
-#### **What These Numbers Mean**
-- **Higher numbers aren't necessarily bad** - they might indicate the system is correctly identifying situations that need attention
-- **Sudden spikes** might indicate a community crisis or system sensitivity changes
-- **Zero detections for extended periods** might indicate the system isn't working properly
-
-#### **Detection Accuracy**
-- **False Positive Rate**: Percentage of alerts that weren't actually crises
-- **False Negative Rate**: Percentage of missed crises (based on team corrections)
-- **Overall Accuracy**: How often the system gets it right
-
-### **Learning System Analytics**
-
-This section shows how the AI system improves over time:
-
-#### **Learning Effectiveness**
-- **Community Adaptations**: How many times the system learned from your team's feedback
-- **Pattern Recognition**: New crisis language patterns the system discovered
-- **Accuracy Improvements**: Percentage improvement in detection over time
-
-#### **Team Corrections Tracking**
-- **False Positive Corrections**: Times your team reported "this wasn't a crisis"
-- **False Negative Corrections**: Times your team reported "this was missed"
-- **Learning Rate**: How quickly the system adapts to feedback
-
-#### **What This Means for Your Community**
-- The system learns your community's unique language and communication style
-- Over time, it should become better at distinguishing real crises from jokes, gaming references, or casual expressions
-- Your corrections directly improve the system for everyone
-
-### **Testing Suite Integration**
-
-Shows results from comprehensive system testing:
-
-#### **Goal Achievement**
-- **Pass Rate**: Percentage of tests currently passing
-- **Target Achievement**: How close you are to testing goals
-- **Performance Trends**: Whether test performance is improving or declining
-
-#### **Recent Test Results**
-- **Comprehensive Tests**: Results from the full 350-phrase test suite
-- **Quick Validation**: Results from rapid 10-phrase sanity checks
-- **Failure Analysis**: Detailed breakdown of any failing tests
-
-#### **What Testing Tells You**
-- High pass rates (>90%) indicate the system is working reliably
-- Declining performance might indicate system drift or configuration issues
-- Specific test failures can help identify what needs attention
+- **Compassion** - Approaching every interaction with empathy and understanding
+- **Respect** - Honoring the dignity and autonomy of every community member
+- **Inclusivity** - Ensuring our support is affirming and accessible to all LGBTQIA+ individuals
+- **Competence** - Continuously developing our skills and knowledge to provide effective support
+- **Integrity** - Maintaining ethical standards and professional boundaries
+- **Collaboration** - Working together as a team to provide comprehensive care
+- **Self-Care** - Taking care of ourselves so we can better care for others
 
 ---
 
-## 📈 Using the Charts and Visualizations
+**🌈 Together, we create a safer, more supportive community for everyone.**
 
-### **Crisis Trends Chart**
-
-**What it shows**: Timeline of crisis detections over the last 24 hours
-
-**How to read it**:
-- X-axis: Time (hourly intervals)
-- Y-axis: Number of crisis detections
-- Colors: Red (high), Yellow (medium), Green (low crisis levels)
-
-**What to look for**:
-- **Normal patterns**: Some communities have predictable busy hours
-- **Unusual spikes**: Might indicate community stress or system sensitivity issues
-- **Flat lines**: Could mean quiet periods or system problems
-
-**Interactive features**:
-- Hover over data points for exact numbers
-- Click legend items to show/hide crisis levels
-- Charts update automatically every minute
-
-### **Learning Progress Chart**
-
-**What it shows**: How the AI system's accuracy improves over time
-
-**How to read it**:
-- X-axis: Time (daily intervals)
-- Y-axis: Accuracy percentage
-- Line trend: Overall improvement direction
-
-**What to look for**:
-- **Upward trends**: System is learning and improving
-- **Plateaus**: System has reached stable performance
-- **Downward trends**: May indicate need for recalibration
-
-### **Service Performance Charts**
-
-**What they show**: Response times and availability for each service
-
-**Why this matters**:
-- Slow response times might affect crisis response speed
-- Service interruptions could mean missed crisis situations
-- Trends help predict when maintenance might be needed
-
----
-
-## 🔧 Interactive Features
-
-### **Real-Time Updates**
-
-**What happens automatically**:
-- Charts refresh every 30 seconds with new data
-- Service status indicators update every minute
-- Alert notifications appear immediately for critical issues
-
-**Manual refresh options**:
-- Click the refresh button to force immediate update
-- Page automatically recovers from temporary connection issues
-
-### **Time Range Selection**
-
-**Available views**:
-- **Last Hour**: Detailed minute-by-minute view
-- **Last 24 Hours**: Standard overview (default)
-- **Last 7 Days**: Weekly patterns and trends
-- **Last 30 Days**: Monthly analysis and longer-term trends
-
-**How to change**: Use the time range selector above the charts
-
-### **Data Export**
-
-**What you can export**:
-- Crisis detection data (CSV format)
-- Learning statistics (JSON format) 
-- Testing results (CSV format)
-- Service performance metrics (CSV format)
-
-**How to export**:
-1. Click the "Export Data" button
-2. Select the data type and date range
-3. Choose format (CSV for spreadsheets, JSON for technical analysis)
-4. Download will start automatically
-
-**Uses for exported data**:
-- Create custom reports for leadership
-- Analyze trends in external tools
-- Archive data for compliance purposes
-- Share anonymized statistics with other communities
-
----
-
-## 🚨 Understanding Alerts and Warnings
-
-### **System Alerts**
-
-#### **Service Down Alerts**
-- **Appearance**: Red banner at top of dashboard
-- **Meaning**: Critical service is offline
-- **Action needed**: Contact technical support immediately
-- **Impact**: Crisis detection may be impaired
-
-#### **Performance Warnings**
-- **Appearance**: Yellow notification box
-- **Meaning**: Service is slow but functional
-- **Action needed**: Monitor situation, may resolve automatically
-- **Impact**: Slight delays in crisis response
-
-#### **Data Staleness Warnings**
-- **Appearance**: Orange timestamp indicators
-- **Meaning**: Data hasn't updated recently
-- **Action needed**: Refresh page, check network connection
-- **Impact**: Dashboard may not show current status
-
-### **Crisis Detection Alerts**
-
-#### **Unusual Pattern Alerts**
-- **Trigger**: Sudden spike in crisis detections
-- **Possible causes**: Community event, system sensitivity change, actual crisis situation
-- **Recommended action**: Review recent Discord activity, check with other team members
-
-#### **System Silence Alerts**
-- **Trigger**: No crisis detections for extended period (unusual for your community)
-- **Possible causes**: System malfunction, very quiet community period
-- **Recommended action**: Verify system is working by checking test messages
-
-#### **Learning System Alerts**
-- **Trigger**: Accuracy dropping or learning rate declining
-- **Possible causes**: Inconsistent feedback, system drift, community language evolution
-- **Recommended action**: Review recent team corrections for consistency
-
----
-
-## 👥 Team Collaboration Features
-
-### **Role-Based Access**
-
-#### **Observer Role** (Default)
-- View all dashboard data and charts
-- Export data for analysis
-- Cannot modify settings or trigger tests
-
-#### **Moderator Role**
-- All Observer capabilities
-- Trigger manual testing
-- Access detailed failure analysis
-- View team activity logs
-
-#### **Administrator Role**
-- All Moderator capabilities
-- Manage team member access
-- Configure alert settings
-- Access system logs and diagnostics
-
-### **Activity Logging**
-
-**What's logged**:
-- Dashboard access and usage
-- Data exports and report generation
-- Manual test triggering
-- Settings changes (admin only)
-
-**Why this matters**:
-- Helps track team coordination
-- Provides audit trail for compliance
-- Identifies training needs
-
-### **Team Notifications**
-
-**Types of notifications**:
-- Critical system alerts
-- Weekly performance summaries
-- Monthly trend reports
-- System maintenance announcements
-
-**How to receive notifications**:
-- In-dashboard notification center
-- Email alerts (if configured)
-- Discord announcements (if integrated)
-
----
-
-## 📱 Mobile and Remote Access
-
-### **Mobile Browser Support**
-
-**Supported devices**:
-- iOS Safari (iPhone/iPad)
-- Android Chrome
-- Mobile Edge, Firefox
-
-**Mobile features**:
-- Responsive design adapts to screen size
-- Touch-friendly interactive elements
-- Simplified navigation for smaller screens
-- All core functionality available
-
-**Mobile limitations**:
-- Some detailed charts may be harder to read
-- Data export requires desktop browser for large files
-- Advanced features may require horizontal orientation
-
-### **Remote Access**
-
-**VPN Requirements**:
-- Must be connected to organization VPN
-- Network access to 10.20.30.16 subnet required
-- Standard HTTPS port (443) must be open
-
-**Security considerations**:
-- Always use HTTPS (secure) connection
-- Log out when finished, especially on shared devices
-- Report suspicious activity or unauthorized access attempts
-
----
-
-## 🛠️ Troubleshooting for Team Members
-
-### **Common Issues and Solutions**
-
-#### **"Dashboard won't load"**
-1. Check internet connection
-2. Verify VPN connection (if remote)
-3. Try different browser
-4. Clear browser cache and cookies
-5. Contact technical support if problem persists
-
-#### **"Charts aren't updating"**
-1. Refresh the page (Ctrl+F5 or Cmd+Shift+R)
-2. Check if timestamp is recent
-3. Verify service status indicators are green
-4. Wait 2-3 minutes for automatic recovery
-5. Report persistent issues to tech support
-
-#### **"Can't export data"**
-1. Ensure popup blocker is disabled
-2. Try smaller date range
-3. Use Chrome or Firefox if using Internet Explorer
-4. Check available disk space
-5. Contact administrator for large exports
-
-#### **"See 'Certificate Error' or 'Not Secure' warnings"**
-1. This is normal for internal tools
-2. Click "Advanced" then "Proceed to site"
-3. Add security exception if prompted
-4. Contact IT if you're uncomfortable proceeding
-
-### **Performance Tips**
-
-#### **For Best Experience**:
-- Use Chrome, Firefox, or Edge (avoid Internet Explorer)
-- Keep only necessary browser tabs open
-- Refresh page if it's been open for several hours
-- Use wired internet connection if possible when remote
-
-#### **If Dashboard is Slow**:
-- Check if other team members are experiencing issues
-- Try accessing during off-peak hours
-- Close other bandwidth-intensive applications
-- Report persistent performance issues
-
-### **When to Contact Support**
-
-#### **Immediate attention needed**:
-- All service indicators are red
-- Crisis detection appears to have stopped completely
-- Dashboard shows error messages
-- Suspicious activity or security concerns
-
-#### **Report within 24 hours**:
-- Consistent performance issues
-- Unusual patterns in crisis detection
-- Missing data or reports
-- Questions about data interpretation
-
-#### **General questions**:
-- Training requests
-- Feature suggestions
-- Data analysis help
-- Best practices questions
-
----
-
-## 📚 Best Practices for Crisis Response Teams
-
-### **Daily Routine**
-
-#### **Start of Shift**:
-1. Check dashboard service status (all green)
-2. Review overnight crisis detection activity
-3. Check for any system alerts or notifications
-4. Verify learning system is adapting normally
-
-#### **During Shift**:
-1. Monitor real-time updates periodically
-2. Report false positives/negatives promptly
-3. Note any unusual community activity
-4. Coordinate with other team members on significant events
-
-#### **End of Shift**:
-1. Document any significant incidents
-2. Report system issues to next shift
-3. Export data if needed for reports
-4. Note recommendations for system improvements
-
-### **Weekly Activities**
-
-#### **Team Coordination**:
-- Review weekly performance summary
-- Discuss any patterns or concerns
-- Coordinate feedback on false positives/negatives
-- Plan any needed training or process improvements
-
-#### **Data Analysis**:
-- Export weekly data for trend analysis
-- Compare performance to previous weeks
-- Identify areas for system improvement
-- Document lessons learned
-
-### **Monthly Activities**
-
-#### **Performance Review**:
-- Generate monthly performance reports
-- Analyze long-term trends
-- Review learning system effectiveness
-- Plan system optimizations
-
-#### **Team Training**:
-- Review any new features or changes
-- Share best practices and lessons learned
-- Train new team members
-- Update procedures as needed
-
----
-
-## 🎯 Understanding Your Impact
-
-### **How Your Work Improves the System**
-
-#### **Every Correction Matters**:
-- When you report a false positive, the system learns to be less sensitive to that pattern
-- When you report a missed crisis, the system learns to watch for similar language
-- Your feedback directly improves detection accuracy for your community
-
-#### **Community-Specific Learning**:
-- The system learns your community's unique slang and expressions
-- Gaming references, memes, and inside jokes are gradually filtered out
-- Real crisis language becomes more accurately identified
-
-#### **Measurable Improvements**:
-- Watch the accuracy percentages increase over time
-- See false positive rates decrease as the system learns
-- Observe faster, more appropriate responses to real crisis situations
-
-### **Success Metrics to Track**
-
-#### **Detection Accuracy**:
-- **Target**: >95% accuracy rate
-- **Trend**: Steady improvement over time
-- **Your impact**: Direct correlation with team feedback quality
-
-#### **Response Time**:
-- **Target**: <30 seconds for crisis identification
-- **Trend**: Consistent or improving performance
-- **Your impact**: System stability affects response reliability
-
-#### **Community Safety**:
-- **Measure**: Successful interventions and support provided
-- **Trend**: Improved crisis outcomes and community wellbeing
-- **Your impact**: Better detection leads to better support
-
----
-
-## 📞 Getting Help and Support
-
-### **Support Resources**
-
-#### **Documentation**:
-- **This Team Guide**: Day-to-day usage and best practices
-- **Deployment Guide**: Technical setup information (for IT)
-- **API Documentation**: Technical integration details (for developers)
-- **Troubleshooting Guide**: Common issues and solutions
-
-#### **Community Support**:
-- **Discord #tech-support**: Real-time help from community and developers
-- **GitHub Issues**: Bug reports and feature requests
-- **Team Meetings**: Regular check-ins and training sessions
-
-### **Contact Information**
-
-#### **Emergency Support** (System Down):
-- Discord: Ping @tech-lead role
-- Emergency contact: [Contact information]
-- Escalation: [Contact information]
-
-#### **General Support**:
-- Discord: #tech-support channel
-- GitHub: https://github.com/The-Alphabet-Cartel/ash-dash/issues
-- Email: [Support email if available]
-
-#### **Training and Best Practices**:
-- Schedule training: [Process for requesting training]
-- Best practices questions: #crisis-response channel
-- Process improvements: [Process for suggesting improvements]
-
----
-
-## 🔄 Updates and Changes
-
-### **How You'll Be Notified**
-
-#### **System Updates**:
-- Dashboard notifications for new features
-- Discord announcements for major changes
-- Email notifications for critical updates
-- Version information displayed in dashboard footer
-
-#### **Process Changes**:
-- Team meeting discussions
-- Updated documentation
-- Training sessions for new procedures
-
-### **Providing Feedback**
-
-#### **Feature Requests**:
-- Use GitHub Issues for new feature ideas
-- Discuss in team meetings
-- Vote on community priorities
-
-#### **Bug Reports**:
-- Report via Discord #tech-support
-- Include specific steps to reproduce
-- Provide screenshots when helpful
-
-#### **Process Improvements**:
-- Suggest during team meetings
-- Document what's working well and what isn't
-- Share ideas with other team members
-
----
-
-## 🎓 Training and Onboarding
-
-### **New Team Member Checklist**
-
-#### **Week 1: Getting Familiar**
-- [ ] Access dashboard successfully
-- [ ] Understand service status indicators
-- [ ] Know how to read crisis detection metrics
-- [ ] Practice exporting data
-- [ ] Complete basic troubleshooting
-
-#### **Week 2: Active Monitoring**
-- [ ] Monitor dashboard during actual shifts
-- [ ] Report first false positive/negative
-- [ ] Understand learning system impact
-- [ ] Coordinate with experienced team members
-
-#### **Week 3: Advanced Features**
-- [ ] Use all time range options
-- [ ] Generate and analyze reports
-- [ ] Understand testing suite results
-- [ ] Participate in team performance review
-
-#### **Week 4: Full Proficiency**
-- [ ] Train another new team member
-- [ ] Suggest process improvements
-- [ ] Handle routine issues independently
-- [ ] Contribute to team best practices
-
-### **Ongoing Training Opportunities**
-
-#### **Monthly Team Sessions**:
-- New feature demonstrations
-- Data analysis workshops
-- Best practices sharing
-- Q&A with technical team
-
-#### **Quarterly Reviews**:
-- Performance assessment
-- System effectiveness evaluation
-- Process improvement planning
-- Advanced feature training
-
----
-
-*This team guide is part of the ash-dash v2.1 documentation suite. For technical implementation details, see the other guides in the `/docs` directory. For real-time support, join us in [The Alphabet Cartel Discord](https://discord.gg/alphabetcartel).*
+**The Alphabet Cartel Crisis Response Team**  
+**Discord:** https://discord.gg/alphabetcartel | **Website:** http://alphabetcartel.org

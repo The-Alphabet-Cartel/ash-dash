@@ -1,866 +1,1305 @@
-# 🛠️ Ash Analytics Dashboard Troubleshooting Guide
+# 🔧 Ash Dashboard Troubleshooting Guide v2.1
 
-Common issues and solutions for ash-dash v2.1
+**Problem Resolution & Maintenance Manual**  
+**Repository:** https://github.com/the-alphabet-cartel/ash-dash  
+**Updated for:** Dedicated Server & Production Environment
 
----
+## 📋 Troubleshooting Overview
 
-## 🎯 Quick Diagnostics
+This comprehensive troubleshooting guide covers common issues, diagnostic procedures, and resolution steps for the Ash Dashboard in production deployment. All procedures are tested on the dedicated Debian 12 server environment.
 
-### **Health Check Checklist**
+### 🚨 Emergency Contacts
 
-Before diving into specific issues, run through this quick checklist:
+**Critical Issues:**
+- **Discord:** #crisis-response (immediate escalation)
+- **Technical Support:** #tech-support 
+- **Emergency Contact:** Crisis Response Lead
 
-```powershell
-# Quick health check script
-Write-Host "=== Ash Dashboard Health Check ===" -ForegroundColor Cyan
+**Non-Critical Issues:**
+- **GitHub Issues:** https://github.com/the-alphabet-cartel/ash-dash/issues
+- **Documentation:** Complete guides in `/docs` directory
 
-# 1. Check if dashboard is accessible
-try {
-    $response = Invoke-RestMethod -Uri "https://10.20.30.16:8883/health" -SkipCertificateCheck
-    Write-Host "✓ Dashboard: $($response.status)" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Dashboard: Not accessible" -ForegroundColor Red
-}
+## 🔍 Diagnostic Tools & Commands
 
-# 2. Check Docker containers
-$containers = @("ash-dash", "ash-redis")
-foreach ($container in $containers) {
-    $status = docker ps --filter "name=$container" --format "{{.Status}}"
-    if ($status -like "*Up*") {
-        Write-Host "✓ Container $container: Running" -ForegroundColor Green
-    } else {
-        Write-Host "✗ Container $container: Not running" -ForegroundColor Red
-    }
-}
+### Quick System Check
 
-# 3. Check service connectivity
-$services = @{
-    "Ash Bot" = "http://10.20.30.253:8882/health"
-    "NLP Server" = "http://10.20.30.16:8881/health"
-    "Testing Suite" = "http://10.20.30.16:8884/health"
-}
+```bash
+#!/bin/bash
+# Quick system diagnostic script
 
-foreach ($service in $services.GetEnumerator()) {
-    try {
-        $response = Invoke-RestMethod -Uri $service.Value -TimeoutSec 10
-        Write-Host "✓ $($service.Key): Connected" -ForegroundColor Green
-    } catch {
-        Write-Host "✗ $($service.Key): Not accessible" -ForegroundColor Red
-    }
-}
+echo "=== ASH DASHBOARD SYSTEM DIAGNOSTICS ==="
+echo "Timestamp: $(date)"
+echo "Server: $(hostname) - $(uname -a)"
+echo ""
 
-Write-Host "=== Health Check Complete ===" -ForegroundColor Cyan
+echo "=== DOCKER SERVICES STATUS ==="
+docker-compose ps
+echo ""
+
+echo "=== SYSTEM RESOURCES ==="
+echo "CPU Usage:"
+top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4"%"}'
+
+echo "Memory Usage:"
+free -h | awk 'NR==2{printf "Memory Usage: %s/%s (%.2f%%)\n", $3,$2,$3*100/$2 }'
+
+echo "Disk Usage:"
+df -h | awk '$NF=="/"{printf "Disk Usage: %d/%dGB (%s)\n", $3,$2,$5}'
+
+echo ""
+echo "=== APPLICATION HEALTH ==="
+echo "Dashboard API:"
+curl -s -k https://10.20.30.253:8883/health | jq '.' 2>/dev/null || echo "API health check failed"
+
+echo ""
+echo "Service Integration:"
+curl -s -k https://10.20.30.253:8883/api/services/status | jq '.' 2>/dev/null || echo "Service status check failed"
+
+echo ""
+echo "=== DATABASE STATUS ==="
+docker-compose exec postgres pg_isready -U ash_user -d ash_dashboard
+echo ""
+
+echo "=== REDIS STATUS ==="
+docker-compose exec redis redis-cli ping
+echo ""
+
+echo "=== RECENT ERRORS ==="
+echo "Application Errors (last 10):"
+docker-compose logs ash-dash --tail=10 | grep -i error || echo "No recent application errors"
+
+echo ""
+echo "Database Errors (last 5):"
+docker-compose logs postgres --tail=5 | grep -i error || echo "No recent database errors"
+
+echo ""
+echo "=== NETWORK CONNECTIVITY ==="
+echo "External Service Connectivity:"
+curl -s -o /dev/null -w "ash-bot: %{http_code} (%{time_total}s)\n" http://10.20.30.253:8882/health || echo "ash-bot: Connection failed"
+curl -s -o /dev/null -w "ash-nlp: %{http_code} (%{time_total}s)\n" http://10.20.30.253:8881/health || echo "ash-nlp: Connection failed"
+curl -s -o /dev/null -w "ash-thrash: %{http_code} (%{time_total}s)\n" http://10.20.30.253:8884/health || echo "ash-thrash: Connection failed"
+
+echo ""
+echo "=== DIAGNOSTICS COMPLETE ==="
 ```
 
----
+Save this as `/opt/ash/ash-dash/scripts/diagnostics.sh` and run:
 
-## 🚫 Dashboard Access Issues
-
-### **Problem: Dashboard Won't Load**
-
-#### **Symptoms**
-- Browser shows "This site can't be reached"
-- Connection timeout errors
-- ERR_CONNECTION_REFUSED
-
-#### **Diagnosis Steps**
-```powershell
-# Check if dashboard container is running
-docker ps | findstr ash-dash
-
-# Check if port is open
-netstat -ano | findstr :8883
-
-# Check Docker Desktop status
-Get-Service -Name "*docker*"
+```bash
+chmod +x /opt/ash/ash-dash/scripts/diagnostics.sh
+/opt/ash/ash-dash/scripts/diagnostics.sh
 ```
 
-#### **Solutions**
+## 🚨 Common Issues & Solutions
 
-**1. Container Not Running**
-```powershell
+### Application Startup Issues
+
+#### Issue: Dashboard Service Won't Start
+
+**Symptoms:**
+- Container exits immediately
+- "Connection refused" errors
+- Health check failures
+
+**Diagnostic Steps:**
+```bash
 # Check container status
 docker-compose ps
 
-# Restart if needed
+# View detailed logs
+docker-compose logs ash-dash --tail=50
+
+# Check environment variables
+docker-compose exec ash-dash env | grep -E "(NODE_ENV|PORT|DATABASE_URL)"
+
+# Test configuration
+docker-compose config
+```
+
+**Common Solutions:**
+
+1. **Environment Variable Issues:**
+```bash
+# Verify .env file exists and is readable
+ls -la /opt/ash/ash-dash/.env
+cat /opt/ash/ash-dash/.env | head -10
+
+# Check for missing required variables
+grep -E "(DATABASE_URL|JWT_SECRET|DISCORD_CLIENT)" /opt/ash/ash-dash/.env
+```
+
+2. **Database Connection Issues:**
+```bash
+# Test database connectivity
+docker-compose exec postgres pg_isready -U ash_user -d ash_dashboard
+
+# Check database credentials
+docker-compose exec ash-dash node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query('SELECT NOW()', (err, res) => {
+  console.log(err ? 'DB Error: ' + err.message : 'DB Connected: ' + res.rows[0].now);
+  pool.end();
+});
+"
+```
+
+3. **Port Conflicts:**
+```bash
+# Check if port 8883 is already in use
+sudo netstat -tlpn | grep :8883
+sudo lsof -i :8883
+
+# Kill conflicting processes if necessary
+sudo fuser -k 8883/tcp
+```
+
+4. **SSL Certificate Issues:**
+```bash
+# Check certificate files
+ls -la /opt/ash/ash-dash/certs/
+openssl x509 -in /opt/ash/ash-dash/certs/cert.pem -text -noout | grep -E "(Subject|Not After)"
+
+# Regenerate self-signed certificates if needed
+cd /opt/ash/ash-dash
+openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes -subj "/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=dashboard.alphabetcartel.net"
+chmod 600 certs/key.pem
+chmod 644 certs/cert.pem
+```
+
+#### Issue: Slow Application Startup
+
+**Symptoms:**
+- Long container startup times
+- Timeout errors during initialization
+- Health checks failing initially
+
+**Diagnostic Steps:**
+```bash
+# Monitor startup process
+docker-compose logs ash-dash -f &
 docker-compose restart ash-dash
 
-# Check logs for errors
-docker-compose logs ash-dash --tail 50
-```
-
-**2. Port Conflicts**
-```powershell
-# Find what's using port 8883
-netstat -ano | findstr :8883
-
-# If another process is using it, either:
-# Option A: Kill the process
-taskkill /PID <PID> /F
-
-# Option B: Change dashboard port
-echo "PORT=8884" >> .env
-docker-compose restart ash-dash
-```
-
-**3. Windows Firewall Blocking**
-```powershell
-# Add firewall rule
-New-NetFirewallRule -DisplayName "Ash Dashboard" -Direction Inbound -Port 8883 -Protocol TCP -Action Allow
-
-# Or temporarily disable firewall for testing
-Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
-# Remember to re-enable: Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
-```
-
-### **Problem: SSL Certificate Warnings**
-
-#### **Symptoms**
-- Browser shows "Your connection is not private"
-- Certificate error warnings
-- NET::ERR_CERT_INVALID
-
-#### **Solutions**
-
-**1. Accept Self-Signed Certificate (Recommended for Internal Use)**
-```text
-1. Click "Advanced" in the browser warning
-2. Click "Proceed to 10.20.30.16 (unsafe)"
-3. Browser will remember this choice
-```
-
-**2. Regenerate Certificates**
-```powershell
-# Remove old certificates
-Remove-Item -Recurse -Force certs
-
-# Restart to generate new ones
-docker-compose restart ash-dash
-
-# Check certificate generation logs
-docker-compose logs ash-dash | Select-String "SSL\|certificate"
-```
-
-**3. Install Custom Certificates**
-```powershell
-# Generate custom certificate
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout certs/key.pem \
-  -out certs/cert.pem \
-  -subj "/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.16"
-
-# Restart dashboard
-docker-compose restart ash-dash
-```
-
-**4. Disable SSL for Testing**
-```powershell
-# Temporarily disable SSL
-echo "ENABLE_SSL=false" >> .env
-docker-compose restart ash-dash
-
-# Access via HTTP
-Start-Process "http://10.20.30.16:8883"
-```
-
-### **Problem: Authentication Issues**
-
-#### **Symptoms**
-- Login failures
-- "Authentication required" errors
-- Frequent session timeouts
-
-#### **Solutions**
-
-**1. Check Authentication Configuration**
-```powershell
-# Check if RBAC is enabled
-docker-compose exec ash-dash cat /app/.env | findstr RBAC
-
-# Check user roles configuration
-docker-compose exec ash-dash cat /app/config/roles.json
-```
-
-**2. Reset Authentication**
-```powershell
-# Clear authentication cache
-docker-compose exec ash-dash npm run auth:clear
-
-# Restart with clean slate
-docker-compose restart ash-dash
-```
-
----
-
-## 📊 Data and Metrics Issues
-
-### **Problem: No Data Showing**
-
-#### **Symptoms**
-- Dashboard shows "No data available"
-- Empty charts and graphs
-- All metrics show zero
-
-#### **Diagnosis Steps**
-```powershell
-# Check service connectivity
-curl https://10.20.30.16:8883/api/status
-
-# Check individual services
-curl http://10.20.30.253:8882/health  # Ash Bot
-curl http://10.20.30.16:8881/health   # NLP Server
-curl http://10.20.30.16:8884/health   # Testing Suite
-```
-
-#### **Solutions**
-
-**1. Service Connection Issues**
-```powershell
-# Check if services are accessible from dashboard container
-docker-compose exec ash-dash curl http://10.20.30.253:8882/health
-docker-compose exec ash-dash curl http://10.20.30.16:8881/health
-docker-compose exec ash-dash curl http://10.20.30.16:8884/health
-
-# If failing, check network connectivity
-docker network ls
-docker network inspect ash-dash_ash-network
-```
-
-**2. Update Service Endpoints**
-```powershell
-# Check current configuration
-docker-compose exec ash-dash cat /app/.env | findstr API
-
-# Update if needed
-echo "ASH_BOT_API=http://new-bot-address:8882" >> .env
-echo "ASH_NLP_API=http://new-nlp-address:8881" >> .env
-echo "ASH_TESTING_API=http://new-testing-address:8884" >> .env
-
-docker-compose restart ash-dash
-```
-
-**3. Mock Data for Testing**
-```powershell
-# Enable mock data temporarily
-echo "ENABLE_MOCK_DATA=true" >> .env
-docker-compose restart ash-dash
-
-# This will show sample data while troubleshooting
-```
-
-### **Problem: Stale or Outdated Data**
-
-#### **Symptoms**
-- Data hasn't updated in hours
-- Timestamps show old dates
-- Charts not refreshing
-
-#### **Solutions**
-
-**1. Clear Cache**
-```powershell
-# Clear Redis cache
-docker-compose exec ash-redis redis-cli FLUSHALL
-
-# Clear application cache
-docker-compose exec ash-dash npm run cache:clear
-
-# Restart dashboard
-docker-compose restart ash-dash
-```
-
-**2. Check Update Intervals**
-```powershell
-# Check current update settings
-docker-compose exec ash-dash cat /app/.env | findstr INTERVAL
-
-# Reduce intervals for faster updates
-echo "METRICS_UPDATE_INTERVAL=10000" >> .env  # 10 seconds
-echo "HEALTH_CHECK_INTERVAL=30000" >> .env   # 30 seconds
-docker-compose restart ash-dash
-```
-
-**3. Force Data Refresh**
-```powershell
-# Manual data refresh via API
-curl -X POST "https://10.20.30.16:8883/api/cache/refresh" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -k
-```
-
-### **Problem: Charts Not Loading**
-
-#### **Symptoms**
-- Blank chart areas
-- "Failed to load chart" errors
-- JavaScript console errors
-
-#### **Solutions**
-
-**1. Check Browser Console**
-```text
-1. Press F12 to open Developer Tools
-2. Go to Console tab
-3. Look for JavaScript errors
-4. Common errors and solutions:
-
-- "Chart.js not found" → Clear browser cache
-- "WebSocket connection failed" → Check WebSocket connectivity
-- "Cannot read property of undefined" → Data format issue
-```
-
-**2. Clear Browser Cache**
-```text
-1. Ctrl+Shift+Delete (Windows) or Cmd+Shift+Delete (Mac)
-2. Select "Cached images and files"
-3. Click "Delete" or "Clear Data"
-4. Refresh the dashboard page
-```
-
-**3. Test Chart Data Directly**
-```powershell
-# Get chart data directly
-curl "https://10.20.30.16:8883/api/metrics/crisis-trends" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -k
-
-# Check if data format is correct
-```
-
----
-
-## 🔌 Integration and Service Issues
-
-### **Problem: Service Status Always Red**
-
-#### **Symptoms**
-- All service indicators show red/unhealthy
-- Services are actually running fine
-- Health checks failing
-
-#### **Solutions**
-
-**1. Check Health Check Configuration**
-```powershell
-# Check health check intervals
-docker-compose exec ash-dash cat /app/.env | findstr HEALTH
-
-# Increase timeout if services are slow
-echo "HEALTH_CHECK_TIMEOUT=10000" >> .env  # 10 seconds
-docker-compose restart ash-dash
-```
-
-**2. Test Health Endpoints Manually**
-```powershell
-# Test from dashboard container
-docker-compose exec ash-dash curl -v http://10.20.30.253:8882/health
-docker-compose exec ash-dash curl -v http://10.20.30.16:8881/health
-docker-compose exec ash-dash curl -v http://10.20.30.16:8884/health
-
-# Look for specific error messages
-```
-
-**3. Network Connectivity Issues**
-```powershell
-# Check if dashboard can reach services
-docker-compose exec ash-dash ping 10.20.30.253
-docker-compose exec ash-dash ping 10.20.30.16
-
-# Check DNS resolution
-docker-compose exec ash-dash nslookup 10.20.30.253
-```
-
-### **Problem: WebSocket Connection Failures**
-
-#### **Symptoms**
-- Real-time updates not working
-- "WebSocket connection failed" errors
-- Charts not auto-refreshing
-
-#### **Solutions**
-
-**1. Check WebSocket Configuration**
-```javascript
-// Test WebSocket connection manually in browser console
-const ws = new WebSocket('wss://10.20.30.16:8883/ws');
-ws.onopen = () => console.log('WebSocket connected');
-ws.onerror = (error) => console.error('WebSocket error:', error);
-ws.onclose = (event) => console.log('WebSocket closed:', event.code, event.reason);
-```
-
-**2. Proxy/Firewall Issues**
-```powershell
-# Check if WebSocket ports are open
-Test-NetConnection -ComputerName 10.20.30.16 -Port 8883
-
-# For proxy environments, may need to configure proxy settings
-```
-
-**3. SSL Issues with WebSockets**
-```powershell
-# Try with SSL disabled temporarily
-echo "ENABLE_SSL=false" >> .env
-docker-compose restart ash-dash
-
-# Test with ws:// instead of wss://
-# If this works, the issue is SSL-related
-```
-
----
-
-## 🗂️ Database and Storage Issues
-
-### **Problem: Data Export Failures**
-
-#### **Symptoms**
-- Export buttons not working
-- "Export failed" errors
-- Downloaded files are empty or corrupted
-
-#### **Solutions**
-
-**1. Check Export Directory Permissions**
-```powershell
-# Check if export directory exists and is writable
-docker-compose exec ash-dash ls -la /app/data/exports
-
-# Create directory if missing
-docker-compose exec ash-dash mkdir -p /app/data/exports
-
-# Check disk space
-docker-compose exec ash-dash df -h
-```
-
-**2. Memory Issues with Large Exports**
-```powershell
-# Check container memory usage
+# Check resource usage during startup
+htop &
 docker stats ash-dash
-
-# Increase memory limit if needed
-# Edit docker-compose.yml:
-# deploy:
-#   resources:
-#     limits:
-#       memory: 4G  # Increase from 2G
-
-docker-compose up -d
 ```
 
-**3. Test Export with Smaller Dataset**
-```powershell
-# Try exporting smaller time range
-curl -X POST "https://10.20.30.16:8883/api/export" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"format":"csv","timeRange":"1h","dataTypes":["crisis_metrics"]}' \
-  -k
+**Solutions:**
+
+1. **Increase Startup Timeouts:**
+```yaml
+# In docker-compose.yml
+healthcheck:
+  test: ["CMD", "curl", "-f", "https://localhost:8883/health"]
+  interval: 30s
+  timeout: 15s  # Increased from 10s
+  retries: 5    # Increased from 3
+  start_period: 180s  # Increased from 120s
 ```
 
-### **Problem: Redis Connection Issues**
+2. **Optimize Database Connections:**
+```bash
+# Reduce initial connection pool size in .env
+DB_POOL_MIN=2
+DB_POOL_MAX=20
+DB_CONNECTION_TIMEOUT=30000
+```
 
-#### **Symptoms**
-- Slow dashboard performance
-- Cache-related errors
-- "Redis connection failed" in logs
+### Database Issues
 
-#### **Solutions**
+#### Issue: PostgreSQL Connection Failures
 
-**1. Check Redis Container**
-```powershell
-# Check if Redis is running
-docker-compose ps ash-redis
+**Symptoms:**
+- "Connection refused" errors
+- Database queries timing out
+- Transaction deadlocks
+
+**Diagnostic Steps:**
+```bash
+# Check PostgreSQL container status
+docker-compose logs postgres --tail=20
+
+# Test database connectivity
+docker-compose exec postgres pg_isready
+
+# Check active connections
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT count(*) as active_connections, 
+       max_conn, 
+       max_conn-count(*) as available_connections 
+FROM pg_stat_activity, 
+     (SELECT setting::int as max_conn FROM pg_settings WHERE name='max_connections') mc;"
+
+# Check database locks
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT blocked_locks.pid AS blocked_pid,
+       blocked_activity.usename AS blocked_user,
+       blocking_locks.pid AS blocking_pid,
+       blocking_activity.usename AS blocking_user,
+       blocked_activity.query AS blocked_statement,
+       blocking_activity.query AS current_statement_in_blocking_process
+FROM pg_catalog.pg_locks blocked_locks
+JOIN pg_catalog.pg_stat_activity blocked_activity ON blocked_activity.pid = blocked_locks.pid
+JOIN pg_catalog.pg_locks blocking_locks ON blocking_locks.locktype = blocked_locks.locktype
+JOIN pg_catalog.pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid
+WHERE NOT blocked_locks.granted;"
+```
+
+**Solutions:**
+
+1. **Connection Pool Optimization:**
+```bash
+# Update .env file
+DB_MAX_CONNECTIONS=50
+DB_IDLE_TIMEOUT=30000
+DB_CONNECTION_TIMEOUT=10000
+
+# Restart application
+docker-compose restart ash-dash
+```
+
+2. **Database Performance Tuning:**
+```sql
+-- Connect to database
+docker-compose exec postgres psql -U ash_user -d ash_dashboard
+
+-- Analyze table statistics
+ANALYZE;
+
+-- Check slow queries
+SELECT query, mean_time, calls, total_time 
+FROM pg_stat_statements 
+ORDER BY total_time DESC 
+LIMIT 10;
+
+-- Vacuum and reindex if needed
+VACUUM ANALYZE;
+REINDEX DATABASE ash_dashboard;
+```
+
+3. **Memory Configuration:**
+```bash
+# Increase PostgreSQL memory settings in docker-compose.yml
+services:
+  postgres:
+    command: >
+      postgres 
+      -c shared_buffers=2GB
+      -c effective_cache_size=12GB
+      -c maintenance_work_mem=512MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+```
+
+#### Issue: Database Disk Space Full
+
+**Symptoms:**
+- "No space left on device" errors
+- Write operations failing
+- Database becoming read-only
+
+**Diagnostic Steps:**
+```bash
+# Check disk usage
+df -h
+du -sh /opt/ash/ash-dash/data/postgres/*
+
+# Check database sizes
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT datname, pg_size_pretty(pg_database_size(datname)) as size 
+FROM pg_database 
+ORDER BY pg_database_size(datname) DESC;"
+
+# Check table sizes
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT schemaname,tablename,attname,n_distinct,correlation 
+FROM pg_stats 
+WHERE schemaname = 'public' 
+ORDER BY schemaname,tablename,attname;"
+```
+
+**Solutions:**
+
+1. **Immediate Space Recovery:**
+```bash
+# Clean old log files
+find /opt/ash/ash-dash/logs -name "*.log" -mtime +7 -delete
+docker system prune -f
+
+# Vacuum database to reclaim space
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "VACUUM FULL;"
+```
+
+2. **Archive Old Data:**
+```sql
+-- Archive old audit logs (older than 90 days)
+DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '90 days';
+
+-- Archive old system metrics (older than 30 days)
+DELETE FROM system_metrics WHERE recorded_at < NOW() - INTERVAL '30 days';
+```
+
+3. **Setup Log Rotation:**
+```bash
+# Create logrotate configuration
+sudo tee /etc/logrotate.d/ash-dashboard << EOF
+/opt/ash/ash-dash/logs/*.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    create 644 $(whoami) $(whoami)
+    postrotate
+        docker-compose -f /opt/ash/ash-dash/docker-compose.yml restart ash-dash
+    endscript
+}
+EOF
+```
+
+### Redis Cache Issues
+
+#### Issue: Redis Connection Failures
+
+**Symptoms:**
+- Cache misses for all requests
+- Session authentication failures
+- "Connection refused" to Redis
+
+**Diagnostic Steps:**
+```bash
+# Check Redis container status
+docker-compose logs redis --tail=20
 
 # Test Redis connectivity
-docker-compose exec ash-redis redis-cli ping
+docker-compose exec redis redis-cli ping
 
-# Should return "PONG"
-```
-
-**2. Redis Memory Issues**
-```powershell
 # Check Redis memory usage
-docker-compose exec ash-redis redis-cli info memory
+docker-compose exec redis redis-cli info memory
 
-# Clear Redis if memory is full
-docker-compose exec ash-redis redis-cli FLUSHALL
+# Check Redis connections
+docker-compose exec redis redis-cli info clients
 
-# Restart Redis
-docker-compose restart ash-redis
+# Test Redis operations
+docker-compose exec redis redis-cli set test_key "test_value"
+docker-compose exec redis redis-cli get test_key
+docker-compose exec redis redis-cli del test_key
 ```
 
-**3. Connection Configuration**
-```powershell
-# Check Redis URL configuration
-docker-compose exec ash-dash cat /app/.env | findstr REDIS
+**Solutions:**
 
-# Should be: REDIS_URL=redis://ash-redis:6379
-# Update if incorrect and restart
+1. **Redis Configuration Issues:**
+```bash
+# Check Redis configuration
+docker-compose exec redis redis-cli config get "*"
+
+# Check Redis logs for errors
+docker-compose logs redis | grep -i error
+
+# Restart Redis service
+docker-compose restart redis
 ```
 
----
+2. **Memory Issues:**
+```bash
+# Check Redis memory policy
+docker-compose exec redis redis-cli config get maxmemory-policy
 
-## ⚡ Performance Issues
+# Set appropriate memory policy if needed
+docker-compose exec redis redis-cli config set maxmemory-policy allkeys-lru
 
-### **Problem: Slow Dashboard Loading**
-
-#### **Symptoms**
-- Dashboard takes >10 seconds to load
-- Timeout errors
-- High CPU/memory usage
-
-#### **Solutions**
-
-**1. Resource Monitoring**
-```powershell
-# Check resource usage
-docker stats
-
-# Check Windows system resources
-Get-Process -Name "Docker Desktop" | Select-Object CPU,WorkingSet
-Get-Counter "\Processor(_Total)\% Processor Time"
+# Flush Redis if corruption suspected
+docker-compose exec redis redis-cli flushall
 ```
 
-**2. Optimize Cache Settings**
-```powershell
-# Increase cache TTL to reduce API calls
-echo "CACHE_TTL=600" >> .env  # 10 minutes
-echo "CACHE_TTL_STATIC=3600" >> .env  # 1 hour
+3. **Persistence Issues:**
+```bash
+# Check Redis persistence status
+docker-compose exec redis redis-cli lastsave
 
-# Enable cache compression
-echo "ENABLE_CACHE_COMPRESSION=true" >> .env
+# Force background save
+docker-compose exec redis redis-cli bgsave
 
+# Check Redis data directory
+docker-compose exec redis ls -la /data/
+```
+
+### Service Integration Issues
+
+#### Issue: External Service Connectivity Problems
+
+**Symptoms:**
+- "Service unavailable" errors
+- Integration endpoints returning 500 errors
+- Timeout errors from external services
+
+**Diagnostic Steps:**
+```bash
+# Test connectivity to all integrated services
+echo "Testing ash-bot connectivity:"
+curl -v -m 10 http://10.20.30.253:8882/health
+
+echo "Testing ash-nlp connectivity:"
+curl -v -m 10 http://10.20.30.253:8881/health
+
+echo "Testing ash-thrash connectivity:"
+curl -v -m 10 http://10.20.30.253:8884/health
+
+# Check network connectivity
+ping -c 3 10.20.30.253
+telnet 10.20.30.253 8882
+telnet 10.20.30.253 8881
+telnet 10.20.30.253 8884
+
+# Check firewall rules
+sudo ufw status verbose
+
+# Check service endpoints from dashboard
+docker-compose exec ash-dash curl -m 10 http://10.20.30.253:8882/health
+```
+
+**Solutions:**
+
+1. **Network Configuration:**
+```bash
+# Update service endpoints in .env if changed
+ASH_BOT_API=http://10.20.30.253:8882
+ASH_NLP_API=http://10.20.30.253:8881
+ASH_TESTING_API=http://10.20.30.253:8884
+
+# Restart dashboard to pick up changes
 docker-compose restart ash-dash
 ```
 
-**3. Reduce Update Frequency**
-```powershell
-# Increase update intervals
-echo "METRICS_UPDATE_INTERVAL=60000" >> .env   # 1 minute
-echo "HEALTH_CHECK_INTERVAL=120000" >> .env   # 2 minutes
+2. **Timeout Configuration:**
+```bash
+# Increase service timeouts in .env
+SERVICE_TIMEOUT=30000
+SERVICE_RETRY_ATTEMPTS=5
+SERVICE_RETRY_DELAY=2000
 
+# Restart application
 docker-compose restart ash-dash
 ```
 
-### **Problem: High Memory Usage**
+3. **Service Health Monitoring:**
+```bash
+# Create service monitoring script
+cat > /opt/ash/ash-dash/scripts/monitor_services.sh << 'EOF'
+#!/bin/bash
+services=("8882:ash-bot" "8881:ash-nlp" "8884:ash-thrash")
 
-#### **Symptoms**
-- Container memory usage >2GB
-- System running out of memory
-- Dashboard becomes unresponsive
+for service in "${services[@]}"; do
+    port=$(echo $service | cut -d: -f1)
+    name=$(echo $service | cut -d: -f2)
+    
+    if curl -s -m 5 http://10.20.30.253:$port/health > /dev/null; then
+        echo "$name: HEALTHY"
+    else
+        echo "$name: UNHEALTHY - Port $port"
+        # Send alert to Discord webhook
+        curl -X POST "$DISCORD_WEBHOOK_URL" \
+             -H "Content-Type: application/json" \
+             -d "{\"content\": \"⚠️ Service Alert: $name is unhealthy on port $port\"}"
+    fi
+done
+EOF
 
-#### **Solutions**
+chmod +x /opt/ash/ash-dash/scripts/monitor_services.sh
+```
 
-**1. Memory Optimization**
-```powershell
-# Reduce Node.js memory usage
-echo "NODE_OPTIONS=--max-old-space-size=1024" >> .env
+### Performance Issues
 
-# Limit container memory
-# Edit docker-compose.yml to add:
-# deploy:
-#   resources:
-#     limits:
-#       memory: 2G
+#### Issue: Slow Response Times
 
+**Symptoms:**
+- API responses taking > 5 seconds
+- Dashboard loading slowly
+- Database query timeouts
+
+**Diagnostic Steps:**
+```bash
+# Monitor real-time performance
+docker stats ash-dash postgres redis
+
+# Check application metrics
+curl -s https://10.20.30.253:8883/metrics | grep -E "(response_time|request_duration)"
+
+# Analyze slow queries
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT query, mean_time, calls, total_time 
+FROM pg_stat_statements 
+WHERE mean_time > 1000
+ORDER BY mean_time DESC 
+LIMIT 10;"
+
+# Check Redis performance
+docker-compose exec redis redis-cli --latency-history -i 1
+
+# Network latency test
+time curl -s https://10.20.30.253:8883/api/status > /dev/null
+```
+
+**Solutions:**
+
+1. **Database Query Optimization:**
+```sql
+-- Add missing indexes
+CREATE INDEX CONCURRENTLY idx_crises_detected_at_status ON crises(detected_at, status);
+CREATE INDEX CONCURRENTLY idx_crisis_responses_created_at ON crisis_responses(created_at);
+
+-- Update table statistics
+ANALYZE;
+
+-- Check index usage
+SELECT schemaname, tablename, indexname, idx_scan, idx_tup_read, idx_tup_fetch 
+FROM pg_stat_user_indexes 
+ORDER BY idx_scan DESC;
+```
+
+2. **Caching Optimization:**
+```bash
+# Increase cache TTL values in .env
+CACHE_TTL=600
+SESSION_TTL=3600
+RATE_LIMIT_TTL=1800
+
+# Preload cache with frequently accessed data
+docker-compose exec ash-dash node -e "
+// Add cache warming script here
+console.log('Cache warming completed');
+"
+```
+
+3. **Resource Scaling:**
+```yaml
+# Update docker-compose.yml resource limits
+services:
+  ash-dash:
+    deploy:
+      resources:
+        limits:
+          memory: 24G  # Increased from 16G
+          cpus: '6.0'  # Increased from 4.0
+        reservations:
+          memory: 12G
+          cpus: '3.0'
+```
+
+#### Issue: High Memory Usage
+
+**Symptoms:**
+- Out of memory errors
+- Container restarts due to memory limits
+- System becoming unresponsive
+
+**Diagnostic Steps:**
+```bash
+# Check memory usage
+free -h
+docker stats --no-stream
+
+# Analyze memory usage by process
+docker-compose exec ash-dash ps aux --sort=-%mem
+
+# Check for memory leaks
+docker-compose exec ash-dash node -e "
+console.log('Memory Usage:', process.memoryUsage());
+if (global.gc) {
+  global.gc();
+  console.log('After GC:', process.memoryUsage());
+}
+"
+
+# Monitor memory over time
+watch -n 5 'docker stats --no-stream | head -5'
+```
+
+**Solutions:**
+
+1. **Memory Leak Detection:**
+```bash
+# Enable garbage collection in Node.js
+# Update Dockerfile to add --expose-gc flag
+CMD ["node", "--expose-gc", "dist/server.js"]
+
+# Monitor memory patterns
+docker-compose exec ash-dash node -e "
+setInterval(() => {
+  const mem = process.memoryUsage();
+  console.log(\`\${new Date().toISOString()}: RSS=\${Math.round(mem.rss/1024/1024)}MB, Heap=\${Math.round(mem.heapUsed/1024/1024)}MB\`);
+}, 10000);
+"
+```
+
+2. **Memory Configuration:**
+```bash
+# Set Node.js memory limits in docker-compose.yml
+environment:
+  - NODE_OPTIONS=--max-old-space-size=8192
+
+# Adjust garbage collection
+environment:
+  - NODE_OPTIONS=--max-old-space-size=8192 --gc-interval=100
+```
+
+3. **Database Connection Pool Tuning:**
+```bash
+# Reduce connection pool size
+DB_POOL_MAX=25
+DB_POOL_MIN=3
+DB_IDLE_TIMEOUT=15000
+```
+
+### SSL/TLS Issues
+
+#### Issue: Certificate Problems
+
+**Symptoms:**
+- "Certificate expired" errors
+- "Certificate not trusted" warnings
+- SSL handshake failures
+
+**Diagnostic Steps:**
+```bash
+# Check certificate validity
+openssl x509 -in /opt/ash/ash-dash/certs/cert.pem -text -noout | grep -E "(Subject|Issuer|Not Before|Not After)"
+
+# Test SSL connection
+openssl s_client -connect 10.20.30.253:8883 -servername dashboard.alphabetcartel.net
+
+# Check certificate chain
+curl -vI https://10.20.30.253:8883/health
+
+# Verify certificate permissions
+ls -la /opt/ash/ash-dash/certs/
+```
+
+**Solutions:**
+
+1. **Certificate Renewal:**
+```bash
+# For Let's Encrypt certificates
+sudo certbot renew --dry-run
+sudo certbot renew
+
+# Copy renewed certificates
+sudo cp /etc/letsencrypt/live/dashboard.alphabetcartel.net/fullchain.pem /opt/ash/ash-dash/certs/cert.pem
+sudo cp /etc/letsencrypt/live/dashboard.alphabetcartel.net/privkey.pem /opt/ash/ash-dash/certs/key.pem
+sudo chown $(whoami):$(whoami) /opt/ash/ash-dash/certs/*
+
+# Restart services
+docker-compose restart nginx ash-dash
+```
+
+2. **Self-Signed Certificate Regeneration:**
+```bash
+# Generate new self-signed certificate
+cd /opt/ash/ash-dash
+openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes \
+  -subj "/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=dashboard.alphabetcartel.net" \
+  -addext "subjectAltName=DNS:dashboard.alphabetcartel.net,DNS:10.20.30.253,IP:10.20.30.253"
+
+chmod 600 certs/key.pem
+chmod 644 certs/cert.pem
+
+# Restart services
+docker-compose restart nginx ash-dash
+```
+
+### Authentication Issues
+
+#### Issue: Discord OAuth2 Problems
+
+**Symptoms:**
+- "Invalid client_id" errors
+- Authentication redirects failing
+- Users can't log in
+
+**Diagnostic Steps:**
+```bash
+# Check Discord OAuth2 configuration
+grep -E "(DISCORD_CLIENT|DISCORD_REDIRECT)" /opt/ash/ash-dash/.env
+
+# Test OAuth2 endpoint
+curl -v "https://discord.com/api/oauth2/authorize?client_id=$DISCORD_CLIENT_ID&redirect_uri=https://dashboard.alphabetcartel.net/auth/callback&response_type=code&scope=identify"
+
+# Check application logs for auth errors
+docker-compose logs ash-dash | grep -i "auth\|discord\|oauth"
+```
+
+**Solutions:**
+
+1. **Verify Discord Application Settings:**
+```bash
+# Check Discord Developer Portal settings:
+# - Application ID matches DISCORD_CLIENT_ID
+# - Client Secret matches DISCORD_CLIENT_SECRET
+# - Redirect URI matches exactly: https://dashboard.alphabetcartel.net/auth/callback
+# - Bot permissions are correctly set
+```
+
+2. **Update OAuth2 Configuration:**
+```bash
+# Update .env with correct values
+DISCORD_CLIENT_ID=your_correct_client_id
+DISCORD_CLIENT_SECRET=your_correct_client_secret
+DISCORD_REDIRECT_URI=https://dashboard.alphabetcartel.net/auth/callback
+
+# Restart application
+docker-compose restart ash-dash
+```
+
+3. **Session Issues:**
+```bash
+# Clear Redis sessions
+docker-compose exec redis redis-cli flushdb
+
+# Check session configuration
+grep -E "(SESSION_SECRET|JWT_SECRET)" /opt/ash/ash-dash/.env
+
+# Generate new session secrets if needed
+openssl rand -base64 32
+```
+
+## 🔄 Recovery Procedures
+
+### Complete System Recovery
+
+#### Scenario: Total System Failure
+
+**Recovery Steps:**
+
+1. **Assess System State:**
+```bash
+# Check what's running
+docker ps -a
+systemctl status docker
+
+# Check disk space and system resources
+df -h
+free -h
+dmesg | tail -20
+```
+
+2. **Stop All Services:**
+```bash
+cd /opt/ash/ash-dash
+docker-compose down -v
+docker system prune -f
+```
+
+3. **Restore from Backup:**
+```bash
+# Find latest backup
+ls -la /opt/ash/ash-dash/backups/database/ | tail -5
+
+# Restore database
+LATEST_DB_BACKUP=$(ls -t /opt/ash/ash-dash/backups/database/*.sql.gz | head -1)
+echo "Restoring from: $LATEST_DB_BACKUP"
+
+# Start only database container
+docker-compose up -d postgres
+sleep 30
+
+# Restore database
+gunzip -c "$LATEST_DB_BACKUP" | docker exec -i ash_dashboard_postgres psql -U ash_user -d ash_dashboard
+
+# Restore Redis data
+LATEST_REDIS_BACKUP=$(ls -t /opt/ash/ash-dash/backups/redis/*.rdb | head -1)
+docker cp "$LATEST_REDIS_BACKUP" ash_dashboard_redis:/data/dump.rdb
+
+# Restore configuration
+LATEST_CONFIG_BACKUP=$(ls -t /opt/ash/ash-dash/backups/configuration/*.tar.gz | head -1)
+tar -xzf "$LATEST_CONFIG_BACKUP" -C /
+```
+
+4. **Restart All Services:**
+```bash
+# Start all services
+docker-compose up -d
+
+# Monitor startup
+docker-compose logs -f
+```
+
+5. **Verify Recovery:**
+```bash
+# Run full diagnostic
+/opt/ash/ash-dash/scripts/diagnostics.sh
+
+# Test critical functionality
+curl -k https://10.20.30.253:8883/health
+curl -k https://10.20.30.253:8883/api/services/status
+```
+
+### Database Recovery Procedures
+
+#### Scenario: Database Corruption
+
+**Recovery Steps:**
+
+1. **Identify Corruption:**
+```bash
+# Check database integrity
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT datname, pg_size_pretty(pg_database_size(datname)) as size 
+FROM pg_database;"
+
+# Check for corruption errors
+docker-compose logs postgres | grep -i "corrupt\|error\|fatal"
+
+# Run database checks
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT tablename, pg_size_pretty(pg_total_relation_size(tablename::regclass)) as size
+FROM pg_tables 
+WHERE schemaname = 'public' 
+ORDER BY pg_total_relation_size(tablename::regclass) DESC;"
+```
+
+2. **Attempt Repair:**
+```bash
+# Try VACUUM and REINDEX
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+VACUUM FULL VERBOSE;
+REINDEX DATABASE ash_dashboard;
+ANALYZE;"
+
+# Check if repair was successful
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT count(*) FROM users;
+SELECT count(*) FROM crises;
+SELECT count(*) FROM crisis_responses;"
+```
+
+3. **Full Database Restore if Repair Fails:**
+```bash
+# Stop application to prevent new writes
+docker-compose stop ash-dash
+
+# Create backup of current state (for forensics)
+docker exec ash_dashboard_postgres pg_dump -U ash_user -d ash_dashboard > /opt/ash/ash-dash/backups/corrupt_db_$(date +%Y%m%d_%H%M%S).sql
+
+# Drop and recreate database
+docker-compose exec postgres psql -U postgres -c "
+DROP DATABASE ash_dashboard;
+CREATE DATABASE ash_dashboard OWNER ash_user;"
+
+# Restore from latest good backup
+LATEST_BACKUP=$(ls -t /opt/ash/ash-dash/backups/database/*.sql.gz | head -1)
+gunzip -c "$LATEST_BACKUP" | docker exec -i ash_dashboard_postgres psql -U ash_user -d ash_dashboard
+
+# Restart application
+docker-compose start ash-dash
+```
+
+### Application Recovery
+
+#### Scenario: Application Won't Start After Update
+
+**Recovery Steps:**
+
+1. **Rollback to Previous Version:**
+```bash
+# Check available versions
+docker images | grep ash-dash
+
+# Stop current deployment
+docker-compose down
+
+# Rollback to previous image version
+sed -i 's/ash-dash:latest/ash-dash:v2.0.0/' docker-compose.yml
+
+# Start with previous version
 docker-compose up -d
 ```
 
-**2. Cache Management**
-```powershell
-# Reduce cache size
-echo "MAX_CACHE_SIZE=128MB" >> .env
+2. **Configuration Rollback:**
+```bash
+# Restore previous configuration
+LATEST_CONFIG=$(ls -t /opt/ash/ash-dash/backups/configuration/*.tar.gz | head -1)
+tar -xzf "$LATEST_CONFIG" -C /opt/ash/ash-dash/ --strip-components=4
+```
 
-# Clear cache regularly
-docker-compose exec ash-dash npm run cache:clear
+3. **Verify Rollback:**
+```bash
+# Test functionality
+curl -k https://10.20.30.253:8883/health
+docker-compose logs ash-dash --tail=20
+```
 
+## 🔧 Maintenance Procedures
+
+### Regular Maintenance Tasks
+
+#### Daily Maintenance
+
+```bash
+#!/bin/bash
+# Daily maintenance script
+
+echo "=== DAILY MAINTENANCE - $(date) ==="
+
+# Health checks
+echo "1. Running health checks..."
+/opt/ash/ash-dash/scripts/diagnostics.sh | grep -E "(FAILED|ERROR|DOWN)"
+
+# Log rotation
+echo "2. Rotating logs..."
+find /opt/ash/ash-dash/logs -name "*.log" -size +100M -exec gzip {} \;
+
+# Cleanup temporary files
+echo "3. Cleaning temporary files..."
+find /opt/ash/ash-dash/data/temp -type f -mtime +1 -delete
+
+# Database maintenance
+echo "4. Database maintenance..."
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT pg_size_pretty(pg_database_size('ash_dashboard')) as db_size;
+SELECT count(*) as audit_entries FROM audit_logs WHERE created_at > NOW() - INTERVAL '1 day';
+"
+
+# Monitor disk space
+echo "5. Disk space check..."
+df -h | awk '$NF=="/"{if($5+0 > 85) print "WARNING: Disk usage is " $5}'
+
+# Service monitoring
+echo "6. Service monitoring..."
+/opt/ash/ash-dash/scripts/monitor_services.sh
+
+echo "=== DAILY MAINTENANCE COMPLETE ==="
+```
+
+#### Weekly Maintenance
+
+```bash
+#!/bin/bash
+# Weekly maintenance script
+
+echo "=== WEEKLY MAINTENANCE - $(date) ==="
+
+# Deep database maintenance
+echo "1. Database optimization..."
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+VACUUM ANALYZE;
+REINDEX DATABASE ash_dashboard;
+"
+
+# Update system packages
+echo "2. System updates..."
+sudo apt update
+sudo apt list --upgradable
+
+# Security updates only
+sudo unattended-upgrades
+
+# Docker cleanup
+echo "3. Docker cleanup..."
+docker system prune -f
+docker image prune -f
+
+# Log analysis
+echo "4. Log analysis..."
+echo "Recent errors:"
+docker-compose logs ash-dash --since=168h | grep -i error | tail -10
+
+echo "Top error patterns:"
+docker-compose logs ash-dash --since=168h | grep -i error | awk '{print $NF}' | sort | uniq -c | sort -nr | head -5
+
+# Performance metrics
+echo "5. Performance metrics..."
+docker-compose exec ash-dash curl -s http://localhost:9090/metrics | grep -E "(http_request_duration|memory_usage|cpu_usage)" | tail -10
+
+# Backup verification
+echo "6. Backup verification..."
+LATEST_BACKUP=$(ls -t /opt/ash/ash-dash/backups/database/*.sql.gz | head -1)
+echo "Latest backup: $LATEST_BACKUP ($(ls -lh "$LATEST_BACKUP" | awk '{print $5}'))"
+
+# Test backup integrity
+gunzip -t "$LATEST_BACKUP" && echo "Backup integrity: OK" || echo "Backup integrity: FAILED"
+
+echo "=== WEEKLY MAINTENANCE COMPLETE ==="
+```
+
+#### Monthly Maintenance
+
+```bash
+#!/bin/bash
+# Monthly maintenance script
+
+echo "=== MONTHLY MAINTENANCE - $(date) ==="
+
+# Full system backup
+echo "1. Creating full system backup..."
+/opt/ash/ash-dash/scripts/backup.sh
+
+# Database statistics update
+echo "2. Updating database statistics..."
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+UPDATE pg_class SET reltuples=-1, relpages=-1;
+ANALYZE;
+"
+
+# Performance analysis
+echo "3. Performance analysis..."
+docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "
+SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del 
+FROM pg_stat_user_tables 
+ORDER BY n_tup_ins + n_tup_upd + n_tup_del DESC 
+LIMIT 10;
+"
+
+# Security audit
+echo "4. Security audit..."
+# Check for unauthorized access attempts
+docker-compose logs nginx --since=720h | grep -E "(401|403|404)" | tail -20
+
+# Check SSL certificate expiry
+openssl x509 -in /opt/ash/ash-dash/certs/cert.pem -noout -dates
+
+# Archive old logs
+echo "5. Log archival..."
+find /opt/ash/ash-dash/logs -name "*.log" -mtime +30 -exec gzip {} \;
+find /opt/ash/ash-dash/logs -name "*.gz" -mtime +90 -delete
+
+# Update documentation
+echo "6. Documentation updates..."
+/opt/ash/ash-dash/scripts/diagnostics.sh > /opt/ash/ash-dash/docs/latest_system_status.txt
+
+echo "=== MONTHLY MAINTENANCE COMPLETE ==="
+```
+
+### Emergency Procedures
+
+#### Scenario: Crisis Response System Down
+
+**Immediate Actions (< 5 minutes):**
+
+```bash
+# 1. Quick service restart
 docker-compose restart ash-dash
+
+# 2. If restart fails, emergency fallback
+docker-compose down
+docker-compose up -d --force-recreate
+
+# 3. Verify critical functionality
+curl -k https://10.20.30.253:8883/health
+curl -k https://10.20.30.253:8883/api/services/status
+
+# 4. Alert team immediately
+curl -X POST "$DISCORD_EMERGENCY_WEBHOOK" \
+     -H "Content-Type: application/json" \
+     -d '{"content": "🚨 CRITICAL: Crisis Response Dashboard is DOWN - Emergency team notified"}'
 ```
 
-**3. Monitor Memory Leaks**
-```powershell
-# Monitor memory usage over time
-for ($i = 0; $i -lt 60; $i++) {
-    $mem = docker stats ash-dash --no-stream --format "{{.MemUsage}}"
-    Write-Host "$(Get-Date -Format 'HH:mm:ss'): $mem"
-    Start-Sleep -Seconds 60
-}
-```
+**Escalation Procedures:**
 
----
+1. **0-5 minutes:** Automatic restart attempts
+2. **5-10 minutes:** Technical team notification
+3. **10-15 minutes:** Crisis Response Lead notification
+4. **15+ minutes:** Emergency backup procedures activated
 
-## 🔧 Configuration Issues
+#### Scenario: Security Breach Detected
 
-### **Problem: Environment Variables Not Loading**
+**Immediate Response:**
 
-#### **Symptoms**
-- Changes to .env file not taking effect
-- Default values being used instead of configured values
-- Configuration-related errors
+```bash
+# 1. Block suspicious IP addresses
+SUSPICIOUS_IP="x.x.x.x"  # Replace with actual IP
+sudo ufw insert 1 deny from $SUSPICIOUS_IP
 
-#### **Solutions**
+# 2. Force logout all users
+docker-compose exec redis redis-cli flushdb
 
-**1. Check .env File Location**
-```powershell
-# Ensure .env is in project root
-Get-ChildItem -Name .env
+# 3. Rotate secrets
+openssl rand -base64 32 > /opt/ash/ash-dash/secrets/jwt_secret
+openssl rand -base64 32 > /opt/ash/ash-dash/secrets/session_secret
 
-# Check file contents
-Get-Content .env | Select-String "NODE_ENV\|PORT\|API"
-```
-
-**2. Container Environment**
-```powershell
-# Check environment variables in container
-docker-compose exec ash-dash env | Select-String "ASH\|NODE\|PORT"
-
-# If variables are missing, restart container
+# 4. Restart with new secrets
 docker-compose restart ash-dash
+
+# 5. Enable audit logging
+grep -E "(login|auth|admin)" /opt/ash/ash-dash/logs/application/*.log | tail -50
+
+# 6. Document incident
+echo "Security incident $(date): $SUSPICIOUS_IP blocked, secrets rotated" >> /opt/ash/ash-dash/logs/security_incidents.log
 ```
 
-**3. Docker Compose Configuration**
-```powershell
-# Validate docker-compose.yml
-docker-compose config
+## 📊 Performance Monitoring
 
-# Check if .env is properly referenced
-Get-Content docker-compose.yml | Select-String "env_file\|environment"
+### Real-time Monitoring Commands
+
+```bash
+# Monitor all services
+watch -n 5 'docker stats --no-stream'
+
+# Monitor API performance
+watch -n 10 'curl -s -w "Response Time: %{time_total}s\n" -o /dev/null https://10.20.30.253:8883/api/status'
+
+# Monitor database performance
+watch -n 30 'docker-compose exec postgres psql -U ash_user -d ash_dashboard -c "SELECT count(*) as active_connections FROM pg_stat_activity WHERE state = '\''active'\'\';"'
+
+# Monitor Redis performance
+watch -n 30 'docker-compose exec redis redis-cli info memory | grep used_memory_human'
+
+# Monitor disk I/O
+iostat -x 1
+
+# Monitor network traffic
+iftop -i eth0
 ```
 
-### **Problem: SSL Configuration Issues**
+### Performance Alerts Setup
 
-#### **Symptoms**
-- SSL not working despite ENABLE_SSL=true
-- Certificate errors even with new certificates
-- Mixed content warnings
-
-#### **Solutions**
-
-**1. Verify SSL Configuration**
-```powershell
-# Check SSL settings
-docker-compose exec ash-dash cat /app/.env | Select-String "SSL"
-
-# Check certificate files exist
-docker-compose exec ash-dash ls -la /app/certs/
-```
-
-**2. Certificate File Permissions**
-```powershell
-# Fix certificate permissions
-docker-compose exec ash-dash chmod 600 /app/certs/key.pem
-docker-compose exec ash-dash chmod 644 /app/certs/cert.pem
-
-docker-compose restart ash-dash
-```
-
-**3. Test SSL Configuration**
-```powershell
-# Test SSL connection
-openssl s_client -connect 10.20.30.16:8883 -servername 10.20.30.16
-
-# Check certificate validity
-openssl x509 -in certs/cert.pem -text -noout | Select-String "Not Before\|Not After"
-```
-
----
-
-## 🚨 Emergency Procedures
-
-### **Complete System Reset**
-
-When all else fails, use this nuclear option:
-
-```powershell
-Write-Host "=== EMERGENCY SYSTEM RESET ===" -ForegroundColor Red
-Write-Host "This will destroy all data and start fresh!" -ForegroundColor Red
-$confirm = Read-Host "Type 'RESET' to confirm"
-
-if ($confirm -eq "RESET") {
-    # Stop all containers
-    docker-compose down -v
-    
-    # Remove all data
-    Remove-Item -Recurse -Force data, logs, certs -ErrorAction SilentlyContinue
-    
-    # Reset environment
-    Copy-Item .env.template .env
-    
-    # Start fresh
-    docker-compose up -d
-    
-    Write-Host "System reset complete. Reconfigure .env as needed." -ForegroundColor Green
-} else {
-    Write-Host "Reset cancelled." -ForegroundColor Yellow
-}
-```
-
-### **Backup Before Troubleshooting**
-
-Always backup before making changes:
-
-```powershell
-# Create backup
-$backupDate = Get-Date -Format "yyyyMMdd-HHmmss"
-$backupPath = "backup-$backupDate"
-
-New-Item -ItemType Directory -Force -Path $backupPath
-
-Copy-Item -Recurse .env, data, logs, certs $backupPath -ErrorAction SilentlyContinue
-Compress-Archive -Path $backupPath -DestinationPath "$backupPath.zip"
-Remove-Item -Recurse $backupPath
-
-Write-Host "Backup created: $backupPath.zip" -ForegroundColor Green
-```
-
-### **Service Recovery Priority**
-
-When multiple services are down, recover in this order:
-
-1. **Dashboard Container** - Core functionality
-2. **Redis** - Caching and session management  
-3. **External Services** - Bot, NLP, Testing integration
-4. **WebSocket** - Real-time updates
-5. **SSL/Security** - Enhanced security features
-
----
-
-## 📞 Getting Help
-
-### **Information to Gather**
-
-Before asking for help, collect this information:
-
-```powershell
-# System information script
-Write-Host "=== SYSTEM DIAGNOSTIC INFO ===" -ForegroundColor Cyan
-
-# Dashboard version
-docker-compose exec ash-dash cat /app/package.json | Select-String "version"
-
-# Container status
-Write-Host "Container Status:" -ForegroundColor Yellow
-docker-compose ps
-
-# Recent logs
-Write-Host "Recent Logs:" -ForegroundColor Yellow
-docker-compose logs ash-dash --tail 20
-
-# Environment
-Write-Host "Environment:" -ForegroundColor Yellow
-docker-compose exec ash-dash env | Select-String "NODE_ENV\|PORT\|ASH_"
-
-# System resources
-Write-Host "System Resources:" -ForegroundColor Yellow
-docker stats --no-stream
-
-# Network connectivity
-Write-Host "Network Tests:" -ForegroundColor Yellow
-Test-NetConnection -ComputerName 10.20.30.253 -Port 8882
-Test-NetConnection -ComputerName 10.20.30.16 -Port 8881
-Test-NetConnection -ComputerName 10.20.30.16 -Port 8884
-
-Write-Host "=== END DIAGNOSTIC INFO ===" -ForegroundColor Cyan
-```
-
-### **Support Channels**
-
-1. **GitHub Issues**: https://github.com/The-Alphabet-Cartel/ash-dash/issues
-   - Include diagnostic information
-   - Use issue templates
-   - Check existing issues first
-
-2. **Discord #tech-support**: https://discord.gg/alphabetcartel
-   - Real-time community help
-   - Screen sharing for complex issues
-   - Quick questions and clarifications
-
-3. **Team Documentation**: `/docs` directory
-   - Check other guides first
-   - API documentation for integration issues
-   - Implementation guide for technical details
-
-### **When to Escalate**
-
-Escalate immediately for:
-- Security-related issues
-- Data loss or corruption
-- Complete system failures lasting >1 hour
-- Issues affecting crisis response capabilities
-
-Escalate within 24 hours for:
-- Performance degradation
-- Integration failures
-- Recurring issues
-- Configuration problems
-
----
-
-## 📚 Additional Resources
-
-### **Log Analysis Tools**
-
-```powershell
-# Real-time log monitoring
-docker-compose logs -f ash-dash | Select-String "ERROR\|WARN"
-
-# Log analysis for common issues
-docker-compose logs ash-dash | Select-String "SSL\|certificate" | Out-File ssl-issues.log
-docker-compose logs ash-dash | Select-String "Redis\|cache" | Out-File cache-issues.log
-docker-compose logs ash-dash | Select-String "Auth\|permission" | Out-File auth-issues.log
-```
-
-### **Performance Monitoring**
-
-```powershell
+```bash
 # Create performance monitoring script
-@"
-# Monitor dashboard performance
-while ($true) {
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $stats = docker stats ash-dash --no-stream --format "{{.CPUPerc}},{{.MemUsage}}"
-    $health = try { (Invoke-RestMethod -Uri "https://10.20.30.16:8883/health" -SkipCertificateCheck).status } catch { "Error" }
-    
-    Write-Output "$timestamp,$stats,$health" | Out-File -Append performance.log
-    Start-Sleep -Seconds 60
-}
-"@ | Out-File -FilePath "monitor-performance.ps1"
+cat > /opt/ash/ash-dash/scripts/performance_monitor.sh << 'EOF'
+#!/bin/bash
 
-# Run with: PowerShell.exe -File monitor-performance.ps1
+# Thresholds
+CPU_THRESHOLD=80
+MEMORY_THRESHOLD=85
+DISK_THRESHOLD=90
+RESPONSE_TIME_THRESHOLD=5
+
+# Check CPU usage
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}' | cut -d'%' -f1)
+if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )); then
+    echo "ALERT: High CPU usage: ${CPU_USAGE}%"
+fi
+
+# Check memory usage
+MEMORY_USAGE=$(free | grep Mem | awk '{printf "%.1f", $3/$2 * 100.0}')
+if (( $(echo "$MEMORY_USAGE > $MEMORY_THRESHOLD" | bc -l) )); then
+    echo "ALERT: High memory usage: ${MEMORY_USAGE}%"
+fi
+
+# Check disk usage
+DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | cut -d'%' -f1)
+if [ $DISK_USAGE -gt $DISK_THRESHOLD ]; then
+    echo "ALERT: High disk usage: ${DISK_USAGE}%"
+fi
+
+# Check API response time
+RESPONSE_TIME=$(curl -s -w "%{time_total}" -o /dev/null https://10.20.30.253:8883/health)
+if (( $(echo "$RESPONSE_TIME > $RESPONSE_TIME_THRESHOLD" | bc -l) )); then
+    echo "ALERT: Slow API response: ${RESPONSE_TIME}s"
+fi
+EOF
+
+chmod +x /opt/ash/ash-dash/scripts/performance_monitor.sh
+
+# Add to crontab for regular monitoring
+echo "*/5 * * * * /opt/ash/ash-dash/scripts/performance_monitor.sh >> /var/log/ash-performance.log 2>&1" | crontab -
 ```
 
-### **Automated Health Checks**
+## 📞 Support Resources
 
-```powershell
-# Create automated health check
-@"
-# Automated health check and recovery
-$services = @{
-    "Dashboard" = "https://10.20.30.16:8883/health"
-    "Bot" = "http://10.20.30.253:8882/health"
-    "NLP" = "http://10.20.30.16:8881/health"
-    "Testing" = "http://10.20.30.16:8884/health"
-}
+### Internal Support Contacts
 
-foreach ($service in $services.GetEnumerator()) {
-    try {
-        $response = Invoke-RestMethod -Uri $service.Value -TimeoutSec 10 -SkipCertificateCheck
-        Write-Host "✓ $($service.Key): Healthy" -ForegroundColor Green
-    } catch {
-        Write-Host "✗ $($service.Key): Failed - $($_.Exception.Message)" -ForegroundColor Red
-        
-        # Auto-recovery for dashboard
-        if ($service.Key -eq "Dashboard") {
-            Write-Host "Attempting dashboard recovery..." -ForegroundColor Yellow
-            docker-compose restart ash-dash
-        }
-    }
-}
-"@ | Out-File -FilePath "health-check.ps1"
+**Crisis Response Team:**
+- **Primary:** Discord #crisis-response
+- **Secondary:** Crisis Response Lead direct contact
+- **Emergency:** 24/7 escalation procedures
 
-# Schedule to run every 15 minutes
-schtasks /create /tn "Ash Dashboard Health Check" /tr "PowerShell.exe -File C:\Projects\ash-dash\health-check.ps1" /sc minute /mo 15
+**Technical Support:**
+- **Primary:** Discord #tech-support
+- **GitHub Issues:** https://github.com/the-alphabet-cartel/ash-dash/issues
+- **Documentation:** `/opt/ash/ash-dash/docs/`
+
+### External Resources
+
+**Technical Documentation:**
+- **Node.js:** https://nodejs.org/docs/
+- **PostgreSQL:** https://www.postgresql.org/docs/
+- **Redis:** https://redis.io/documentation
+- **Docker:** https://docs.docker.com/
+- **Nginx:** https://nginx.org/en/docs/
+
+**Community Support:**
+- **Discord.js:** https://discord.js.org/
+- **Express.js:** https://expressjs.com/
+- **Vue.js:** https://vuejs.org/guide/
+
+### Escalation Matrix
+
+| Issue Severity | Response Time | Escalation Path |
+|----------------|---------------|-----------------|
+| **Critical** (Crisis system down) | < 5 minutes | Tech Support → Crisis Lead → Emergency Team |
+| **High** (Performance degradation) | < 15 minutes | Tech Support → Team Lead |
+| **Medium** (Non-critical features) | < 2 hours | Tech Support → GitHub Issues |
+| **Low** (Enhancement requests) | < 24 hours | GitHub Issues → Feature Planning |
+
+### Recovery Contact Information
+
+**Emergency Contacts:**
+```bash
+# Store in /opt/ash/ash-dash/EMERGENCY_CONTACTS.txt
+CRISIS_RESPONSE_LEAD="Discord: @CrisisLead"
+TECHNICAL_LEAD="Discord: @TechLead" 
+SERVER_ADMIN="Discord: @ServerAdmin"
+DISCORD_WEBHOOK_CRITICAL="https://discord.com/api/webhooks/..."
+DISCORD_WEBHOOK_GENERAL="https://discord.com/api/webhooks/..."
+```
+
+**Backup Resources:**
+- **Server Access:** SSH keys and credentials
+- **Domain Management:** DNS and certificate authority access
+- **Service Accounts:** Discord application management
+- **Monitoring:** External monitoring service access
+
+---
+
+## 🎯 Quick Reference
+
+### Most Common Issues & Quick Fixes
+
+1. **Service won't start:** `docker-compose restart ash-dash`
+2. **Database connection failed:** `docker-compose restart postgres`
+3. **SSL certificate error:** Check certificate expiry and permissions
+4. **High memory usage:** `docker-compose exec ash-dash node --expose-gc -e "global.gc()"`
+5. **Slow performance:** Check database connections and run `VACUUM ANALYZE`
+6. **Authentication issues:** Clear Redis sessions with `docker-compose exec redis redis-cli flushdb`
+
+### Emergency Commands
+
+```bash
+# Complete system restart
+docker-compose down && docker-compose up -d
+
+# Emergency backup
+/opt/ash/ash-dash/scripts/backup.sh
+
+# Quick diagnostics
+/opt/ash/ash-dash/scripts/diagnostics.sh
+
+# Force service recreation
+docker-compose up -d --force-recreate ash-dash
+
+# Emergency fallback (disable SSL)
+# Temporarily set ENABLE_SSL=false in .env and restart
+```
+
+### Useful Aliases
+
+Add to `/home/$(whoami)/.bashrc`:
+
+```bash
+# Ash Dashboard aliases
+alias ash-status='cd /opt/ash/ash-dash && docker-compose ps'
+alias ash-logs='cd /opt/ash/ash-dash && docker-compose logs -f --tail=50'
+alias ash-restart='cd /opt/ash/ash-dash && docker-compose restart ash-dash'
+alias ash-health='curl -s -k https://10.20.30.253:8883/health | jq .'
+alias ash-diag='/opt/ash/ash-dash/scripts/diagnostics.sh'
+alias ash-backup='/opt/ash/ash-dash/scripts/backup.sh'
 ```
 
 ---
 
-*This troubleshooting guide covers the most common issues encountered with ash-dash v2.1. For additional help, refer to the other documentation guides or reach out to the community via [Discord](https://discord.gg/alphabetcartel).*
+**This troubleshooting guide provides comprehensive solutions for maintaining the Ash Dashboard in production. Keep this document updated as new issues are discovered and resolved.**
+
+🌈 **The Alphabet Cartel** | **Discord:** https://discord.gg/alphabetcartel | **Website:** http://alphabetcartel.org
