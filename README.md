@@ -63,8 +63,8 @@ cd ash-dash
 cp .env.template .env
 
 # Configure service endpoints in .env
-# ASH_BOT_API=http://10.20.30.253:8882
-# ASH_NLP_API=http://10.20.30.253:8881
+# GLOBAL_BOT_API_URL=http://10.20.30.253:8882
+# GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 # ASH_TESTING_API=http://10.20.30.253:8884
 
 # Deploy
@@ -77,23 +77,23 @@ docker-compose up -d
 
 ```bash
 # Server Configuration
-NODE_ENV=production
-PORT=8883
-ENABLE_SSL=true
+GLOBAL_ENVIRONMENT=production
+GLOBAL_DASH_API_PORT=8883
+DASH_ENABLE_SSL=true
 
 # Service Endpoints
-ASH_BOT_API=http://10.20.30.253:8882
-ASH_NLP_API=http://10.20.30.253:8881
+GLOBAL_BOT_API_URL=http://10.20.30.253:8882
+GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 ASH_TESTING_API=http://10.20.30.253:8884
 
 # Performance Settings (Optimized for dedicated server)
-CACHE_TTL=300
-HEALTH_CHECK_INTERVAL=60000
-METRICS_UPDATE_INTERVAL=30000
+DASH_CACHE_TTL=300
+DASH_HEALTH_CHECK_INTERVAL=60000
+DASH_METRICS_UPDATE_INTERVAL=30000
 
 # Security Settings
-ENABLE_CORS=true
-RATE_LIMIT_MAX=200
+GLOBAL_API_ENABLE_CORS=true
+DASH_RATE_LIMIT_MAX=200
 ENABLE_DDoS_PROTECTION=true
 
 # Team Management

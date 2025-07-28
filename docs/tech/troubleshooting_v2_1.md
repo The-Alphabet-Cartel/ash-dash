@@ -110,7 +110,7 @@ docker-compose ps
 docker-compose logs ash-dash --tail=50
 
 # Check environment variables
-docker-compose exec ash-dash env | grep -E "(NODE_ENV|PORT|DATABASE_URL)"
+docker-compose exec ash-dash env | grep -E "(GLOBAL_ENVIRONMENT|GLOBAL_DASH_API_PORT|THRASH_DATABASE_URL)"
 
 # Test configuration
 docker-compose config
@@ -125,7 +125,7 @@ ls -la /opt/ash/ash-dash/.env
 cat /opt/ash/ash-dash/.env | head -10
 
 # Check for missing required variables
-grep -E "(DATABASE_URL|JWT_SECRET|DISCORD_CLIENT)" /opt/ash/ash-dash/.env
+grep -E "(THRASH_DATABASE_URL|JWT_SECRET|DISCORD_CLIENT)" /opt/ash/ash-dash/.env
 ```
 
 2. **Database Connection Issues:**
@@ -136,7 +136,7 @@ docker-compose exec postgres pg_isready -U ash_user -d ash_dashboard
 # Check database credentials
 docker-compose exec ash-dash node -e "
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ connectionString: process.env.THRASH_DATABASE_URL });
 pool.query('SELECT NOW()', (err, res) => {
   console.log(err ? 'DB Error: ' + err.message : 'DB Connected: ' + res.rows[0].now);
   pool.end();
@@ -466,8 +466,8 @@ docker-compose exec ash-dash curl -m 10 http://10.20.30.253:8882/health
 1. **Network Configuration:**
 ```bash
 # Update service endpoints in .env if changed
-ASH_BOT_API=http://10.20.30.253:8882
-ASH_NLP_API=http://10.20.30.253:8881
+GLOBAL_BOT_API_URL=http://10.20.30.253:8882
+GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 ASH_TESTING_API=http://10.20.30.253:8884
 
 # Restart dashboard to pick up changes
@@ -563,7 +563,7 @@ ORDER BY idx_scan DESC;
 2. **Caching Optimization:**
 ```bash
 # Increase cache TTL values in .env
-CACHE_TTL=600
+DASH_CACHE_TTL=600
 SESSION_TTL=3600
 RATE_LIMIT_TTL=1800
 
@@ -759,7 +759,7 @@ docker-compose restart ash-dash
 docker-compose exec redis redis-cli flushdb
 
 # Check session configuration
-grep -E "(SESSION_SECRET|JWT_SECRET)" /opt/ash/ash-dash/.env
+grep -E "(GLOBAL_SESSION_TOKEN|JWT_SECRET)" /opt/ash/ash-dash/.env
 
 # Generate new session secrets if needed
 openssl rand -base64 32
@@ -1281,7 +1281,7 @@ docker-compose down && docker-compose up -d
 docker-compose up -d --force-recreate ash-dash
 
 # Emergency fallback (disable SSL)
-# Temporarily set ENABLE_SSL=false in .env and restart
+# Temporarily set DASH_ENABLE_SSL=false in .env and restart
 ```
 
 ### Useful Aliases

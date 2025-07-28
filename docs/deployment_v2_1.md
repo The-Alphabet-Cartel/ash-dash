@@ -62,29 +62,29 @@ nano .env
 **Production Environment Configuration:**
 ```bash
 # Server Configuration
-NODE_ENV=production
-PORT=8883
-ENABLE_SSL=true
+GLOBAL_ENVIRONMENT=production
+GLOBAL_DASH_API_PORT=8883
+DASH_ENABLE_SSL=true
 
 # Service Endpoints (Updated for dedicated server)
-ASH_BOT_API=http://10.20.30.253:8882
-ASH_NLP_API=http://10.20.30.253:8881
+GLOBAL_BOT_API_URL=http://10.20.30.253:8882
+GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 ASH_TESTING_API=http://10.20.30.253:8884
 
 # Database Configuration
-DATABASE_URL=postgresql://ash_user:secure_password@10.20.30.253:5432/ash_dashboard
+THRASH_DATABASE_URL=postgresql://ash_user:secure_password@10.20.30.253:5432/ash_dashboard
 
 # Performance Settings (Optimized for dedicated hardware)
-CACHE_TTL=300
-HEALTH_CHECK_INTERVAL=60000
-METRICS_UPDATE_INTERVAL=30000
+DASH_CACHE_TTL=300
+DASH_HEALTH_CHECK_INTERVAL=60000
+DASH_METRICS_UPDATE_INTERVAL=30000
 MAX_CONCURRENT_REQUESTS=100
 
 # Security Settings
-ENABLE_CORS=true
+GLOBAL_API_ENABLE_CORS=true
 ALLOWED_ORIGINS=https://dashboard.alphabetcartel.net,https://10.20.30.253:8883
-RATE_LIMIT_MAX=200
-RATE_LIMIT_WINDOW=900000
+DASH_RATE_LIMIT_MAX=200
+DASH_RATE_LIMIT_WINDOW=900000
 ENABLE_DDoS_PROTECTION=true
 
 # Team Management
@@ -94,7 +94,7 @@ DEFAULT_ROLE=observer
 SESSION_TIMEOUT=3600000
 
 # Monitoring & Logging
-LOG_LEVEL=info
+GLOBAL_LOG_LEVEL=info
 ENABLE_METRICS_EXPORT=true
 PROMETHEUS_PORT=9090
 GRAFANA_ENABLED=true
@@ -177,12 +177,12 @@ nano .env
 **Standalone Environment Configuration:**
 ```bash
 # Use same configuration as above, but with explicit service URLs
-ASH_BOT_API=http://10.20.30.253:8882
-ASH_NLP_API=http://10.20.30.253:8881
+GLOBAL_BOT_API_URL=http://10.20.30.253:8882
+GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 ASH_TESTING_API=http://10.20.30.253:8884
 
 # May need to configure database separately if not using ecosystem database
-DATABASE_URL=postgresql://localhost:5432/ash_dashboard_standalone
+THRASH_DATABASE_URL=postgresql://localhost:5432/ash_dashboard_standalone
 ```
 
 #### **Step 3: Deploy**
@@ -227,23 +227,23 @@ atom .env.development
 **Development Environment Variables:**
 ```bash
 # Development Configuration
-NODE_ENV=development
-PORT=8883
-ENABLE_SSL=false
+GLOBAL_ENVIRONMENT=development
+GLOBAL_DASH_API_PORT=8883
+DASH_ENABLE_SSL=false
 
 # Service Endpoints (point to development or production services)
-ASH_BOT_API=http://10.20.30.253:8882
-ASH_NLP_API=http://10.20.30.253:8881
+GLOBAL_BOT_API_URL=http://10.20.30.253:8882
+GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 ASH_TESTING_API=http://10.20.30.253:8884
 
 # Development-specific settings
-LOG_LEVEL=debug
+GLOBAL_LOG_LEVEL=debug
 ENABLE_DEBUG_ROUTES=true
-ENABLE_MOCK_DATA=true
-CACHE_TTL=10
+DASH_ENABLE_MOCK_DATA=true
+DASH_CACHE_TTL=10
 
 # Development tools
-ENABLE_HOT_RELOAD=true
+DASH_ENABLE_HOT_RELOAD=true
 ENABLE_SOURCE_MAPS=true
 WEBPACK_DEV_SERVER=true
 ```

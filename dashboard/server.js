@@ -59,16 +59,16 @@ console.log(`🌐 Detected host IP: ${hostIP}`);
 
 // Configuration
 const config = {
-  port: process.env.PORT || 8883,
-  enableSSL: process.env.ENABLE_SSL === 'true',
-  sslCertPath: process.env.SSL_CERT_PATH || './certs/cert.pem',
-  sslKeyPath: process.env.SSL_KEY_PATH || './certs/key.pem',
-  ashBotAPI: process.env.ASH_BOT_API || 'http://10.20.30.253:8882',
-  ashNLPAPI: process.env.ASH_NLP_API || 'http://10.20.30.253:8881',
-  cacheTimeout: parseInt(process.env.CACHE_TTL) || 300,
-  metricsUpdateInterval: parseInt(process.env.METRICS_UPDATE_INTERVAL) || 30000,
-  enableSocketIO: process.env.ENABLE_SOCKET_IO !== 'false',
-  logLevel: process.env.LOG_LEVEL || 'info',
+  port: process.env.GLOBAL_DASH_API_PORT || 8883,
+  enableSSL: process.env.DASH_ENABLE_SSL === 'true',
+  sslCertPath: process.env.DASH_SSL_CERT_PATH || './certs/cert.pem',
+  sslKeyPath: process.env.DASH_SSL_KEY_PATH || './certs/key.pem',
+  ashBotAPI: process.env.GLOBAL_BOT_API_URL || 'http://10.20.30.253:8882',
+  ashNLPAPI: process.env.GLOBAL_NLP_API_URL || 'http://10.20.30.253:8881',
+  cacheTimeout: parseInt(process.env.DASH_CACHE_TTL) || 300,
+  metricsUpdateInterval: parseInt(process.env.DASH_METRICS_UPDATE_INTERVAL) || 30000,
+  enableSocketIO: process.env.DASH_ENABLE_SOCKET_IO !== 'false',
+  logLevel: process.env.GLOBAL_LOG_LEVEL || 'info',
 };
 
 console.log('⚙️ Configuration loaded');
@@ -99,7 +99,7 @@ const logger = winston.createLogger({
       )
     }),
     new winston.transports.File({ 
-      filename: process.env.LOG_FILE || 'ash-dash.log',
+      filename: process.env.DASH_LOG_FILE || 'ash-dash.log',
       maxsize: 10485760, // 10MB
       maxFiles: 5
     })
@@ -122,22 +122,22 @@ app.use(helmet({
 
 app.use(compression());
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',') || '*',
+  origin: process.env.GLOBAL_API_ALLOWED_ORIGINS?.split(',') || '*',
   credentials: true
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW) || 900000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
+  windowMs: parseInt(process.env.DASH_RATE_LIMIT_WINDOW) || 900000, // 15 minutes
+  max: parseInt(process.env.DASH_RATE_LIMIT_MAX) || 100,
   message: {
-    error: process.env.RATE_LIMIT_MESSAGE || 'Too many requests, please try again later'
+    error: process.env.DASH_RATE_LIMIT_MESSAGE || 'Too many requests, please try again later'
   }
 });
 app.use('/api/', limiter);
 
 // Request logging
-if (process.env.ENABLE_ACCESS_LOGS !== 'false') {
+if (process.env.DASH_ENABLE_ACCESS_LOGS !== 'false') {
   app.use(morgan('combined', {
     stream: { write: (message) => logger.info(message.trim()) }
   }));
@@ -160,8 +160,8 @@ const createAPIClient = (baseURL, timeout = 5000) => {
   });
 };
 
-const botAPI = createAPIClient(config.ashBotAPI, parseInt(process.env.ASH_BOT_API_TIMEOUT) || 5000);
-const nlpAPI = createAPIClient(config.ashNLPAPI, parseInt(process.env.ASH_NLP_API_TIMEOUT) || 10000);
+const botAPI = createAPIClient(config.ashBotAPI, parseInt(process.env.DASH_BOT_API_TIMEOUT) || 5000);
+const nlpAPI = createAPIClient(config.ashNLPAPI, parseInt(process.env.DASH_NLP_API_TIMEOUT) || 10000);
 
 // Service health checker
 async function checkServiceHealth(api, serviceName) {
@@ -475,7 +475,7 @@ if (config.enableSocketIO) {
   console.log('🔌 Setting up Socket.IO...');
   io = new Server(server, {
     cors: {
-      origin: process.env.CORS_ORIGINS?.split(',') || '*',
+      origin: process.env.GLOBAL_API_ALLOWED_ORIGINS?.split(',') || '*',
       methods: ['GET', 'POST']
     }
   });

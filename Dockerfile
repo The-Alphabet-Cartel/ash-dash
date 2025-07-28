@@ -32,37 +32,37 @@ RUN openssl req -x509 -newkey rsa:2048 -keyout certs/key.pem -out certs/cert.pem
 USER dashuser
 
 # Set environment variables
-ENV NODE_ENV="production"
-ENV PORT="8883"
-ENV DASH_PORT="8883"
+ENV GLOBAL_ENVIRONMENT="production"
+ENV GLOBAL_DASH_API_PORT="8883"
+ENV GLOBAL_DASH_API_PORT="8883"
 
 # SSL Configuration
-ENV ENABLE_SSL="true"
+ENV DASH_ENABLE_SSL="true"
 
 # Ash Bot API (Discord Bot with Crisis Detection)
-ENV ASH_BOT_API="http://10.20.30.253:8882"
-ENV ASH_BOT_API_TIMEOUT="5000"
+ENV GLOBAL_BOT_API_URL="http://10.20.30.253:8882"
+ENV DASH_BOT_API_TIMEOUT="5000"
 
 # Ash NLP Server API (Machine Learning Analysis)
-ENV ASH_NLP_API="http://10.20.30.253:8881"
-ENV ASH_NLP_API_TIMEOUT="10000"
+ENV GLOBAL_NLP_API_URL="http://10.20.30.253:8881"
+ENV DASH_NLP_API_TIMEOUT="10000"
 
 # Cache Settings
-ENV CACHE_TTL="300"
-ENV ENABLE_ANALYTICS="true"
-ENV ANALYTICS_RETENTION_DAYS="90"
+ENV DASH_CACHE_TTL="300"
+ENV DASH_ENABLE_ANALYTICS="true"
+ENV DASH_ANALYTICS_RETENTION_DAYS="90"
 
 # Real-time Updates
-ENV ENABLE_SOCKET_IO="true"
-ENV METRICS_UPDATE_INTERVAL="30000"
+ENV DASH_ENABLE_SOCKET_IO="true"
+ENV DASH_METRICS_UPDATE_INTERVAL="30000"
 
 # LOGGING & MONITORING
-ENV LOG_LEVEL="info"
+ENV GLOBAL_LOG_LEVEL="info"
 
 # DOCKER SECRETS CONFIGURATION
-ENV SSL_CERT_PATH="/app/certs/cert.pem"
-ENV SSL_KEY_PATH="/app/certs/key.pem"
-ENV SESSION_SECRET="/run/secrets/session_secret"
+ENV DASH_SSL_CERT_PATH="/app/certs/cert.pem"
+ENV DASH_SSL_KEY_PATH="/app/certs/key.pem"
+ENV GLOBAL_SESSION_TOKEN="/run/secrets/session_secret"
 
 # Expose port
 EXPOSE 8883

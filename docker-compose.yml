@@ -16,39 +16,39 @@ services:
       - 8883:8883
 
     environment:
-      - NODE_ENV=${NODE_ENV:-production}
-      - PORT=${PORT:-8883}
-      - DASH_PORT=${DASH_PORT:-8883}
+      - GLOBAL_ENVIRONMENT=${GLOBAL_ENVIRONMENT:-production}
+      - GLOBAL_DASH_API_PORT=${GLOBAL_DASH_API_PORT:-8883}
+      - GLOBAL_DASH_API_PORT=${GLOBAL_DASH_API_PORT:-8883}
       
       # SSL Configuration
-      - ENABLE_SSL=${ENABLE_SSL:-true}
-      - SSL_CERT_PATH=${SSL_CERT_PATH:-/app/certs/cert.pem}
-      - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/certs/key.pem}
+      - DASH_ENABLE_SSL=${DASH_ENABLE_SSL:-true}
+      - DASH_SSL_CERT_PATH=${DASH_SSL_CERT_PATH:-/app/certs/cert.pem}
+      - DASH_SSL_KEY_PATH=${DASH_SSL_KEY_PATH:-/app/certs/key.pem}
       
       # Ash Bot API (Discord Bot with Crisis Detection)
-      - ASH_BOT_API=${ASH_BOT_API:-http://10.20.30.253:8882}
-      - ASH_BOT_API_TIMEOUT=${ASH_BOT_API_TIMEOUT:-5000}
+      - GLOBAL_BOT_API_URL=${GLOBAL_BOT_API_URL:-http://10.20.30.253:8882}
+      - DASH_BOT_API_TIMEOUT=${DASH_BOT_API_TIMEOUT:-5000}
       
       # Ash NLP Server API (Machine Learning Analysis)
-      - ASH_NLP_API=${ASH_NLP_API:-http://10.20.30.253:8881}
-      - ASH_NLP_API_TIMEOUT=${ASH_NLP_API_TIMEOUT:-10000}
+      - GLOBAL_NLP_API_URL=${GLOBAL_NLP_API_URL:-http://10.20.30.253:8881}
+      - DASH_NLP_API_TIMEOUT=${DASH_NLP_API_TIMEOUT:-10000}
       
       # Cache Settings
-      - CACHE_TTL=${CACHE_TTL:-300}
-      - ENABLE_ANALYTICS=${ENABLE_ANALYTICS:-true}
-      - ANALYTICS_RETENTION_DAYS=${ANALYTICS_RETENTION_DAYS:-90}
+      - DASH_CACHE_TTL=${DASH_CACHE_TTL:-300}
+      - DASH_ENABLE_ANALYTICS=${DASH_ENABLE_ANALYTICS:-true}
+      - DASH_ANALYTICS_RETENTION_DAYS=${DASH_ANALYTICS_RETENTION_DAYS:-90}
       
       # Real-time Updates
-      - ENABLE_SOCKET_IO=${ENABLE_SOCKET_IO:-true}
-      - METRICS_UPDATE_INTERVAL=${METRICS_UPDATE_INTERVAL:-30000}
+      - DASH_ENABLE_SOCKET_IO=${DASH_ENABLE_SOCKET_IO:-true}
+      - DASH_METRICS_UPDATE_INTERVAL=${DASH_METRICS_UPDATE_INTERVAL:-30000}
 
       # LOGGING & MONITORING
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - GLOBAL_LOG_LEVEL=${GLOBAL_LOG_LEVEL:-info}
       
       # DOCKER SECRETS CONFIGURATION
-      - SSL_CERT_PATH=${SSL_CERT_PATH:-/app/certs/cert.pem}
-      - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/certs/key.pem}
-      - SESSION_SECRET=${SESSION_SECRET:-/run/secrets/session_secret}
+      - DASH_SSL_CERT_PATH=${DASH_SSL_CERT_PATH:-/app/certs/cert.pem}
+      - DASH_SSL_KEY_PATH=${DASH_SSL_KEY_PATH:-/app/certs/key.pem}
+      - GLOBAL_SESSION_TOKEN=${GLOBAL_SESSION_TOKEN:-/run/secrets/session_secret}
     volumes:
       - ./logs:/app/logs
       - ./data:/app/data
