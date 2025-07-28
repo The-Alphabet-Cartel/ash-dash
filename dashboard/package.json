@@ -11,7 +11,7 @@
     "test:watch": "jest --watch",
     "lint": "eslint *.js",
     "lint:fix": "eslint *.js --fix",
-    "ssl:generate": "openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes -subj '/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.16'"
+    "ssl:generate": "openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes -subj '/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.253'"
   },
   "keywords": [
     "discord",

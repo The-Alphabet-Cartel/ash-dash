@@ -30,7 +30,7 @@ services:
       - ASH_BOT_API_TIMEOUT=${ASH_BOT_API_TIMEOUT:-5000}
       
       # Ash NLP Server API (Machine Learning Analysis)
-      - ASH_NLP_API=${ASH_NLP_API:-http://10.20.30.16:8881}
+      - ASH_NLP_API=${ASH_NLP_API:-http://10.20.30.253:8881}
       - ASH_NLP_API_TIMEOUT=${ASH_NLP_API_TIMEOUT:-10000}
       
       # Cache Settings

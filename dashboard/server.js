@@ -64,7 +64,7 @@ const config = {
   sslCertPath: process.env.SSL_CERT_PATH || './certs/cert.pem',
   sslKeyPath: process.env.SSL_KEY_PATH || './certs/key.pem',
   ashBotAPI: process.env.ASH_BOT_API || 'http://10.20.30.253:8882',
-  ashNLPAPI: process.env.ASH_NLP_API || 'http://10.20.30.16:8881',
+  ashNLPAPI: process.env.ASH_NLP_API || 'http://10.20.30.253:8881',
   cacheTimeout: parseInt(process.env.CACHE_TTL) || 300,
   metricsUpdateInterval: parseInt(process.env.METRICS_UPDATE_INTERVAL) || 30000,
   enableSocketIO: process.env.ENABLE_SOCKET_IO !== 'false',

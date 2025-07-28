@@ -25,7 +25,7 @@ RUN mkdir -p logs data cache certs && \
 
 # Generate self-signed SSL certificate for development
 RUN openssl req -x509 -newkey rsa:2048 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes \
-    -subj '/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.16' && \
+    -subj '/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.253' && \
     chown dashuser:dashuser certs/*.pem
 
 # Switch to non-root user
@@ -44,7 +44,7 @@ ENV ASH_BOT_API="http://10.20.30.253:8882"
 ENV ASH_BOT_API_TIMEOUT="5000"
 
 # Ash NLP Server API (Machine Learning Analysis)
-ENV ASH_NLP_API="http://10.20.30.16:8881"
+ENV ASH_NLP_API="http://10.20.30.253:8881"
 ENV ASH_NLP_API_TIMEOUT="10000"
 
 # Cache Settings
