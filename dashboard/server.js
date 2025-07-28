@@ -3,6 +3,7 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
@@ -16,6 +17,45 @@ const { Server } = require('socket.io');
 
 // Add console logging for Docker visibility
 console.log('🚀 Starting Ash Dashboard...');
+
+// Function to get the host IP address
+function getHostIP() {
+  const networkInterfaces = os.networkInterfaces();
+  
+  // Try to find the primary network interface (usually the one with a gateway)
+  for (const interfaceName of Object.keys(networkInterfaces)) {
+    const addresses = networkInterfaces[interfaceName];
+    
+    for (const address of addresses) {
+      // Skip loopback and non-IPv4 addresses
+      if (!address.internal && address.family === 'IPv4') {
+        // Prefer addresses in common private network ranges
+        if (address.address.startsWith('192.168.') || 
+            address.address.startsWith('10.') || 
+            address.address.startsWith('172.')) {
+          return address.address;
+        }
+      }
+    }
+  }
+  
+  // Fallback: return the first non-internal IPv4 address
+  for (const interfaceName of Object.keys(networkInterfaces)) {
+    const addresses = networkInterfaces[interfaceName];
+    
+    for (const address of addresses) {
+      if (!address.internal && address.family === 'IPv4') {
+        return address.address;
+      }
+    }
+  }
+  
+  // Final fallback
+  return 'localhost';
+}
+
+const hostIP = getHostIP();
+console.log(`🌐 Detected host IP: ${hostIP}`);
 
 // Configuration
 const config = {
@@ -384,7 +424,7 @@ function generateSelfSignedCert() {
     }
     
     // Generate self-signed certificate
-    const cmd = `openssl req -x509 -newkey rsa:2048 -keyout "${config.sslKeyPath}" -out "${config.sslCertPath}" -days 365 -nodes -subj "/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.16"`;
+    const cmd = `openssl req -x509 -newkey rsa:2048 -keyout "${config.sslKeyPath}" -out "${config.sslCertPath}" -days 365 -nodes -subj "/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=${hostIP}"`;
     execSync(cmd, { stdio: 'pipe' });
     
     console.log(`🔐 Generated self-signed SSL certificate`);
@@ -479,9 +519,9 @@ server.listen(config.port, '0.0.0.0', () => {
   console.log('=================================');
   console.log('✅ ASH DASHBOARD READY!');
   console.log('=================================');
-  console.log(`🌐 ${protocol}://10.20.30.16:${config.port}`);
-  console.log(`💓 Health: ${protocol}://10.20.30.16:${config.port}/health`);
-  console.log(`📊 Status: ${protocol}://10.20.30.16:${config.port}/api/status`);
+  console.log(`🌐 ${protocol}://${hostIP}:${config.port}`);
+  console.log(`💓 Health: ${protocol}://${hostIP}:${config.port}/health`);
+  console.log(`📊 Status: ${protocol}://${hostIP}:${config.port}/api/status`);
   console.log('=================================');
   
   // Also use winston logger for file logging
