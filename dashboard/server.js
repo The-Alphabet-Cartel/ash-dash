@@ -14,6 +14,9 @@ const NodeCache = require('node-cache');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
+// Add console logging for Docker visibility
+console.log('🚀 Starting Ash Dashboard...');
+
 // Configuration
 const config = {
   port: process.env.PORT || 8883,
@@ -27,6 +30,12 @@ const config = {
   enableSocketIO: process.env.ENABLE_SOCKET_IO !== 'false',
   logLevel: process.env.LOG_LEVEL || 'info',
 };
+
+console.log('⚙️ Configuration loaded');
+console.log(`📡 Port: ${config.port}`);
+console.log(`🤖 Bot API: ${config.ashBotAPI}`);
+console.log(`🧠 NLP API: ${config.ashNLPAPI}`);
+console.log(`🔒 SSL: ${config.enableSSL ? 'Enabled' : 'Disabled'}`);
 
 // Initialize Express app
 const app = express();
@@ -96,6 +105,8 @@ if (process.env.ENABLE_ACCESS_LOGS !== 'false') {
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+console.log('🔧 Middleware configured');
 
 // API client setup with timeouts and retries
 const createAPIClient = (baseURL, timeout = 5000) => {
@@ -340,6 +351,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+console.log('🛣️ Routes configured');
+
 // Error handling middleware
 app.use((error, req, res, next) => {
   logger.error('Unhandled error:', error);
@@ -367,22 +380,24 @@ function generateSelfSignedCert() {
     // Create certs directory if it doesn't exist
     if (!fs.existsSync(certDir)) {
       fs.mkdirSync(certDir, { recursive: true });
-      logger.info(`📁 Created certificates directory: ${certDir}`);
+      console.log(`📁 Created certificates directory: ${certDir}`);
     }
     
     // Generate self-signed certificate
     const cmd = `openssl req -x509 -newkey rsa:2048 -keyout "${config.sslKeyPath}" -out "${config.sslCertPath}" -days 365 -nodes -subj "/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.16"`;
     execSync(cmd, { stdio: 'pipe' });
     
-    logger.info(`🔐 Generated self-signed SSL certificate`);
+    console.log(`🔐 Generated self-signed SSL certificate`);
     return true;
   } catch (error) {
-    logger.error('Failed to generate SSL certificate:', error.message);
+    console.log('Failed to generate SSL certificate:', error.message);
     return false;
   }
 }
 
 // Server initialization
+console.log('🚀 Initializing server...');
+
 let server;
 
 if (config.enableSSL) {
@@ -390,7 +405,7 @@ if (config.enableSSL) {
   try {
     // Check if SSL files exist, if not, try to generate them
     if (!fs.existsSync(config.sslCertPath) || !fs.existsSync(config.sslKeyPath)) {
-      logger.info('🔍 SSL certificates not found, attempting to generate...');
+      console.log('🔍 SSL certificates not found, generating...');
       
       if (!generateSelfSignedCert()) {
         throw new Error('Could not generate SSL certificates');
@@ -403,21 +418,21 @@ if (config.enableSSL) {
     };
     
     server = https.createServer(sslOptions, app);
-    logger.info(`🔒 SSL enabled using cert: ${config.sslCertPath}`);
+    console.log(`🔒 HTTPS server created`);
   } catch (error) {
-    logger.warn(`SSL setup failed, falling back to HTTP: ${error.message}`);
+    console.log(`⚠️ SSL setup failed, falling back to HTTP: ${error.message}`);
     server = http.createServer(app);
-    logger.info('🔓 Running in HTTP mode due to SSL failure');
   }
 } else {
   // HTTP server
   server = http.createServer(app);
-  logger.info('🔓 Running in HTTP mode (SSL disabled)');
+  console.log('🔓 HTTP server created');
 }
 
 // Socket.IO setup for real-time updates
 let io;
 if (config.enableSocketIO) {
+  console.log('🔌 Setting up Socket.IO...');
   io = new Server(server, {
     cors: {
       origin: process.env.CORS_ORIGINS?.split(',') || '*',
@@ -453,12 +468,23 @@ if (config.enableSocketIO) {
     }
   }, config.metricsUpdateInterval);
   
-  logger.info('🔌 Socket.IO enabled for real-time updates');
+  console.log('✅ Socket.IO configured');
 }
 
 // Start server
 server.listen(config.port, '0.0.0.0', () => {
   const protocol = config.enableSSL ? 'https' : 'http';
+  
+  console.log('');
+  console.log('=================================');
+  console.log('✅ ASH DASHBOARD READY!');
+  console.log('=================================');
+  console.log(`🌐 ${protocol}://10.20.30.16:${config.port}`);
+  console.log(`💓 Health: ${protocol}://10.20.30.16:${config.port}/health`);
+  console.log(`📊 Status: ${protocol}://10.20.30.16:${config.port}/api/status`);
+  console.log('=================================');
+  
+  // Also use winston logger for file logging
   logger.info(`🚀 Ash Analytics Dashboard running on ${protocol}://0.0.0.0:${config.port}`);
   logger.info(`📊 Monitoring Ash Bot: ${config.ashBotAPI}`);
   logger.info(`🤖 Monitoring NLP Server: ${config.ashNLPAPI}`);
@@ -467,16 +493,20 @@ server.listen(config.port, '0.0.0.0', () => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down...');
   logger.info('SIGTERM received, shutting down gracefully...');
   server.close(() => {
+    console.log('👋 Server stopped');
     logger.info('Server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received, shutting down...');
   logger.info('SIGINT received, shutting down gracefully...');
   server.close(() => {
+    console.log('👋 Server stopped');
     logger.info('Server closed');
     process.exit(0);
   });
