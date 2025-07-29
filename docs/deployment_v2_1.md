@@ -62,7 +62,6 @@ nano .env
 **Production Environment Configuration:**
 ```bash
 # Server Configuration
-GLOBAL_ENVIRONMENT=production
 GLOBAL_DASH_API_PORT=8883
 DASH_ENABLE_SSL=true
 
@@ -71,12 +70,8 @@ GLOBAL_BOT_API_URL=http://10.20.30.253:8882
 GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 ASH_TESTING_API=http://10.20.30.253:8884
 
-# Database Configuration
-THRASH_DATABASE_URL=postgresql://ash_user:secure_password@10.20.30.253:5432/ash_dashboard
-
 # Performance Settings (Optimized for dedicated hardware)
 DASH_CACHE_TTL=300
-DASH_HEALTH_CHECK_INTERVAL=60000
 DASH_METRICS_UPDATE_INTERVAL=30000
 MAX_CONCURRENT_REQUESTS=100
 
@@ -180,9 +175,6 @@ nano .env
 GLOBAL_BOT_API_URL=http://10.20.30.253:8882
 GLOBAL_NLP_API_URL=http://10.20.30.253:8881
 ASH_TESTING_API=http://10.20.30.253:8884
-
-# May need to configure database separately if not using ecosystem database
-THRASH_DATABASE_URL=postgresql://localhost:5432/ash_dashboard_standalone
 ```
 
 #### **Step 3: Deploy**
@@ -227,7 +219,6 @@ atom .env.development
 **Development Environment Variables:**
 ```bash
 # Development Configuration
-GLOBAL_ENVIRONMENT=development
 GLOBAL_DASH_API_PORT=8883
 DASH_ENABLE_SSL=false
 
@@ -238,7 +229,6 @@ ASH_TESTING_API=http://10.20.30.253:8884
 
 # Development-specific settings
 GLOBAL_LOG_LEVEL=debug
-DASH_ENABLE_MOCK_DATA=true
 DASH_CACHE_TTL=10
 
 # Development tools

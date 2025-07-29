@@ -32,7 +32,6 @@ RUN openssl req -x509 -newkey rsa:2048 -keyout certs/key.pem -out certs/cert.pem
 USER dashuser
 
 # Set environment variables
-ENV GLOBAL_ENVIRONMENT="production"
 ENV GLOBAL_DASH_API_PORT="8883"
 ENV GLOBAL_DASH_API_PORT="8883"
 
@@ -49,8 +48,6 @@ ENV DASH_NLP_API_TIMEOUT="10000"
 
 # Cache Settings
 ENV DASH_CACHE_TTL="300"
-ENV DASH_ENABLE_ANALYTICS="true"
-ENV DASH_ANALYTICS_RETENTION_DAYS="90"
 
 # Real-time Updates
 ENV DASH_ENABLE_SOCKET_IO="true"

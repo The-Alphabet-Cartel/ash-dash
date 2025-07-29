@@ -1,42 +1,37 @@
+# Ash-Dash Docker Compose for Ash Ecosystem
+# Repository: https://github.com/the-alphabet-cartel/ash-dash
+# Discord: https://discord.gg/alphabetcartel
+# Website: http://alphabetcartel.org
 services:
+  # ========================================================================
+  # Analytics Dashboard (ash-dash)
+  # ========================================================================
   ash-dash:
-    # For local development: build locally
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-
-    # For production: pull from GitHub Container Registry
     image: ghcr.io/the-alphabet-cartel/ash-dash:latest
-
     container_name: ash-dash
     restart: unless-stopped
     networks:
-      - ash-network
+      ash-network:
+        ipv4_address: 172.20.0.12
     ports:
       - 8883:8883
-
     environment:
-      - GLOBAL_ENVIRONMENT=${GLOBAL_ENVIRONMENT:-production}
-      - GLOBAL_DASH_API_PORT=${GLOBAL_DASH_API_PORT:-8883}
-      - GLOBAL_DASH_API_PORT=${GLOBAL_DASH_API_PORT:-8883}
-      
       # SSL Configuration
-      - DASH_ENABLE_SSL=${DASH_ENABLE_SSL:-true}
-      - DASH_SSL_CERT_PATH=${DASH_SSL_CERT_PATH:-/app/certs/cert.pem}
-      - DASH_SSL_KEY_PATH=${DASH_SSL_KEY_PATH:-/app/certs/key.pem}
+      - DASH_ENABLE_SSL=${DASH_ENABLE_SSL:-false}
+      - DASH_SSL_CERT_PATH=${DASH_SSL_CERT_PATH}
+      - DASH_SSL_KEY_PATH=${DASH_SSL_KEY_PATH}
       
       # Ash Bot API (Discord Bot with Crisis Detection)
-      - GLOBAL_BOT_API_URL=${GLOBAL_BOT_API_URL:-http://10.20.30.253:8882}
+      - GLOBAL_DASH_API_PORT=${GLOBAL_DASH_API_PORT:-8883}
+      - GLOBAL_BOT_API_URL=${GLOBAL_BOT_API_URL}
       - DASH_BOT_API_TIMEOUT=${DASH_BOT_API_TIMEOUT:-5000}
       
       # Ash NLP Server API (Machine Learning Analysis)
-      - GLOBAL_NLP_API_URL=${GLOBAL_NLP_API_URL:-http://10.20.30.253:8881}
+      - GLOBAL_NLP_API_URL=${GLOBAL_NLP_API_URL}
       - DASH_NLP_API_TIMEOUT=${DASH_NLP_API_TIMEOUT:-10000}
       
       # Cache Settings
       - DASH_CACHE_TTL=${DASH_CACHE_TTL:-300}
-      - DASH_ENABLE_ANALYTICS=${DASH_ENABLE_ANALYTICS:-true}
-      - DASH_ANALYTICS_RETENTION_DAYS=${DASH_ANALYTICS_RETENTION_DAYS:-90}
       
       # Real-time Updates
       - DASH_ENABLE_SOCKET_IO=${DASH_ENABLE_SOCKET_IO:-true}
@@ -44,60 +39,75 @@ services:
 
       # LOGGING & MONITORING
       - GLOBAL_LOG_LEVEL=${GLOBAL_LOG_LEVEL:-info}
+      - DASH_LOG_DIR=${DASH_LOG_DIR:-./logs}
+      - DASH_LOG_FILE=${DASH_LOG_FILE:-ash-dash.log}
       
       # DOCKER SECRETS CONFIGURATION
-      - DASH_SSL_CERT_PATH=${DASH_SSL_CERT_PATH:-/app/certs/cert.pem}
-      - DASH_SSL_KEY_PATH=${DASH_SSL_KEY_PATH:-/app/certs/key.pem}
-      - GLOBAL_SESSION_TOKEN=${GLOBAL_SESSION_TOKEN:-/run/secrets/session_secret}
+      - GLOBAL_SESSION_TOKEN=${GLOBAL_SESSION_TOKEN}
+      
+      # Enable Access
+      - DASH_ENABLE_ACCESS_LOGS=${DASH_ENABLE_ACCESS_LOGS:-true}
+      
+      # Rate Limits
+      - DASH_RATE_LIMIT_WINDOW=${DASH_RATE_LIMIT_WINDOW:-900000}
+      - DASH_RATE_LIMIT_MAX=${DASH_RATE_LIMIT_MAX:-100}
+      - DASH_RATE_LIMIT_MESSAGE=${DASH_RATE_LIMIT_MESSAGE:-Too many requests, please try again later}
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
-      - ./cache:/app/cache
-      - ./public:/app/public:ro
-      - ./dashboard:/app/dashboard:ro
+      - ./ash-dash/logs:/app/logs
+      - ./ash-dash/data:/app/data
+      - ./ash-dash/cache:/app/cache
+      - ./ash-dash/public:/app/public:ro
+      - ./ash-dash/dashboard:/app/dashboard:ro
       - ./secrets:/run/secrets:ro
     depends_on:
-      - ash-redis
-    
+      ash-redis:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8883/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    
+      start_period: 30s
+
+  # ========================================================================
+  # Redis Cache
+  # ========================================================================
+  ash-redis:
+    image: redis:7-alpine
+    container_name: ash-redis
+    restart: unless-stopped
+    networks:
+      ash-network:
+        ipv4_address: 172.20.0.20
+    ports:
+      - 6379:6379
+    command: redis-server --appendonly yes --requirepass ${GLOBAL_REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+      - ./secrets:/run/secrets:ro
     deploy:
       resources:
         limits:
           memory: 512M
-          cpus: '1'
-        reservations:
-          memory: 128M
           cpus: '0.25'
-
-  ash-redis:
-    image: redis:7-alpine
-    container_name: ash-dash-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
-    networks:
-      - ash-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
-        reservations:
-          memory: 64M
-          cpus: '0.1'
-
-volumes:
-  redis_data:
-    driver: local
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   ash-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data:
+    driver: local

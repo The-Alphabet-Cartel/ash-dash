@@ -77,7 +77,6 @@ docker-compose up -d
 
 ```bash
 # Server Configuration
-GLOBAL_ENVIRONMENT=production
 GLOBAL_DASH_API_PORT=8883
 DASH_ENABLE_SSL=true
 
@@ -88,7 +87,6 @@ ASH_TESTING_API=http://10.20.30.253:8884
 
 # Performance Settings (Optimized for dedicated server)
 DASH_CACHE_TTL=300
-DASH_HEALTH_CHECK_INTERVAL=60000
 DASH_METRICS_UPDATE_INTERVAL=30000
 
 # Security Settings

@@ -109,9 +109,6 @@ docker-compose ps
 # View detailed logs
 docker-compose logs ash-dash --tail=50
 
-# Check environment variables
-docker-compose exec ash-dash env | grep -E "(GLOBAL_ENVIRONMENT|GLOBAL_DASH_API_PORT|THRASH_DATABASE_URL)"
-
 # Test configuration
 docker-compose config
 ```
@@ -123,25 +120,12 @@ docker-compose config
 # Verify .env file exists and is readable
 ls -la /opt/ash/ash-dash/.env
 cat /opt/ash/ash-dash/.env | head -10
-
-# Check for missing required variables
-grep -E "(THRASH_DATABASE_URL|JWT_SECRET|DISCORD_CLIENT)" /opt/ash/ash-dash/.env
 ```
 
 2. **Database Connection Issues:**
 ```bash
 # Test database connectivity
 docker-compose exec postgres pg_isready -U ash_user -d ash_dashboard
-
-# Check database credentials
-docker-compose exec ash-dash node -e "
-const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.THRASH_DATABASE_URL });
-pool.query('SELECT NOW()', (err, res) => {
-  console.log(err ? 'DB Error: ' + err.message : 'DB Connected: ' + res.rows[0].now);
-  pool.end();
-});
-"
 ```
 
 3. **Port Conflicts:**
