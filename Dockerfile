@@ -33,10 +33,11 @@ USER dashuser
 
 # Set environment variables
 ENV GLOBAL_DASH_API_PORT="8883"
-ENV GLOBAL_DASH_API_PORT="8883"
 
 # SSL Configuration
 ENV DASH_ENABLE_SSL="true"
+ENV DASH_SSL_CERT_PATH="/app/certs/cert.pem"
+ENV DASH_SSL_KEY_PATH="/app/certs/key.pem"
 
 # Ash Bot API (Discord Bot with Crisis Detection)
 ENV GLOBAL_BOT_API_URL="http://10.20.30.253:8882"
@@ -55,11 +56,19 @@ ENV DASH_METRICS_UPDATE_INTERVAL="30000"
 
 # LOGGING & MONITORING
 ENV GLOBAL_LOG_LEVEL="info"
+ENV DASH_LOG_DIR="./logs"
+ENV DASH_LOG_FILE="ash-dash.log"
 
 # DOCKER SECRETS CONFIGURATION
-ENV DASH_SSL_CERT_PATH="/app/certs/cert.pem"
-ENV DASH_SSL_KEY_PATH="/app/certs/key.pem"
 ENV GLOBAL_SESSION_TOKEN="/run/secrets/session_secret"
+
+# Enable Access
+ENV DASH_ENABLE_ACCESS_LOGS="true"
+
+# Rate Limits
+ENV DASH_RATE_LIMIT_WINDOW="900000"
+ENV DASH_RATE_LIMIT_MAX="100"
+ENV DASH_RATE_LIMIT_MESSAGE="Too many requests, please try again later"
 
 # Expose port
 EXPOSE 8883
