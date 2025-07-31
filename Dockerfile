@@ -32,6 +32,8 @@ RUN openssl req -x509 -newkey rsa:2048 -keyout certs/key.pem -out certs/cert.pem
 USER dashuser
 
 # Set environment variables
+ENV TZ="America/Los_Angeles"
+
 ENV GLOBAL_DASH_API_PORT="8883"
 
 # SSL Configuration
