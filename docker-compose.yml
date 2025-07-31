@@ -16,6 +16,9 @@ services:
     ports:
       - 8883:8883
     environment:
+      # Local Timezone
+      - TZ=America/Los_Angeles
+      
       # SSL Configuration
       - DASH_ENABLE_SSL=${DASH_ENABLE_SSL:-false}
       - DASH_SSL_CERT_PATH=${DASH_SSL_CERT_PATH}
