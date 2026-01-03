@@ -54,8 +54,7 @@ services:
 
     # Network
     networks:
-      ash-network:
-        ipv4_address: 10.20.60.30
+      - ash-network
 
     # Environment variables
     env_file:
@@ -119,6 +118,3 @@ networks:
   ash-network:
     name: ash-network
     driver: bridge
-    ipam:
-      config:
-        - subnet: 10.20.30.0/24
