@@ -1,0 +1,45 @@
+# ============================================================================
+# Ash-Dash v5.0 Requirements
+# ============================================================================
+# FILE VERSION: v5.0
+# LAST MODIFIED: 2026-01-02
+# Repository: https://github.com/the-alphabet-cartel/ash-dash
+# Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
+# ============================================================================
+
+# =============================================================================
+# Core Framework
+# =============================================================================
+
+# =============================================================================
+# Utilities
+# =============================================================================
+
+# Python-dotenv - Environment variable loading
+python-dotenv>=1.0.0,<2.0.0
+
+# Structlog - Structured logging (optional, for JSON logs)
+# structlog>=24.1.0,<25.0.0
+
+# =============================================================================
+# HTTP and Networking
+# =============================================================================
+
+# HTTPX - Async HTTP client (for webhooks)
+httpx>=0.26.0,<1.0.0
+
+# AIOHTTP - Async HTTP client (for Discord alerting)
+aiohttp>=3.9.0,<4.0.0
+
+# =============================================================================
+# Testing (Development Only)
+# =============================================================================
+
+# Pytest - Testing framework
+pytest>=7.4.0,<8.0.0
+
+# Pytest-asyncio - Async test support
+pytest-asyncio>=0.23.0,<1.0.0
+
+# HTTPX - For TestClient
+# (already included above)

@@ -1,116 +1,119 @@
-# Ash-Dash Docker Compose for Ash Ecosystem
+# ============================================================================
+# Ash-Dash v5.0 Docker Compose Configuration
+# ============================================================================
+# FILE VERSION: v5.0
+# LAST MODIFIED: 2026-01-02
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
-# Discord: https://discord.gg/alphabetcartel
-# Website: http://alphabetcartel.org
+# Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
+# ============================================================================
+#
+# USAGE:
+#   # Start services
+#   docker-compose up -d
+#
+#   # View logs
+#   docker-compose logs -f ash-dash
+#
+#   # Stop services
+#   docker-compose down
+#
+#   # Rebuild and start
+#   docker-compose up -d --build
+#
+# SECRETS:
+#   Secrets are stored in ./secrets/ directory:
+#   - ./secrets/claude_api_key - Claude API key
+#   - ./secrets/discord_bot_token - Discord bot token
+#   - ./secrets/discord_alert_webhook - Discord webhook for alerts (optional)
+#   - ./secrets/redis - Redis password
+#
+# REQUIREMENTS:
+#   - Docker Engine 24.0+
+#   - Docker Compose v2.20+
+#
+# ============================================================================
+
 services:
-  # ========================================================================
-  # Analytics Dashboard (ash-dash)
-  # ========================================================================
+  # ===========================================================================
+  # Ash-Dash Service
+  # ===========================================================================
   ash-dash:
     image: ghcr.io/the-alphabet-cartel/ash-dash:latest
     container_name: ash-dash
-    restart: unless-stopped
-    networks:
-      ash-network:
-        ipv4_address: 172.20.0.12
-    ports:
-      - 8883:8883
-    environment:
-      # Local Timezone
-      - TZ=America/Los_Angeles
-      
-      # SSL Configuration
-      - DASH_ENABLE_SSL=${DASH_ENABLE_SSL:-false}
-      - DASH_SSL_CERT_PATH=${DASH_SSL_CERT_PATH}
-      - DASH_SSL_KEY_PATH=${DASH_SSL_KEY_PATH}
-      
-      # Ash Bot API (Discord Bot with Crisis Detection)
-      - GLOBAL_DASH_API_PORT=${GLOBAL_DASH_API_PORT:-8883}
-      - GLOBAL_BOT_API_URL=${GLOBAL_BOT_API_URL}
-      - DASH_BOT_API_TIMEOUT=${DASH_BOT_API_TIMEOUT:-5000}
-      
-      # Ash NLP Server API (Machine Learning Analysis)
-      - GLOBAL_NLP_API_URL=${GLOBAL_NLP_API_URL}
-      - DASH_NLP_API_TIMEOUT=${DASH_NLP_API_TIMEOUT:-10000}
-      
-      # Cache Settings
-      - DASH_CACHE_TTL=${DASH_CACHE_TTL:-300}
-      
-      # Real-time Updates
-      - DASH_ENABLE_SOCKET_IO=${DASH_ENABLE_SOCKET_IO:-true}
-      - DASH_METRICS_UPDATE_INTERVAL=${DASH_METRICS_UPDATE_INTERVAL:-30000}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        APP_USER: bot
+        APP_UID: 1001
+        APP_GID: 1001
 
-      # LOGGING & MONITORING
-      - GLOBAL_LOG_LEVEL=${GLOBAL_LOG_LEVEL:-info}
-      - DASH_LOG_DIR=${DASH_LOG_DIR:-./logs}
-      - DASH_LOG_FILE=${DASH_LOG_FILE:-ash-dash.log}
-      
-      # DOCKER SECRETS CONFIGURATION
-      - GLOBAL_SESSION_TOKEN=${GLOBAL_SESSION_TOKEN}
-      
-      # Enable Access
-      - DASH_ENABLE_ACCESS_LOGS=${DASH_ENABLE_ACCESS_LOGS:-true}
-      
-      # Rate Limits
-      - DASH_RATE_LIMIT_WINDOW=${DASH_RATE_LIMIT_WINDOW:-900000}
-      - DASH_RATE_LIMIT_MAX=${DASH_RATE_LIMIT_MAX:-100}
-      - DASH_RATE_LIMIT_MESSAGE=${DASH_RATE_LIMIT_MESSAGE:-Too many requests, please try again later}
+    # Restart policy
+    restart: unless-stopped
+
+    # Network
+    networks:
+      - ash-network
+
+    # Environment variables
+    env_file:
+      - .env
+
+    # Volume mounts
     volumes:
-      - ./ash-dash/logs:/app/logs
-      - ./ash-dash/data:/app/data
-      - ./ash-dash/cache:/app/cache
-      - ./ash-dash/public:/app/public:ro
-      - ./ash-dash/dashboard:/app/dashboard:ro
-      - ./secrets:/run/secrets:ro
-    depends_on:
-      ash-redis:
-        condition: service_started
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '1.0'
+      # Logs (optional)
+      - ./logs:/app/logs
+
+    # Docker Secrets
+    secrets:
+      - claude_api_key
+      - discord_bot_token
+      - discord_alert_webhook
+      - redis
+
+    # Health check
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8883/health"]
+      test:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 120s
 
-  # ========================================================================
-  # Redis Cache
-  # ========================================================================
-  ash-redis:
-    image: redis:7-alpine
-    container_name: ash-redis
-    restart: unless-stopped
-    networks:
-      ash-network:
-        ipv4_address: 172.20.0.20
-    ports:
-      - 6379:6379
-    command: redis-server --appendonly yes --requirepass ${GLOBAL_REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-      - ./secrets:/run/secrets:ro
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.25'
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
 
+    # Labels for organization
+    labels:
+      - "com.alphabetcartel.service=ash-bot"
+      - "com.alphabetcartel.version=5.0.0"
+      - "com.alphabetcartel.description=Crisis Detection Discord Bot"
+
+# =============================================================================
+# Volumes
+# =============================================================================
+
+# =============================================================================
+# Secrets
+# =============================================================================
+secrets:
+  claude_api_key:
+    file: ./secrets/claude_api_key
+  discord_bot_token:
+    file: ./secrets/discord_bot_token
+  discord_alert_webhook:
+    file: ./secrets/discord_alert_webhook
+  redis:
+    file: ./secrets/redis
+
+# =============================================================================
+# Networks
+# =============================================================================
 networks:
   ash-network:
+    name: ash-network
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-
-volumes:
-  redis_data:
-    driver: local
