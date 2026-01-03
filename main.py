@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Ash-Dash: Crisis Detection Discord Bot for The Alphabet Cartel Discord Community
+Ash-Dash: Crisis Detection Dashboard for The Alphabet Cartel Discord Community
 CORE PRINCIPLE:
 ******************  CORE SYSTEM VISION (Never to be violated):  ****************
 Ash-Dash is a CRISIS DETECTION DASHBOARD that:
-1. PRIMARY:
-2. CONTEXTUAL:
-3. HISTORICAL:
-5. **PURPOSE**:
+1. **PRIMARY**:
+2. **SECONDARY**:
+3. **TERTIARY**:
+4. **PURPOSE**:
 ********************************************************************************
 Main Entry Point for Ash-Dash Service
 ---

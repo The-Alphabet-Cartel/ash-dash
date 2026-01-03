@@ -8,29 +8,31 @@ Ash-Dash is a CRISIS DETECTION DASHBOARD that:
 3. **TERTIARY**:
 4. **PURPOSE**:
 ********************************************************************************
-Ash-Dash Test Suite
+Ash-Dash Source Package
 ---
 FILE VERSION: v5.0
+LAST MODIFIED: 2025-01-03
+PHASE: Phase 1
+CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 Community: The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 
-Test suite for Ash-Dash v5.0.
+This is the main source package for Ash-Dash containing:
+- managers: Configuration and resource management
 
 USAGE:
-    # Run all tests
-    pytest tests/
-
-    # Run with coverage
-    pytest tests/ --cov=src --cov-report=html
-
-    # Run specific test file
-    pytest tests/test_api.py
-
-    # Run specific test
-    pytest tests/test_api.py::test_health_endpoint
-
-    # Verbose output
-    pytest tests/ -v
+    from src.managers import create_config_manager
 """
 
-__version__ = "v5.0"
+__version__ = "5.0.0"
+__author__ = "The Alphabet Cartel"
+__email__ = "dev@alphabetcartel.org"
+__url__ = "https://github.com/the-alphabet-cartel/ash-dash"
+
+# Package metadata
+__all__ = [
+    "__version__",
+    "__author__",
+    "__email__",
+    "__url__",
+]
