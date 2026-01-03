@@ -55,7 +55,7 @@ services:
     # Network
     networks:
       ash-network:
-        ipv4_address: 172.20.0.30
+        ipv4_address: 10.20.60.30
 
     # Environment variables
     env_file:
@@ -93,7 +93,7 @@ services:
     labels:
       - "com.alphabetcartel.service=ash-bot"
       - "com.alphabetcartel.version=5.0.0"
-      - "com.alphabetcartel.description=Crisis Detection Discord Bot"
+      - "com.alphabetcartel.description=Crisis Detection Dashboard"
 
 # =============================================================================
 # Volumes
@@ -121,4 +121,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/24
+        - subnet: 10.20.30.0/24
