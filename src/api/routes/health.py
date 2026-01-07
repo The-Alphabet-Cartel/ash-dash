@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Health Routes - Liveness, Readiness, and Detailed Health Checks
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.2-1
+FILE VERSION: v5.0-2-2.6-1
 LAST MODIFIED: 2026-01-07
 PHASE: Phase 2 - Data Layer
 CLEAN ARCHITECTURE: Compliant
@@ -42,14 +42,14 @@ from typing import Any, Dict
 from fastapi import APIRouter, Request
 
 # Module version
-__version__ = "v5.0-2-2.2-1"
+__version__ = "v5.0-2-2.6-1"
 
 # Create router
 router = APIRouter(prefix="/health", tags=["Health"])
 
 # Application info (imported from main at startup)
 APP_NAME = "Ash-Dash"
-APP_VERSION = "v5.0-2-2.2-1"
+APP_VERSION = "v5.0-2-2.6-1"
 
 
 # =============================================================================
@@ -84,8 +84,8 @@ async def readiness_check(request: Request) -> Dict[str, Any]:
     Verifies that all required services are available:
     - Configuration loaded
     - Logging initialized
-    - Database connected (Phase 2)
-    - Redis connected (Phase 2)
+    - Database connected
+    - Redis connected (optional)
     
     Args:
         request: FastAPI request (to access app state)
@@ -98,6 +98,7 @@ async def readiness_check(request: Request) -> Dict[str, Any]:
     logging_manager = getattr(request.app.state, "logging_manager", None)
     secrets_manager = getattr(request.app.state, "secrets_manager", None)
     database_manager = getattr(request.app.state, "database_manager", None)
+    redis_manager = getattr(request.app.state, "redis_manager", None)
     
     # Perform health checks
     checks = {
@@ -105,14 +106,15 @@ async def readiness_check(request: Request) -> Dict[str, Any]:
         "logging": logging_manager is not None,
         "secrets": secrets_manager is not None,
         "database": await check_database_connection(database_manager),
-        # Phase 2 Step 2.6: Add Redis check
-        # "redis": await check_redis_connection(request),
+        "redis": await check_redis_connection(redis_manager),
     }
     
-    all_ready = all(checks.values())
+    # Redis is optional - don't fail readiness if Redis is unavailable
+    required_checks = ["config", "logging", "secrets", "database"]
+    all_required_ready = all(checks[k] for k in required_checks)
     
     return {
-        "status": "ready" if all_ready else "not_ready",
+        "status": "ready" if all_required_ready else "not_ready",
         "checks": checks,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
@@ -127,7 +129,7 @@ async def detailed_health(request: Request) -> Dict[str, Any]:
     - Service information
     - Configuration state
     - Component status
-    - Uptime and metrics (Phase 2+)
+    - Uptime and metrics
     
     Args:
         request: FastAPI request (to access app state)
@@ -140,6 +142,7 @@ async def detailed_health(request: Request) -> Dict[str, Any]:
     logging_manager = getattr(request.app.state, "logging_manager", None)
     secrets_manager = getattr(request.app.state, "secrets_manager", None)
     database_manager = getattr(request.app.state, "database_manager", None)
+    redis_manager = getattr(request.app.state, "redis_manager", None)
     
     # Build detailed response
     response = {
@@ -195,7 +198,7 @@ async def detailed_health(request: Request) -> Dict[str, Any]:
             "status": "not_initialized",
         }
     
-    # Database Manager status (Phase 2)
+    # Database Manager status
     if database_manager:
         db_health = await database_manager.health_check()
         response["components"]["database"] = {
@@ -211,17 +214,35 @@ async def detailed_health(request: Request) -> Dict[str, Any]:
             "status": "not_initialized",
         }
     
-    # Phase 2 Step 2.6: Add Redis status
-    # response["components"]["redis"] = await get_redis_status(request)
+    # Redis Manager status
+    if redis_manager:
+        redis_health = await redis_manager.health_check()
+        response["components"]["redis"] = {
+            "status": "healthy" if redis_health.get("healthy") else "unhealthy",
+            "connected": redis_health.get("healthy", False),
+            "latency_ms": redis_health.get("latency_ms"),
+            "redis_version": redis_health.get("redis_version"),
+            "error": redis_health.get("error"),
+        }
+    else:
+        # Redis is optional
+        response["components"]["redis"] = {
+            "status": "unavailable",
+            "connected": False,
+            "note": "Redis is optional - Ash-Bot may not be running",
+        }
     
     # Determine overall status
-    component_statuses = [
-        c.get("status", "unknown") 
-        for c in response["components"].values()
+    # Required components: config, logging, secrets, database
+    required_components = ["config_manager", "logging_manager", "secrets_manager", "database"]
+    required_statuses = [
+        response["components"].get(c, {}).get("status", "unknown")
+        for c in required_components
     ]
-    if all(s == "healthy" for s in component_statuses):
+    
+    if all(s == "healthy" for s in required_statuses):
         response["status"] = "healthy"
-    elif any(s == "not_initialized" for s in component_statuses):
+    elif any(s == "not_initialized" for s in required_statuses):
         response["status"] = "degraded"
     else:
         response["status"] = "unhealthy"
@@ -253,13 +274,20 @@ async def check_database_connection(database_manager) -> bool:
         return False
 
 
-# Phase 2 Step 2.6: Uncomment when RedisManager is implemented
-# async def check_redis_connection(request: Request) -> bool:
-#     """Check if Redis is connected and responsive."""
-#     try:
-#         redis_manager = getattr(request.app.state, "redis_manager", None)
-#         if redis_manager:
-#             return await redis_manager.ping()
-#         return False
-#     except Exception:
-#         return False
+async def check_redis_connection(redis_manager) -> bool:
+    """
+    Check if Redis is connected and responsive.
+    
+    Args:
+        redis_manager: RedisManager instance or None
+    
+    Returns:
+        True if Redis is healthy, False otherwise
+    """
+    try:
+        if redis_manager:
+            health = await redis_manager.health_check()
+            return health.get("healthy", False)
+        return False
+    except Exception:
+        return False

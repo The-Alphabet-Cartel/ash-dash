@@ -14,7 +14,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.2-1
+FILE VERSION: v5.0-2-2.6-1
 LAST MODIFIED: 2026-01-07
 PHASE: Phase 2 - Data Layer
 CLEAN ARCHITECTURE: Compliant
@@ -52,13 +52,14 @@ from src.managers.config_manager import create_config_manager
 from src.managers.logging_config_manager import create_logging_config_manager
 from src.managers.secrets_manager import create_secrets_manager
 from src.managers.database import create_database_manager
+from src.managers.redis import create_redis_manager
 from src.api.routes.health import router as health_router
 
 # =============================================================================
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-2-2.2-1"
+__version__ = "v5.0-2-2.6-1"
 __app_name__ = "Ash-Dash"
 __description__ = "Crisis Detection Dashboard for The Alphabet Cartel"
 
@@ -70,6 +71,7 @@ config_manager = None
 logging_manager = None
 secrets_manager = None
 database_manager = None
+redis_manager = None
 logger = None
 
 
@@ -86,7 +88,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     - Manager initialization at startup
     - Resource cleanup at shutdown
     """
-    global config_manager, logging_manager, secrets_manager, database_manager, logger
+    global config_manager, logging_manager, secrets_manager
+    global database_manager, redis_manager, logger
 
     # =========================================================================
     # STARTUP
@@ -124,6 +127,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             "system will retry on first use"
         )
 
+    # Initialize Redis manager (Phase 2 - optional, graceful degradation)
+    try:
+        redis_manager = await create_redis_manager(
+            config_manager=config_manager,
+            secrets_manager=secrets_manager,
+            logging_manager=logging_manager,
+        )
+        if redis_manager.is_connected:
+            logger.info("Redis manager initialized and connected")
+        else:
+            logger.warning("Redis manager initialized but not connected")
+    except Exception as e:
+        # Redis is optional - Ash-Bot may not be running
+        logger.warning(f"Redis connection failed (optional): {e}")
+        logger.info("Continuing without Redis - session sync will be unavailable")
+        redis_manager = None
+
     # Log configuration
     server_config = config_manager.get_server_config()
     logger.info(f"Server: {server_config.get('host')}:{server_config.get('port')}")
@@ -134,6 +154,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.logging_manager = logging_manager
     app.state.secrets_manager = secrets_manager
     app.state.database_manager = database_manager
+    app.state.redis_manager = redis_manager
 
     logger.info("Application startup complete")
 
@@ -145,6 +166,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # =========================================================================
 
     logger.info("Application shutdown initiated")
+
+    # Cleanup Redis connection
+    if redis_manager:
+        await redis_manager.close()
 
     # Cleanup database connection
     if database_manager:
