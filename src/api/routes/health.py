@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Health Routes - Liveness, Readiness, and Detailed Health Checks
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.6-1
+FILE VERSION: v5.0-2-2.7-1
 LAST MODIFIED: 2026-01-07
 PHASE: Phase 2 - Data Layer
 CLEAN ARCHITECTURE: Compliant
@@ -42,14 +42,14 @@ from typing import Any, Dict
 from fastapi import APIRouter, Request
 
 # Module version
-__version__ = "v5.0-2-2.6-1"
+__version__ = "v5.0-2-2.7-1"
 
 # Create router
 router = APIRouter(prefix="/health", tags=["Health"])
 
 # Application info (imported from main at startup)
 APP_NAME = "Ash-Dash"
-APP_VERSION = "v5.0-2-2.6-1"
+APP_VERSION = "v5.0-2-2.7-1"
 
 
 # =============================================================================
@@ -99,6 +99,7 @@ async def readiness_check(request: Request) -> Dict[str, Any]:
     secrets_manager = getattr(request.app.state, "secrets_manager", None)
     database_manager = getattr(request.app.state, "database_manager", None)
     redis_manager = getattr(request.app.state, "redis_manager", None)
+    sync_service = getattr(request.app.state, "sync_service", None)
     
     # Perform health checks
     checks = {
@@ -143,6 +144,7 @@ async def detailed_health(request: Request) -> Dict[str, Any]:
     secrets_manager = getattr(request.app.state, "secrets_manager", None)
     database_manager = getattr(request.app.state, "database_manager", None)
     redis_manager = getattr(request.app.state, "redis_manager", None)
+    sync_service = getattr(request.app.state, "sync_service", None)
     
     # Build detailed response
     response = {
@@ -230,6 +232,26 @@ async def detailed_health(request: Request) -> Dict[str, Any]:
             "status": "unavailable",
             "connected": False,
             "note": "Redis is optional - Ash-Bot may not be running",
+        }
+    
+    # Sync Service status
+    if sync_service:
+        sync_stats = sync_service.stats
+        response["components"]["sync_service"] = {
+            "status": "healthy" if sync_service.is_running else "stopped",
+            "running": sync_service.is_running,
+            "cycles_completed": sync_stats.get("cycles_completed", 0),
+            "sessions_created": sync_stats.get("sessions_created", 0),
+            "sessions_updated": sync_stats.get("sessions_updated", 0),
+            "sessions_closed": sync_stats.get("sessions_closed", 0),
+            "last_sync": sync_stats.get("last_sync"),
+            "errors_count": sync_stats.get("errors_count", 0),
+        }
+    else:
+        response["components"]["sync_service"] = {
+            "status": "unavailable",
+            "running": False,
+            "note": "Requires Redis and Database connections",
         }
     
     # Determine overall status

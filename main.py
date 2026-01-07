@@ -14,7 +14,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.6-1
+FILE VERSION: v5.0-2-2.7-1
 LAST MODIFIED: 2026-01-07
 PHASE: Phase 2 - Data Layer
 CLEAN ARCHITECTURE: Compliant
@@ -53,13 +53,14 @@ from src.managers.logging_config_manager import create_logging_config_manager
 from src.managers.secrets_manager import create_secrets_manager
 from src.managers.database import create_database_manager
 from src.managers.redis import create_redis_manager
+from src.services import create_sync_service
 from src.api.routes.health import router as health_router
 
 # =============================================================================
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-2-2.6-1"
+__version__ = "v5.0-2-2.7-1"
 __app_name__ = "Ash-Dash"
 __description__ = "Crisis Detection Dashboard for The Alphabet Cartel"
 
@@ -72,6 +73,7 @@ logging_manager = None
 secrets_manager = None
 database_manager = None
 redis_manager = None
+sync_service = None
 logger = None
 
 
@@ -86,10 +88,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     This handles:
     - Manager initialization at startup
+    - Background service startup
     - Resource cleanup at shutdown
     """
     global config_manager, logging_manager, secrets_manager
-    global database_manager, redis_manager, logger
+    global database_manager, redis_manager, sync_service, logger
 
     # =========================================================================
     # STARTUP
@@ -144,6 +147,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Continuing without Redis - session sync will be unavailable")
         redis_manager = None
 
+    # Initialize Sync Service (Phase 2 - requires both Redis and Database)
+    if redis_manager and redis_manager.is_connected and database_manager.is_connected:
+        try:
+            sync_service = await create_sync_service(
+                redis_manager=redis_manager,
+                database_manager=database_manager,
+                logging_manager=logging_manager,
+                config_manager=config_manager,
+            )
+            await sync_service.start()
+            logger.info("Sync service started")
+        except Exception as e:
+            logger.warning(f"Sync service failed to start: {e}")
+            sync_service = None
+    else:
+        logger.info("Sync service not started (requires Redis and Database)")
+        sync_service = None
+
     # Log configuration
     server_config = config_manager.get_server_config()
     logger.info(f"Server: {server_config.get('host')}:{server_config.get('port')}")
@@ -155,6 +176,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.secrets_manager = secrets_manager
     app.state.database_manager = database_manager
     app.state.redis_manager = redis_manager
+    app.state.sync_service = sync_service
 
     logger.info("Application startup complete")
 
@@ -166,6 +188,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # =========================================================================
 
     logger.info("Application shutdown initiated")
+
+    # Stop sync service first (before closing connections it depends on)
+    if sync_service:
+        await sync_service.stop()
 
     # Cleanup Redis connection
     if redis_manager:
