@@ -14,7 +14,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.7-1
+FILE VERSION: v5.0-2-2.8-1
 LAST MODIFIED: 2026-01-07
 PHASE: Phase 2 - Data Layer
 CLEAN ARCHITECTURE: Compliant
@@ -55,12 +55,14 @@ from src.managers.database import create_database_manager
 from src.managers.redis import create_redis_manager
 from src.services import create_sync_service
 from src.api.routes.health import router as health_router
+from src.api.routes.sessions import router as sessions_router
+from src.api.routes.users import router as users_router
 
 # =============================================================================
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-2-2.7-1"
+__version__ = "v5.0-2-2.8-1"
 __app_name__ = "Ash-Dash"
 __description__ = "Crisis Detection Dashboard for The Alphabet Cartel"
 
@@ -254,6 +256,10 @@ app.add_middleware(
 
 # Health check routes
 app.include_router(health_router)
+
+# API routes
+app.include_router(sessions_router)
+app.include_router(users_router)
 
 
 # Root Route

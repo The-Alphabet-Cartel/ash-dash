@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Health Routes - Liveness, Readiness, and Detailed Health Checks
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.7-1
+FILE VERSION: v5.0-2-2.8-1
 LAST MODIFIED: 2026-01-07
 PHASE: Phase 2 - Data Layer
 CLEAN ARCHITECTURE: Compliant
@@ -42,14 +42,14 @@ from typing import Any, Dict
 from fastapi import APIRouter, Request
 
 # Module version
-__version__ = "v5.0-2-2.7-1"
+__version__ = "v5.0-2-2.8-1"
 
 # Create router
 router = APIRouter(prefix="/health", tags=["Health"])
 
 # Application info (imported from main at startup)
 APP_NAME = "Ash-Dash"
-APP_VERSION = "v5.0-2-2.7-1"
+APP_VERSION = "v5.0-2-2.8-1"
 
 
 # =============================================================================
