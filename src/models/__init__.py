@@ -11,54 +11,52 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Models Package - SQLAlchemy ORM models and Pydantic schemas
+Models Package - SQLAlchemy 2.0 ORM models
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.2-1
+FILE VERSION: v5.0-2-2.3-3
 LAST MODIFIED: 2026-01-07
 PHASE: Phase 2 - Data Layer
-CLEAN ARCHITECTURE: Compliant
+CLEAN ARCHITECTURE: Compliant (Rule #14 - SQLAlchemy 2.0 Standards)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
-CONTENTS:
-- database.py: Base model class and common mixins
-- user.py: User model (Step 2.3)
-- session.py: Session model (Step 2.3)
-- note.py: Note model (Step 2.3)
-- archive.py: Archive model (Step 2.3)
-
-USAGE:
-    from src.models import Base, TimestampMixin, UUIDPrimaryKeyMixin
-    from src.models import User, Session, Note, Archive  # After Step 2.3
+All models use SQLAlchemy 2.0 Mapped[] type annotations per Rule #14.
 """
 
-__version__ = "v5.0-2-2.2-1"
+__version__ = "v5.0-2-2.3-3"
 
 # Base class and mixins
-from .database import (
+from src.models.database import (
     Base,
     TimestampMixin,
     SoftDeleteMixin,
-    UUIDPrimaryKeyMixin,
     NAMING_CONVENTION,
 )
 
-# Entity models will be imported as created in Step 2.3
-# from .user import User
-# from .session import Session
-# from .note import Note
-# from .archive import Archive
+# Entity models
+from src.models.user import User
+from src.models.session import Session, SEVERITY_LEVELS, SESSION_STATUSES
+from src.models.note import Note
+from src.models.archive import Archive, DEFAULT_BUCKET, CHECKSUM_LENGTH
+from src.models.audit_log import AuditLog, AUDIT_ACTIONS, ENTITY_TYPES
 
 __all__ = [
     # Base and mixins
     "Base",
     "TimestampMixin",
     "SoftDeleteMixin",
-    "UUIDPrimaryKeyMixin",
     "NAMING_CONVENTION",
-    # Entity models (after Step 2.3)
-    # "User",
-    # "Session",
-    # "Note",
-    # "Archive",
+    # Entity models
+    "User",
+    "Session",
+    "Note",
+    "Archive",
+    "AuditLog",
+    # Constants
+    "SEVERITY_LEVELS",
+    "SESSION_STATUSES",
+    "DEFAULT_BUCKET",
+    "CHECKSUM_LENGTH",
+    "AUDIT_ACTIONS",
+    "ENTITY_TYPES",
 ]
