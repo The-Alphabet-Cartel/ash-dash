@@ -1,7 +1,7 @@
 # ============================================================================
 # Ash-Dash v5.0 Docker Compose Configuration
 # ============================================================================
-# FILE VERSION: v5.0-2-2.1-1
+# FILE VERSION: v5.0-3-3.1-3
 # LAST MODIFIED: 2026-01-07
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
@@ -17,12 +17,17 @@
 #   # Stop services
 #   docker-compose down
 #
-#   # Rebuild and start
+#   # Rebuild and start (after frontend changes)
 #   docker-compose up -d --build
+#
+# DOCKER-FIRST PHILOSOPHY:
+#   - Frontend built inside Docker (no Node.js on host)
+#   - FastAPI serves built static files on port 30883
+#   - Single container serves both API and frontend
 #
 # SECRETS:
 #   Secrets are stored in ./secrets/ directory:
-#   - ./secrets/postgres_password   - PostgreSQL password
+#   - ./secrets/postgres_token      - PostgreSQL password
 #   - ./secrets/discord_alert_token - Discord webhook for alerts (optional)
 #   - ./secrets/redis_token         - Redis password (optional)
 #
@@ -54,7 +59,7 @@ x-health: &health
 
 services:
   # ===========================================================================
-  # Ash-Dash Service - Crisis Detection Dashboard
+  # Ash-Dash Service - Crisis Detection Dashboard (FastAPI + Vue.js)
   # ===========================================================================
   ash-dash:
     image: ghcr.io/the-alphabet-cartel/ash-dash:latest
@@ -74,6 +79,7 @@ services:
     # Environment variables
     environment:
       <<: *env
+      DASH_PORT: 30883
       # Database connection is built programmatically from:
       # - .env file (host, port, database, user)
       # - Docker secrets (password from postgres_token)

@@ -1,8 +1,8 @@
 # ============================================================================
-# Ash-Dash v5.0 Production Dockerfile
+# Ash-Dash v5.0 Production Dockerfile (Multi-Stage Build)
 # ============================================================================
-# FILE VERSION: v5.0-1-1.3-1
-# LAST MODIFIED: 2026-01-06
+# FILE VERSION: v5.0-3-3.1-2
+# LAST MODIFIED: 2026-01-07
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -15,8 +15,14 @@
 #   docker-compose up -d
 #
 # MULTI-STAGE BUILD:
-#   Stage 1 (builder): Install dependencies
-#   Stage 2 (runtime): Minimal production image
+#   Stage 1 (frontend): Build Vue.js frontend with Node.js
+#   Stage 2 (builder): Install Python dependencies
+#   Stage 3 (runtime): Minimal production image with built frontend
+#
+# DOCKER-FIRST PHILOSOPHY:
+#   - No Node.js required on host machine
+#   - Frontend built entirely inside Docker
+#   - FastAPI serves static files in production
 #
 # CLEAN ARCHITECTURE: Rule #12 - Environment Version Specificity
 #   All pip commands use python3.11 -m pip for version consistency
@@ -24,7 +30,27 @@
 # ============================================================================
 
 # =============================================================================
-# Stage 1: Builder - Install dependencies
+# Stage 1: Frontend Builder - Build Vue.js application
+# =============================================================================
+FROM node:20-alpine AS frontend
+
+WORKDIR /frontend
+
+# Copy package files first for layer caching
+COPY frontend/package*.json ./
+
+# Install dependencies (generates package-lock.json)
+RUN npm install --no-audit --no-fund
+
+# Copy frontend source
+COPY frontend/ ./
+
+# Build for production
+RUN npm run build
+
+
+# =============================================================================
+# Stage 2: Python Builder - Install Python dependencies
 # =============================================================================
 FROM python:3.11-slim AS builder
 
@@ -52,7 +78,7 @@ RUN python3.11 -m pip install --upgrade pip && \
 
 
 # =============================================================================
-# Stage 2: Runtime - Production image
+# Stage 3: Runtime - Production image
 # =============================================================================
 FROM python:3.11-slim AS runtime
 
@@ -83,11 +109,14 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Create non-root user for security
 RUN groupadd -g 1001 ashgroup && \
     useradd -m -u 1001 -g ashgroup ashuser && \
-    mkdir -p /app/logs /app/cache && \
+    mkdir -p /app/logs /app/cache /app/frontend/dist && \
     chown -R ashuser:ashgroup /app
 
 # Copy application code
 COPY --chown=ashuser:ashgroup . .
+
+# Copy built frontend from frontend stage
+COPY --from=frontend --chown=ashuser:ashgroup /frontend/dist /app/frontend/dist
 
 # Switch to non-root user
 USER ashuser

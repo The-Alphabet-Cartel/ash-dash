@@ -1,0 +1,82 @@
+/**
+ * ============================================================================
+ * Ash-DASH: Discord Crisis Detection Dashboard
+ * The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
+ * ============================================================================
+ *
+ * Main Stylesheet - Tailwind CSS imports and global styles
+ * ----------------------------------------------------------------------------
+ * FILE VERSION: v5.0-3-3.1-1
+ * LAST MODIFIED: 2026-01-07
+ * PHASE: Phase 3 - Frontend Foundation
+ * Repository: https://github.com/the-alphabet-cartel/ash-dash
+ * ============================================================================
+ */
+
+/* Tailwind CSS Layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Default body styles */
+  body {
+    @apply antialiased;
+  }
+  
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-purple-500;
+  }
+}
+
+/* Custom component classes */
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm;
+  }
+  
+  /* Button base */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  /* Primary button */
+  .btn-primary {
+    @apply btn bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 dark:focus:ring-offset-gray-900;
+  }
+  
+  /* Secondary button */
+  .btn-secondary {
+    @apply btn bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-gray-500;
+  }
+  
+  /* Ghost button */
+  .btn-ghost {
+    @apply btn bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:ring-gray-500;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400;
+  }
+}

@@ -14,9 +14,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.8-1
+FILE VERSION: v5.0-3-3.1-1
 LAST MODIFIED: 2026-01-07
-PHASE: Phase 2 - Data Layer
+PHASE: Phase 3 - Frontend Foundation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -42,8 +42,12 @@ import sys
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from pathlib import Path
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 # Add project root to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -62,7 +66,10 @@ from src.api.routes.users import router as users_router
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-2-2.8-1"
+__version__ = "v5.0-3-3.1-1"
+
+# Frontend build directory
+FRONTEND_DIR = Path(__file__).parent / "frontend" / "dist"
 __app_name__ = "Ash-Dash"
 __description__ = "Crisis Detection Dashboard for The Alphabet Cartel"
 
@@ -262,20 +269,57 @@ app.include_router(sessions_router)
 app.include_router(users_router)
 
 
-# Root Route
-@app.get("/", tags=["Root"])
-async def root():
-    """
-    Root endpoint with service information.
-    """
-    return {
-        "service": __app_name__,
-        "description": __description__,
-        "version": __version__,
-        "docs": "/docs",
-        "health": "/health",
-        "community": "The Alphabet Cartel - https://discord.gg/alphabetcartel",
-    }
+# =============================================================================
+# Frontend Static Files (Phase 3)
+# =============================================================================
+
+# Check if frontend is built
+if FRONTEND_DIR.exists() and (FRONTEND_DIR / "index.html").exists():
+    # Mount static assets (CSS, JS, images)
+    app.mount(
+        "/assets",
+        StaticFiles(directory=FRONTEND_DIR / "assets"),
+        name="assets",
+    )
+
+    # Serve favicon
+    @app.get("/favicon.svg", include_in_schema=False)
+    async def favicon():
+        """Serve favicon."""
+        favicon_path = FRONTEND_DIR / "favicon.svg"
+        if favicon_path.exists():
+            return FileResponse(favicon_path, media_type="image/svg+xml")
+        return FileResponse(status_code=404)
+
+    # SPA Fallback - serve index.html for all non-API routes
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(request: Request, full_path: str):
+        """
+        Serve the Vue.js SPA for all non-API routes.
+        This enables client-side routing to work correctly.
+        """
+        # Don't serve SPA for API routes (they're handled by routers)
+        # The routers are already registered and will take precedence
+        index_path = FRONTEND_DIR / "index.html"
+        return FileResponse(index_path)
+
+else:
+    # Frontend not built - show API info at root
+    @app.get("/", tags=["Root"])
+    async def root():
+        """
+        Root endpoint with service information.
+        Shows when frontend is not built.
+        """
+        return {
+            "service": __app_name__,
+            "description": __description__,
+            "version": __version__,
+            "docs": "/docs",
+            "health": "/health",
+            "frontend": "Not built - run 'npm run build' in frontend/",
+            "community": "The Alphabet Cartel - https://discord.gg/alphabetcartel",
+        }
 
 
 # =============================================================================
