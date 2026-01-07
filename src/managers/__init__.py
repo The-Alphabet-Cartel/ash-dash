@@ -1,73 +1,64 @@
 """
-Ash-Dash: Crisis Detection Dashboard for The Alphabet Cartel Discord Community
-CORE PRINCIPLE:
-******************  CORE SYSTEM VISION (Never to be violated):  ****************
-Ash-Dash is a CRISIS DETECTION DASHBOARD that:
-1. **PRIMARY**:
-2. **SECONDARY**:
-3. **TERTIARY**:
-4. **PURPOSE**:
-********************************************************************************
-Managers Package for Ash-Dash Service
----
-FILE VERSION: v5.0
-LAST MODIFIED: 2026-01-03
-PHASE: Phase 1
+============================================================================
+Ash-DASH: Discord Crisis Detection Dashboard
+The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
+============================================================================
+
+MISSION - NEVER TO BE VIOLATED:
+    Reveal   → Surface crisis alerts and user escalation patterns in real-time
+    Enable   → Equip Crisis Response Teams with tools for swift intervention
+    Clarify  → Translate detection data into actionable intelligence
+    Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
+
+============================================================================
+Managers Package - Core service managers for Ash-Dash
+----------------------------------------------------------------------------
+FILE VERSION: v5.0-1-1.2-1
+LAST MODIFIED: 2026-01-06
+PHASE: Phase 1 - Foundation & Infrastructure
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
-Community: The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org
-
-This package contains resource managers for Ash-Dash:
-
-MANAGERS:
-- ConfigManager: Configuration loading and validation
-
-USAGE:
-    from src.managers import create_config_manager, create_secrets_manager
-
-    config = create_config_manager(environment="production")
-    secrets = create_secrets_manager(environment="production")
+============================================================================
 """
 
-# Module version
-__version__ = "v5.0-6-3.0-1"
-
-# =============================================================================
-# Configuration Manager
-# =============================================================================
-
-from .config_manager import (
+# Configuration Management
+from src.managers.config_manager import (
     ConfigManager,
     create_config_manager,
 )
 
-# =============================================================================
-# Secrets Manager
-# =============================================================================
-
-from .secrets_manager import (
+# Secrets Management
+from src.managers.secrets_manager import (
     SecretsManager,
     create_secrets_manager,
     get_secrets_manager,
     get_secret,
     SecretNotFoundError,
-    KNOWN_SECRETS,
 )
 
-# =============================================================================
-# Public API
-# =============================================================================
+# Logging Management
+from src.managers.logging_config_manager import (
+    LoggingConfigManager,
+    create_logging_config_manager,
+    ColorizedFormatter,
+    JSONFormatter,
+    Colors,
+)
 
 __all__ = [
-    "__version__",
-    # Config
+    # Config Manager
     "ConfigManager",
     "create_config_manager",
-    # Secrets
+    # Secrets Manager
     "SecretsManager",
     "create_secrets_manager",
     "get_secrets_manager",
     "get_secret",
     "SecretNotFoundError",
-    "KNOWN_SECRETS",
+    # Logging Config Manager
+    "LoggingConfigManager",
+    "create_logging_config_manager",
+    "ColorizedFormatter",
+    "JSONFormatter",
+    "Colors",
 ]

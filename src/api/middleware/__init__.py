@@ -11,36 +11,27 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Source Package - Main application source code
+API Middleware Package - Request/Response middleware handlers
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-1-1.1-1
+FILE VERSION: v5.0-1-1.6-1
 LAST MODIFIED: 2026-01-06
 PHASE: Phase 1 - Foundation & Infrastructure
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
-
-PACKAGE STRUCTURE:
-- api/: FastAPI routes and middleware
-- config/: JSON configuration files
-- managers/: Service managers (config, secrets, logging, etc.)
-- models/: SQLAlchemy and Pydantic models
-- utils/: Shared utility functions
-
-USAGE:
-    from src.managers import create_config_manager, create_logging_config_manager
-    from src.api.middleware import AuthMiddleware
 """
 
-__version__ = "v5.0-1-1.1-1"
-__author__ = "The Alphabet Cartel"
-__email__ = "dev@alphabetcartel.org"
-__url__ = "https://github.com/the-alphabet-cartel/ash-dash"
+__version__ = "v5.0-1-1.6-1"
 
-# Package metadata
+# Authentication Middleware
+from src.api.middleware.auth_middleware import (
+    AuthMiddleware,
+    UserContext,
+    create_auth_middleware,
+)
+
 __all__ = [
-    "__version__",
-    "__author__",
-    "__email__",
-    "__url__",
+    "AuthMiddleware",
+    "UserContext",
+    "create_auth_middleware",
 ]

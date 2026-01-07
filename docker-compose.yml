@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Docker Compose Configuration
 # ============================================================================
-# FILE VERSION: v5.0
-# LAST MODIFIED: 2026-01-02
+# FILE VERSION: v5.0-2-2.1-1
+# LAST MODIFIED: 2026-01-07
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -22,16 +22,16 @@
 #
 # SECRETS:
 #   Secrets are stored in ./secrets/ directory:
-#   - ./secrets/claude_api_key - Claude API key
-#   - ./secrets/discord_bot_token - Discord bot token
-#   - ./secrets/discord_alert_webhook - Discord webhook for alerts (optional)
-#   - ./secrets/redis - Redis password
+#   - ./secrets/postgres_password   - PostgreSQL password
+#   - ./secrets/discord_alert_token - Discord webhook for alerts (optional)
+#   - ./secrets/redis_token         - Redis password (optional)
 #
 # REQUIREMENTS:
 #   - Docker Engine 24.0+
 #   - Docker Compose v2.20+
 #
 # ============================================================================
+
 ### Common Variables ###
 x-common: &common
   networks:
@@ -54,7 +54,7 @@ x-health: &health
 
 services:
   # ===========================================================================
-  # Ash-Dash Service
+  # Ash-Dash Service - Crisis Detection Dashboard
   # ===========================================================================
   ash-dash:
     image: ghcr.io/the-alphabet-cartel/ash-dash:latest
@@ -74,29 +74,33 @@ services:
     # Environment variables
     environment:
       <<: *env
+      # Database connection is built programmatically from:
+      # - .env file (host, port, database, user)
+      # - Docker secrets (password from postgres_token)
     env_file:
       - .env
 
     # Volume Mounts
     volumes:
-      # Logs
+      # Logs directory
       - ./logs:/app/logs
-      # Testing (Development only)
+      # Testing (Development only - remove in production)
       - ./tests:/app/tests
 
-    # Port mapping for health checks (Ash ecosystem: 30882)
+    # Port mapping (Ash-Dash: 30883)
     ports:
-      - "30882:30882"
+      - "30883:30883"
 
     # Docker Secrets
     secrets:
       - discord_alert_token
-      #- redis_token
+      - postgres_token
+      - redis_token
 
-    # Health check - uses HTTP endpoint from health server
+    # Health check - uses HTTP endpoint
     healthcheck:
       <<: *health
-      test: ["CMD", "curl", "-f", "http://localhost:30882/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:30883/health"]
 
     # Logging configuration
     logging:
@@ -111,18 +115,65 @@ services:
       - "org.alphabetcartel.version=5.0.0"
       - "org.alphabetcartel.description=Ash Crisis Detection Dashboard"
 
-    # Dependencies
-    #depends_on:
-    #  ash-redis:
-    #  condition: service_healthy
+    # Dependencies - wait for database to be healthy
+    depends_on:
+      ash-dash-db:
+        condition: service_healthy
+
+  # ===========================================================================
+  # PostgreSQL Database - Ash-Dash Data Store
+  # ===========================================================================
+  ash-dash-db:
+    image: postgres:16-alpine
+    container_name: ash-dash-db
+    <<: *common
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+
+    # Environment variables
+    environment:
+      <<: *env
+      POSTGRES_USER: ash
+      POSTGRES_DB: ashdash
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_token
+
+    # Volume Mounts
+    volumes:
+      - ash-dash-db-data:/var/lib/postgresql/data
+
+    # Docker Secrets
+    secrets:
+      - postgres_token
+
+    # Health check
+    healthcheck:
+      <<: *health
+      test: ["CMD-SHELL", "pg_isready -U ash -d ashdash"]
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Labels
+    labels:
+      - "org.alphabetcartel.service=ash-dash-db"
+      - "org.alphabetcartel.description=Ash-Dash PostgreSQL Database"
 
 # =============================================================================
 # Volumes
 # =============================================================================
-#volumes:
-#  redis_data:
-#    name: ash-redis-data
-#    driver: local
+volumes:
+  ash-dash-db-data:
+    name: ash-dash-db-data
+    driver: local
 
 # =============================================================================
 # Secrets
@@ -130,6 +181,8 @@ services:
 secrets:
   discord_alert_token:
     file: ./secrets/discord_alert_token
+  postgres_token:
+    file: ./secrets/postgres_token
   redis_token:
     file: ./secrets/redis_token
   webhook_token:

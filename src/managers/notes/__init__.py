@@ -11,36 +11,27 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Source Package - Main application source code
+Notes Managers Package - CRT session note management
 ----------------------------------------------------------------------------
 FILE VERSION: v5.0-1-1.1-1
 LAST MODIFIED: 2026-01-06
-PHASE: Phase 1 - Foundation & Infrastructure
+PHASE: Phase 1 - Foundation & Infrastructure (Placeholder for Phase 6)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
-PACKAGE STRUCTURE:
-- api/: FastAPI routes and middleware
-- config/: JSON configuration files
-- managers/: Service managers (config, secrets, logging, etc.)
-- models/: SQLAlchemy and Pydantic models
-- utils/: Shared utility functions
+PHASE 6 DELIVERABLES:
+- NotesManager: CRUD operations for session notes
+- Note versioning and history
+- Lock/unlock functionality for closed sessions
+- Admin override for locked notes
 
-USAGE:
-    from src.managers import create_config_manager, create_logging_config_manager
-    from src.api.middleware import AuthMiddleware
+This package will be implemented in Phase 6: Notes System
 """
 
 __version__ = "v5.0-1-1.1-1"
-__author__ = "The Alphabet Cartel"
-__email__ = "dev@alphabetcartel.org"
-__url__ = "https://github.com/the-alphabet-cartel/ash-dash"
 
-# Package metadata
-__all__ = [
-    "__version__",
-    "__author__",
-    "__email__",
-    "__url__",
-]
+# Phase 6 imports will be added here:
+# from .notes_manager import NotesManager, create_notes_manager
+
+__all__ = []

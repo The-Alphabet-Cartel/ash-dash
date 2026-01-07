@@ -11,36 +11,29 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Source Package - Main application source code
+API Routes Package - FastAPI route handlers
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-1-1.1-1
+FILE VERSION: v5.0-1-1.5-1
 LAST MODIFIED: 2026-01-06
 PHASE: Phase 1 - Foundation & Infrastructure
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
-
-PACKAGE STRUCTURE:
-- api/: FastAPI routes and middleware
-- config/: JSON configuration files
-- managers/: Service managers (config, secrets, logging, etc.)
-- models/: SQLAlchemy and Pydantic models
-- utils/: Shared utility functions
-
-USAGE:
-    from src.managers import create_config_manager, create_logging_config_manager
-    from src.api.middleware import AuthMiddleware
 """
 
-__version__ = "v5.0-1-1.1-1"
-__author__ = "The Alphabet Cartel"
-__email__ = "dev@alphabetcartel.org"
-__url__ = "https://github.com/the-alphabet-cartel/ash-dash"
+__version__ = "v5.0-1-1.5-1"
 
-# Package metadata
+# Health check routes
+from src.api.routes.health import router as health_router
+
+# Future routes (added in subsequent phases)
+# from .dashboard import router as dashboard_router
+# from .sessions import router as sessions_router
+# from .notes import router as notes_router
+# from .wiki import router as wiki_router
+# from .archives import router as archives_router
+# from .admin import router as admin_router
+
 __all__ = [
-    "__version__",
-    "__author__",
-    "__email__",
-    "__url__",
+    "health_router",
 ]

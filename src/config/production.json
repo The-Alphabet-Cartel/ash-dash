@@ -1,45 +1,45 @@
 {
-	"_metadata": {
-		"file_version": "v5.0",
-		"last_modified": "2025-01-03",
-		"clean_architecture": "Compliant",
-		"description": "Ash-Dash v5.0 Production Configuration Overrides",
-		"note": "This file contains ONLY values that differ from default.json",
-		"repository": "https://github.com/the-alphabet-cartel/ash-dash",
-		"community": "The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org"
-	},
+  "_metadata": {
+    "file_version": "v5.0-1-1.2-2",
+    "last_modified": "2026-01-06",
+    "clean_architecture": "Compliant",
+    "description": "Ash-Dash v5.0 Production Configuration Overrides",
+    "note": "This file contains ONLY values that differ from default.json",
+    "repository": "https://github.com/the-alphabet-cartel/ash-dash",
+    "community": "The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org"
+  },
 
-	"logging": {
-		"description": "Logging configuration for structured output",
-		"level": "${BOT_LOG_LEVEL}",
-		"format": "${BOT_LOG_FORMAT}",
-		"file": "${BOT_LOG_FILE}",
-		"console": "${BOT_LOG_CONSOLE}",
-		"defaults": {
-			"level": "INFO",
-			"format": "json",
-			"file": "/app/logs/ash-dash.log",
-			"console": true
-		},
-		"validation": {
-			"level": {
-				"type": "string",
-				"allowed_values": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-				"required": true
-			},
-			"format": {
-				"type": "string",
-				"allowed_values": ["json", "text"],
-				"required": true
-			},
-			"file": {
-				"type": "string",
-				"required": true
-			},
-			"console": {
-				"type": "boolean",
-				"required": false
-			}
-		}
-	}
+  "logging": {
+    "description": "Production logging - JSON format for log aggregation",
+    "level": "${DASH_LOG_LEVEL}",
+    "format": "${DASH_LOG_FORMAT}",
+    "file": "${DASH_LOG_FILE}",
+    "console": "${DASH_LOG_CONSOLE}",
+    "defaults": {
+      "level": "INFO",
+      "format": "json",
+      "file": "/app/logs/ash-dash.log",
+      "console": true
+    },
+    "validation": {
+      "level": {
+        "type": "string",
+        "allowed_values": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        "required": true
+      },
+      "format": {
+        "type": "string",
+        "allowed_values": ["json", "human"],
+        "required": true
+      },
+      "file": {
+        "type": "string",
+        "required": true
+      },
+      "console": {
+        "type": "boolean",
+        "required": false
+      }
+    }
+  }
 }

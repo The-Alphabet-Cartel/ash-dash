@@ -1,13 +1,13 @@
-# Ash-Bot Secrets
+# Ash-Dash Secrets
 
-**Repository**: https://github.com/the-alphabet-cartel/ash-bot  
+**Repository**: https://github.com/the-alphabet-cartel/ash-dash  
 **Community**: [The Alphabet Cartel](https://discord.gg/alphabetcartel) | [alphabetcartel.org](https://alphabetcartel.org)
 
 ---
 
 ## Overview
 
-This directory contains sensitive credentials used by Ash-Bot. These files are:
+This directory contains sensitive credentials used by Ash-Dash. These files are:
 - **NOT** committed to Git (via `.gitignore`)
 - Mounted into Docker containers via Docker Secrets
 - Read by the `SecretsManager` at runtime
@@ -18,10 +18,11 @@ This directory contains sensitive credentials used by Ash-Bot. These files are:
 
 | File | Description | Required |
 |------|-------------|----------|
-| `claude_api_key` | Claude API key | Required |
-| `discord_bot_token` | Discord bot token | Required |
-| `redis` | Redis Password | Required |
-| `discord_alert_webhook` | Discord webhook for system alerts | Optional |
+| `postgres_password` | PostgreSQL database password | **Required** |
+| `discord_alert_token` | Discord webhook for system alerts | Optional |
+| `redis_token` | Redis password (if authentication enabled) | Optional |
+| `claude_api_token` | Claude API key (for future AI features) | Optional |
+| `webhook_token` | Webhook signing secret | Optional |
 
 ---
 
@@ -33,43 +34,21 @@ This directory contains sensitive credentials used by Ash-Bot. These files are:
 mkdir -p secrets
 ```
 
-### 2. Add Claude API Key
-
-Get your token from: https://platform.claude.com/settings/keys
+### 2. Add PostgreSQL Password (Required)
 
 ```bash
 # Create the secret file (no file extension)
-echo "claude_api_your_token_here" > secrets/claude_api_key
+echo "your_secure_database_password" > secrets/postgres_password
 
 # Set secure permissions
-chmod 600 secrets/claude_api_key
+chmod 600 secrets/postgres_password
 ```
 
-### 3. Add Discord Bot Token
+**Important**: Change this from the default `changeme_in_production` before deploying!
 
-Get your token from: https://discord.com/developers/applications
+### 3. Add Discord Alert Webhook (Optional)
 
-```bash
-# Create the secret file (no file extension)
-echo "discord_bot_your_token_here" > secrets/discord_bot_token
-
-# Set secure permissions
-chmod 600 secrets/discord_bot_token
-```
-
-### 4. Add Redis Password
-
-```bash
-# Create the secret file (no file extension)
-echo "redis_password_here" > secrets/redis
-
-# Set secure permissions
-chmod 600 secrets/redis
-```
-
-### 5. Add Discord Alert Webhook (Optional)
-
-For system alerts (bot failures, startup notifications):
+For system alerts (service failures, startup notifications):
 
 1. In Discord: Server Settings → Integrations → Webhooks → New Webhook
 2. Copy the webhook URL
@@ -77,24 +56,32 @@ For system alerts (bot failures, startup notifications):
 
 ```bash
 # Create the webhook secret
-echo "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN" > secrets/discord_alert_webhook
+echo "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN" > secrets/discord_alert_token
 
 # Set secure permissions
-chmod 600 secrets/discord_alert_webhook
+chmod 600 secrets/discord_alert_token
 ```
 
-**Important**: 
-- The file should contain ONLY the token, no quotes or extra whitespace
-- Do NOT add a file extension (not `.txt`, not `.token`)
+### 4. Add Redis Password (Optional)
 
-### 6. Verify Setup
+If your Redis instance requires authentication:
 
 ```bash
-# Check file exists and has content
-cat secrets/discord_alert_webhook
+# Create the secret file
+echo "your_redis_password" > secrets/redis_token
+
+# Set secure permissions
+chmod 600 secrets/redis_token
+```
+
+### 5. Verify Setup
+
+```bash
+# Check files exist and have content
+ls -la secrets/
 
 # Verify permissions (should be 600 or rw-------)
-ls -la secrets/
+stat secrets/postgres_password
 ```
 
 ---
@@ -111,18 +98,31 @@ When running with Docker Compose, secrets are:
 ```yaml
 # docker-compose.yml
 secrets:
-  discord_bot_token:
-    file: ./secrets/discord_bot_token
+  postgres_password:
+    file: ./secrets/postgres_password
 
 services:
-  ash-bot:
+  ash-dash:
     secrets:
-      - discord_bot_token
+      - postgres_password
 ```
 
 Inside the container, the secret is available at:
 ```
-/run/secrets/discord_bot_token
+/run/secrets/postgres_password
+```
+
+### PostgreSQL Container
+
+The PostgreSQL container reads the password via `POSTGRES_PASSWORD_FILE`:
+
+```yaml
+services:
+  ash-dash-db:
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
 ```
 
 ### Local Development
@@ -135,7 +135,7 @@ For local development without Docker:
 ```python
 from src.managers import get_secret
 
-token = get_secret("discord_bot_token")
+password = get_secret("postgres_password")
 ```
 
 ---
@@ -146,17 +146,17 @@ token = get_secret("discord_bot_token")
 
 - Use `chmod 600` for secret files
 - Keep secrets out of Git (check `.gitignore`)
-- Rotate tokens periodically
+- Rotate passwords periodically
 - Use Docker Secrets in production
-- Delete tokens you no longer use
+- Use strong, unique passwords
 
 ### DON'T ❌
 
 - Commit secrets to Git
 - Log or print secret values
 - Share secrets in chat/email
-- Use the same token for dev and prod
-- Store secrets in environment files committed to Git
+- Use the same password for dev and prod
+- Use the default `changeme_in_production` password
 
 ---
 
@@ -166,25 +166,18 @@ Secret files should contain **only** the secret value:
 
 **Correct** ✅
 ```
-abcdef123456789
+mysecurepassword123
 ```
 
 **Wrong** ❌
 ```
-DISCORD_BOT_TOKEN=abcdef123456789
+POSTGRES_PASSWORD=mysecurepassword123
 ```
 
 **Wrong** ❌
 ```
-"abcdef123456789"
+"mysecurepassword123"
 ```
-
-**Wrong** ❌
-```
-abcdef123456789
-
-```
-(trailing newline can cause issues)
 
 ---
 
@@ -193,83 +186,51 @@ abcdef123456789
 ### Secret Not Found
 
 ```
-DEBUG: Secret 'discord_bot_token' not found
+DEBUG: Secret 'postgres_password' not found
 ```
 
 Check:
-1. File exists: `ls -la secrets/discord_bot_token`
-2. File has content: `cat secrets/discord_bot_token`
-3. No extra whitespace: `cat -A secrets/discord_bot_token`
+1. File exists: `ls -la secrets/postgres_password`
+2. File has content: `cat secrets/postgres_password`
+3. No extra whitespace: `cat -A secrets/postgres_password`
 
 ### Permission Denied
 
 ```
-WARNING: Failed to read Docker secret 'discord_bot_token': Permission denied
+WARNING: Failed to read secret: Permission denied
 ```
 
 Fix permissions:
 ```bash
-chmod 600 secrets/discord_bot_token
+chmod 600 secrets/postgres_password
 ```
 
-### Token Not Working
+### Database Connection Failed
 
-1. Verify token at provider
-2. Check token has correct permissions
-3. Token may have expired - generate a new one
+If PostgreSQL won't start or accept connections:
+
+1. Check the password file exists and has content
+2. Verify the `POSTGRES_PASSWORD_FILE` environment variable is set
+3. Check PostgreSQL logs: `docker-compose logs ash-dash-db`
 
 ### Docker Secrets Not Mounting
 
 Verify in docker-compose.yml:
 ```yaml
 secrets:
-  discord_bot_token:
-    file: ./secrets/discord_bot_token  # Path relative to docker-compose.yml
+  postgres_password:
+    file: ./secrets/postgres_password
 
 services:
-  ash-bot:
+  ash-dash:
     secrets:
-      - discord_bot_token  # Must be listed here
+      - postgres_password
 ```
 
 Check inside container:
 ```bash
-docker exec ash-bot ls -la /run/secrets/
-docker exec ash-bot cat /run/secrets/discord_bot_token
-```
-
----
-
-## Testing Secrets
-
-### Verify SecretsManager
-
-```python
-from src.managers import create_secrets_manager
-
-secrets = create_secrets_manager()
-print(secrets.get_status())
-# Shows which secrets are available
-
-token = secrets.get_discord_bot_token()
-if token:
-    print(f"Token loaded: {token[:10]}...")  # Only show prefix!
-else:
-    print("No token found")
-```
-
-### Verify in Docker
-
-```bash
-# Check secrets are mounted
-docker exec ash-bot ls -la /run/secrets/
-
-# Check SecretsManager can read them
-docker exec ash-bot python -c "
-from src.managers import create_secrets_manager
-s = create_secrets_manager()
-print(s.get_status())
-"
+docker exec ash-dash ls -la /run/secrets/
+docker exec ash-dash cat /run/secrets/postgres_password
 ```
 
 ---
@@ -284,7 +245,7 @@ print(s.get_status())
        file: ./secrets/new_secret
    
    services:
-     ash-bot:
+     ash-dash:
        secrets:
          - new_secret
    ```
@@ -300,7 +261,8 @@ print(s.get_status())
 ## Support
 
 - **Discord**: [discord.gg/alphabetcartel](https://discord.gg/alphabetcartel)
-- **GitHub Issues**: [github.com/the-alphabet-cartel/ash-bot/issues](https://github.com/the-alphabet-cartel/ash-bot/issues)
+- **Website**: [alphabetcartel.org](https://alphabetcartel.org)
+- **GitHub Issues**: [github.com/the-alphabet-cartel/ash-dash/issues](https://github.com/the-alphabet-cartel/ash-dash/issues)
 
 ---
 

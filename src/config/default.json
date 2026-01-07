@@ -1,44 +1,221 @@
 {
-	"_metadata": {
-		"file_version": "v5.0",
-		"last_modified": "2026-01-03",
-		"clean_architecture": "Compliant",
-		"description": "Ash-Dash v5.0 Default Configuration",
-		"repository": "https://github.com/the-alphabet-cartel/ash-dash",
-		"community": "The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org"
-	},
+  "_metadata": {
+    "file_version": "v5.0-2-2.2-1",
+    "last_modified": "2026-01-07",
+    "clean_architecture": "Compliant",
+    "description": "Ash-Dash v5.0 Default Configuration",
+    "repository": "https://github.com/the-alphabet-cartel/ash-dash",
+    "community": "The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org"
+  },
 
-	"logging": {
-		"description": "Logging configuration for structured output",
-		"level": "${BOT_LOG_LEVEL}",
-		"format": "${BOT_LOG_FORMAT}",
-		"file": "${BOT_LOG_FILE}",
-		"console": "${BOT_LOG_CONSOLE}",
-		"defaults": {
-			"level": "INFO",
-			"format": "json",
-			"file": "/app/logs/ash-dash.log",
-			"console": true
-		},
-		"validation": {
-			"level": {
-				"type": "string",
-				"allowed_values": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-				"required": true
-			},
-			"format": {
-				"type": "string",
-				"allowed_values": ["json", "text"],
-				"required": true
-			},
-			"file": {
-				"type": "string",
-				"required": true
-			},
-			"console": {
-				"type": "boolean",
-				"required": false
-			}
-		}
-	}
+  "server": {
+    "description": "Server configuration for FastAPI application",
+    "host": "${DASH_HOST}",
+    "port": "${DASH_PORT}",
+    "debug": "${DASH_DEBUG}",
+    "workers": "${DASH_WORKERS}",
+    "defaults": {
+      "host": "0.0.0.0",
+      "port": 30883,
+      "debug": false,
+      "workers": 1
+    },
+    "validation": {
+      "host": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1024, 65535],
+        "required": true
+      },
+      "debug": {
+        "type": "boolean",
+        "required": false
+      },
+      "workers": {
+        "type": "integer",
+        "range": [1, 8],
+        "required": false
+      }
+    }
+  },
+
+  "logging": {
+    "description": "Logging configuration for structured output",
+    "level": "${DASH_LOG_LEVEL}",
+    "format": "${DASH_LOG_FORMAT}",
+    "file": "${DASH_LOG_FILE}",
+    "console": "${DASH_LOG_CONSOLE}",
+    "defaults": {
+      "level": "INFO",
+      "format": "human",
+      "file": "/app/logs/ash-dash.log",
+      "console": true
+    },
+    "validation": {
+      "level": {
+        "type": "string",
+        "allowed_values": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        "required": true
+      },
+      "format": {
+        "type": "string",
+        "allowed_values": ["json", "human"],
+        "required": true
+      },
+      "file": {
+        "type": "string",
+        "required": true
+      },
+      "console": {
+        "type": "boolean",
+        "required": false
+      }
+    }
+  },
+
+  "auth": {
+    "description": "Authentication configuration for Pocket-ID integration",
+    "cookie_name": "${DASH_AUTH_COOKIE_NAME}",
+    "required_groups": "${DASH_AUTH_REQUIRED_GROUPS}",
+    "admin_groups": "${DASH_AUTH_ADMIN_GROUPS}",
+    "bypass_paths": "${DASH_AUTH_BYPASS_PATHS}",
+    "defaults": {
+      "cookie_name": "pocket_id_session",
+      "required_groups": ["crt", "admin"],
+      "admin_groups": ["admin"],
+      "bypass_paths": ["/health", "/health/ready", "/health/detailed", "/docs", "/openapi.json"]
+    },
+    "validation": {
+      "cookie_name": {
+        "type": "string",
+        "required": true
+      },
+      "required_groups": {
+        "type": "list",
+        "required": true
+      },
+      "admin_groups": {
+        "type": "list",
+        "required": true
+      },
+      "bypass_paths": {
+        "type": "list",
+        "required": false
+      }
+    }
+  },
+
+  "redis": {
+    "description": "Redis connection for reading Ash-Bot data",
+    "host": "${REDIS_HOST}",
+    "port": "${REDIS_PORT}",
+    "db": "${REDIS_DB}",
+    "defaults": {
+      "host": "ash-redis",
+      "port": 6379,
+      "db": 0
+    },
+    "validation": {
+      "host": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1, 65535],
+        "required": true
+      },
+      "db": {
+        "type": "integer",
+        "range": [0, 15],
+        "required": true
+      }
+    }
+  },
+
+  "database": {
+    "description": "PostgreSQL database configuration",
+    "host": "${DATABASE_HOST}",
+    "port": "${DATABASE_PORT}",
+    "database": "${DATABASE_NAME}",
+    "user": "${DATABASE_USER}",
+    "pool_size": "${DATABASE_POOL_SIZE}",
+    "max_overflow": "${DATABASE_MAX_OVERFLOW}",
+    "defaults": {
+      "host": "ash-dash-db",
+      "port": 5432,
+      "database": "ashdash",
+      "user": "ash",
+      "pool_size": 5,
+      "max_overflow": 10
+    },
+    "validation": {
+      "host": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1, 65535],
+        "required": true
+      },
+      "database": {
+        "type": "string",
+        "required": true
+      },
+      "user": {
+        "type": "string",
+        "required": true
+      },
+      "pool_size": {
+        "type": "integer",
+        "range": [1, 20],
+        "required": false
+      },
+      "max_overflow": {
+        "type": "integer",
+        "range": [0, 50],
+        "required": false
+      }
+    }
+  },
+
+  "polling": {
+    "description": "Polling intervals for data refresh",
+    "dashboard_interval_seconds": "${DASH_POLL_DASHBOARD}",
+    "sessions_interval_seconds": "${DASH_POLL_SESSIONS}",
+    "defaults": {
+      "dashboard_interval_seconds": 30,
+      "sessions_interval_seconds": 10
+    },
+    "validation": {
+      "dashboard_interval_seconds": {
+        "type": "integer",
+        "range": [5, 300],
+        "required": false
+      },
+      "sessions_interval_seconds": {
+        "type": "integer",
+        "range": [5, 60],
+        "required": false
+      }
+    }
+  },
+
+  "alerting": {
+    "description": "Discord webhook alerting configuration",
+    "enabled": "${DASH_ALERTING_ENABLED}",
+    "defaults": {
+      "enabled": true
+    },
+    "validation": {
+      "enabled": {
+        "type": "boolean",
+        "required": false
+      }
+    }
+  }
 }

@@ -1,21 +1,24 @@
 """
-Ash-Dash: Crisis Detection Dashboard for The Alphabet Cartel Discord Community
-CORE PRINCIPLE:
-******************  CORE SYSTEM VISION (Never to be violated):  ****************
-Ash-Dash is a CRISIS DETECTION DASHBOARD that:
-1. **PRIMARY**:
-2. **SECONDARY**:
-3. **TERTIARY**:
-4. **PURPOSE**:
-********************************************************************************
-Configuration Manager for Ash-Dash Service
----
-FILE VERSION: v5.0
-LAST MODIFIED: 2026-01-03
-PHASE: Phase 1
+============================================================================
+Ash-DASH: Discord Crisis Detection Dashboard
+The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
+============================================================================
+
+MISSION - NEVER TO BE VIOLATED:
+    Reveal   → Surface crisis alerts and user escalation patterns in real-time
+    Enable   → Equip Crisis Response Teams with tools for swift intervention
+    Clarify  → Translate detection data into actionable intelligence
+    Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
+
+============================================================================
+Configuration Manager - JSON + Environment Variable Configuration System
+----------------------------------------------------------------------------
+FILE VERSION: v5.0-1-1.2-1
+LAST MODIFIED: 2026-01-06
+PHASE: Phase 1 - Foundation & Infrastructure
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
-Community: The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org
+============================================================================
 
 RESPONSIBILITIES:
 - Load JSON configuration files (default.json, production.json, testing.json)
@@ -30,10 +33,9 @@ import os
 import logging
 from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
-from datetime import datetime
 
 # Module version
-__version__ = "v5.0-4-4.1-3"
+__version__ = "v5.0-2-2.2-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -41,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 class ConfigManager:
     """
-    Configuration Manager for Ash-Dash Dashboard
+    Configuration Manager for Ash-Dash Dashboard.
 
     Implements Clean Architecture v5.1 principles:
     - Factory function pattern (create_config_manager)
@@ -97,14 +99,8 @@ class ConfigManager:
         self._resolved_config: Dict[str, Any] = {}
         self._validation_errors: List[str] = []
 
-        # Phase 4: Consensus configuration storage
-        self._consensus_config: Dict[str, Any] = {}
-
         # Load and resolve configuration
         self._load_configuration()
-
-        # Phase 4: Load consensus configuration
-        self._load_consensus_configuration()
 
         logger.info(
             f"✅ ConfigManager v{__version__} initialized "
@@ -146,51 +142,6 @@ class ConfigManager:
 
         # Step 4: Resolve and validate configuration
         self._resolve_configuration()
-
-    def _resolve_env_value(self, value: Any, defaults: Dict[str, Any], key: str) -> Any:
-        """
-        Resolve a single value that may be an environment variable reference.
-
-        Args:
-            value: The value to resolve (may be ${ENV_VAR} string)
-            defaults: Dictionary of default values
-            key: The key name for looking up defaults
-
-        Returns:
-            Resolved value (from env var, or default)
-        """
-        if (
-            not isinstance(value, str)
-            or not value.startswith("${")
-            or not value.endswith("}")
-        ):
-            return value
-
-        env_var = value[2:-1]
-        env_value = os.environ.get(env_var)
-
-        # Get default value for type inference
-        default_value = defaults.get(key)
-
-        if env_value is not None:
-            # Convert type based on default
-            if isinstance(default_value, bool):
-                return env_value.lower() in ("true", "1", "yes")
-            elif isinstance(default_value, int):
-                try:
-                    return int(env_value)
-                except ValueError:
-                    return default_value
-            elif isinstance(default_value, float):
-                try:
-                    return float(env_value)
-                except ValueError:
-                    return default_value
-            else:
-                return env_value
-        else:
-            # Use default
-            return default_value
 
     def _load_json_file(self, path: Path) -> Dict[str, Any]:
         """
@@ -458,48 +409,61 @@ class ConfigManager:
         Rule #5: Operational continuity for crisis detection.
 
         Returns:
-            Minimal working configuration
+            Minimal working configuration for Ash-Dash
         """
         logger.warning("🚨 Using emergency fallback configuration!")
 
         return {
-            "api": {
+            "server": {
                 "defaults": {
                     "host": "0.0.0.0",
-                    "port": 30880,
-                    "workers": 2,
-                    "timeout": 30,
-                }
-            },
-            "models": {
-                "defaults": {
-                    "device": "auto",
-                    "cache_dir": "/app/cache/models",
-                    "warmup_enabled": True,
-                }
-            },
-            "model_bart": {
-                "defaults": {
-                    "model_id": "facebook/bart-large-mnli",
-                    "weight": 0.50,
-                    "enabled": True,
-                    "task": "zero-shot-classification",
-                    "role": "primary",
-                }
-            },
-            "thresholds": {
-                "defaults": {
-                    "critical": 0.85,
-                    "high": 0.70,
-                    "medium": 0.50,
-                    "low": 0.30,
+                    "port": 30883,
+                    "debug": False,
+                    "workers": 1,
                 }
             },
             "logging": {
                 "defaults": {
                     "level": "INFO",
-                    "format": "text",
+                    "format": "human",
+                    "file": "/app/logs/ash-dash.log",
                     "console": True,
+                }
+            },
+            "auth": {
+                "defaults": {
+                    "cookie_name": "pocket_id_session",
+                    "required_groups": ["crt", "admin"],
+                    "admin_groups": ["admin"],
+                    "bypass_paths": ["/health", "/health/ready", "/docs"],
+                }
+            },
+            "redis": {
+                "defaults": {
+                    "host": "ash-redis",
+                    "port": 6379,
+                    "db": 0,
+                }
+            },
+            "database": {
+                "defaults": {
+                    "host": "ash-dash-db",
+                    "port": 5432,
+                    "database": "ashdash",
+                    "user": "ash",
+                    "pool_size": 5,
+                    "max_overflow": 10,
+                }
+            },
+            "polling": {
+                "defaults": {
+                    "dashboard_interval_seconds": 30,
+                    "sessions_interval_seconds": 10,
+                }
+            },
+            "alerting": {
+                "defaults": {
+                    "enabled": True,
                 }
             },
         }
@@ -513,7 +477,7 @@ class ConfigManager:
         Get a configuration value.
 
         Args:
-            section: Configuration section (e.g., "api", "models")
+            section: Configuration section (e.g., "server", "logging")
             key: Configuration key within section
             default: Default value if not found
 
@@ -537,14 +501,29 @@ class ConfigManager:
         """
         return self._resolved_config.get(section, {})
 
-    def get_logging_config(self) -> Dict[str, Any]:
-        """
-        Get logging configuration.
+    def get_server_config(self) -> Dict[str, Any]:
+        """Get server configuration."""
+        return self.get_section("server")
 
-        Returns:
-            Logging configuration dictionary
-        """
+    def get_logging_config(self) -> Dict[str, Any]:
+        """Get logging configuration."""
         return self.get_section("logging")
+
+    def get_auth_config(self) -> Dict[str, Any]:
+        """Get authentication configuration."""
+        return self.get_section("auth")
+
+    def get_redis_config(self) -> Dict[str, Any]:
+        """Get Redis configuration."""
+        return self.get_section("redis")
+
+    def get_database_config(self) -> Dict[str, Any]:
+        """Get database configuration."""
+        return self.get_section("database")
+
+    def get_polling_config(self) -> Dict[str, Any]:
+        """Get polling configuration."""
+        return self.get_section("polling")
 
     # =========================================================================
     # Utility Methods
@@ -565,6 +544,10 @@ class ConfigManager:
     def is_testing(self) -> bool:
         """Check if running in testing environment."""
         return self.environment == "testing"
+
+    def is_debug(self) -> bool:
+        """Check if debug mode is enabled."""
+        return self.get("server", "debug", False)
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -589,7 +572,8 @@ class ConfigManager:
 
 
 def create_config_manager(
-    config_dir: Optional[Union[str, Path]] = None, environment: Optional[str] = None
+    config_dir: Optional[Union[str, Path]] = None,
+    environment: Optional[str] = None,
 ) -> ConfigManager:
     """
     Factory function for ConfigManager (Clean Architecture v5.1 Pattern).
@@ -599,7 +583,7 @@ def create_config_manager(
 
     Args:
         config_dir: Path to configuration directory (default: auto-detect)
-        environment: Environment name (default: from NLP_ENVIRONMENT or 'production')
+        environment: Environment name (default: from DASH_ENVIRONMENT or 'production')
 
     Returns:
         Configured ConfigManager instance
@@ -611,7 +595,7 @@ def create_config_manager(
     """
     # Determine environment from env var if not specified
     if environment is None:
-        environment = os.environ.get("NLP_ENVIRONMENT", "production")
+        environment = os.environ.get("DASH_ENVIRONMENT", "production")
 
     logger.info(f"🏭 Creating ConfigManager (environment: {environment})")
 

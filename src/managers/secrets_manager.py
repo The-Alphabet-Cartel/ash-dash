@@ -65,6 +65,7 @@ KNOWN_SECRETS = {
     "discord_bot_token": "Discord bot token",
     "webhook_token": "Webhook signing secret",
     "redis_token": "Redis password for secure connections",
+    "postgres_token": "PostgreSQL password for database connections",
 }
 
 # =============================================================================

@@ -11,36 +11,28 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Source Package - Main application source code
+Utilities Package - Shared utility functions and helpers
 ----------------------------------------------------------------------------
 FILE VERSION: v5.0-1-1.1-1
 LAST MODIFIED: 2026-01-06
-PHASE: Phase 1 - Foundation & Infrastructure
+PHASE: Phase 1 - Foundation & Infrastructure (Placeholder for future phases)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
-PACKAGE STRUCTURE:
-- api/: FastAPI routes and middleware
-- config/: JSON configuration files
-- managers/: Service managers (config, secrets, logging, etc.)
-- models/: SQLAlchemy and Pydantic models
-- utils/: Shared utility functions
-
-USAGE:
-    from src.managers import create_config_manager, create_logging_config_manager
-    from src.api.middleware import AuthMiddleware
+PLANNED UTILITIES:
+- encryption.py: AES-256 encryption/decryption for archives (Phase 9)
+- pdf_generator.py: WeasyPrint PDF generation for wiki export (Phase 7)
+- validators.py: Common validation functions
+- formatters.py: Data formatting helpers
 """
 
 __version__ = "v5.0-1-1.1-1"
-__author__ = "The Alphabet Cartel"
-__email__ = "dev@alphabetcartel.org"
-__url__ = "https://github.com/the-alphabet-cartel/ash-dash"
 
-# Package metadata
-__all__ = [
-    "__version__",
-    "__author__",
-    "__email__",
-    "__url__",
-]
+# Utilities will be imported as created:
+# from .encryption import encrypt_data, decrypt_data
+# from .pdf_generator import generate_pdf
+# from .validators import validate_email, validate_uuid
+# from .formatters import format_datetime, format_severity
+
+__all__ = []

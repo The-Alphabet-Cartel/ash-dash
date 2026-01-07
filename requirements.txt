@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Requirements
 # ============================================================================
-# FILE VERSION: v5.0
-# LAST MODIFIED: 2026-01-02
+# FILE VERSION: v5.0-2-2.1-1
+# LAST MODIFIED: 2026-01-07
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -11,28 +11,57 @@
 # Core Framework
 # =============================================================================
 
+# FastAPI - Modern async web framework
+fastapi>=0.109.0,<1.0.0
+
+# Uvicorn - ASGI server with standard extras (websockets, httptools)
+uvicorn[standard]>=0.27.0,<1.0.0
+
+# Pydantic - Data validation using Python type hints
+pydantic>=2.5.0,<3.0.0
+
+# Pydantic Settings - Settings management with environment variables
+pydantic-settings>=2.1.0,<3.0.0
+
 # =============================================================================
 # Utilities
 # =============================================================================
 
-# Python-dotenv - Environment variable loading
+# Python-dotenv - Environment variable loading from .env files
 python-dotenv>=1.0.0,<2.0.0
-
-# Structlog - Structured logging (optional, for JSON logs)
-# structlog>=24.1.0,<25.0.0
 
 # =============================================================================
 # HTTP and Networking
 # =============================================================================
 
-# HTTPX - Async HTTP client (for webhooks)
+# HTTPX - Async HTTP client (for health checks and webhooks)
 httpx>=0.26.0,<1.0.0
 
 # AIOHTTP - Async HTTP client (for Discord alerting)
 aiohttp>=3.9.0,<4.0.0
 
 # =============================================================================
-# Testing (Development Only)
+# Database (Phase 2)
+# =============================================================================
+
+# SQLAlchemy - SQL toolkit and ORM with async support
+sqlalchemy[asyncio]>=2.0.25,<3.0.0
+
+# Asyncpg - PostgreSQL async driver
+asyncpg>=0.29.0,<1.0.0
+
+# Alembic - Database migrations
+alembic>=1.13.0,<2.0.0
+
+# =============================================================================
+# Redis (Phase 2)
+# =============================================================================
+
+# Redis - Async Redis client
+redis>=5.0.0,<6.0.0
+
+# =============================================================================
+# Testing
 # =============================================================================
 
 # Pytest - Testing framework
@@ -41,5 +70,15 @@ pytest>=7.4.0,<8.0.0
 # Pytest-asyncio - Async test support
 pytest-asyncio>=0.23.0,<1.0.0
 
-# HTTPX - For TestClient
-# (already included above)
+# Pytest-cov - Coverage reporting
+pytest-cov>=4.1.0,<5.0.0
+
+# =============================================================================
+# Development Tools (optional)
+# =============================================================================
+
+# Black - Code formatter
+# black>=24.1.0,<25.0.0
+
+# Ruff - Fast linter
+# ruff>=0.1.0,<1.0.0
