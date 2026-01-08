@@ -6,7 +6,7 @@
  *
  * Dashboard Components Index - Export all dashboard components
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-4-4.5-1
+ * FILE VERSION: v5.0-4-4.6-1
  * LAST MODIFIED: 2026-01-07
  * PHASE: Phase 4 - Dashboard & Metrics
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -22,5 +22,5 @@ export { default as CrisisTrendsChart } from './CrisisTrendsChart.vue'
 // CRT activity chart (Step 4.5)
 export { default as CRTActivityChart } from './CRTActivityChart.vue'
 
-// Active sessions list will be added in Step 4.6
-// export { default as ActiveSessionsList } from './ActiveSessionsList.vue'
+// Active sessions list (Step 4.6)
+export { default as ActiveSessionsList } from './ActiveSessionsList.vue'
