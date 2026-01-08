@@ -13,9 +13,9 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-6-6.3-1
- * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 6 - Notes System
+ * FILE VERSION: v5.0-7-7.4-1
+ * LAST MODIFIED: 2026-01-08
+ * PHASE: Phase 7 - Documentation Wiki
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -327,27 +327,105 @@ export const dashboardApi = {
    * Get aggregated metrics for dashboard cards
    * @returns {Promise<DashboardMetrics>}
    */
-  getMetrics: () => api.get('/v1/dashboard/metrics'),
+  getMetrics: () => api.get('/dashboard/metrics'),
 
   /**
    * Get daily crisis trend data for charts
    * @param {number} days - Number of days (default: 30, max: 90)
    * @returns {Promise<Array<CrisisTrendPoint>>}
    */
-  getCrisisTrends: (days = 30) => api.get('/v1/dashboard/crisis-trends', { params: { days } }),
+  getCrisisTrends: (days = 30) => api.get('/dashboard/crisis-trends', { params: { days } }),
 
   /**
    * Get CRT member activity statistics
    * @param {number} days - Number of days (default: 7, max: 30)
    * @returns {Promise<Array<CRTActivityItem>>}
    */
-  getCRTActivity: (days = 7) => api.get('/v1/dashboard/crt-activity', { params: { days } }),
+  getCRTActivity: (days = 7) => api.get('/dashboard/crt-activity', { params: { days } }),
 
   /**
    * Get active sessions for real-time display
    * @returns {Promise<Array<ActiveSessionItem>>}
    */
-  getActiveSessions: () => api.get('/v1/dashboard/active-sessions'),
+  getActiveSessions: () => api.get('/dashboard/active-sessions'),
+}
+
+// =============================================================================
+// Wiki API (Phase 7)
+// =============================================================================
+
+export const wikiApi = {
+  /**
+   * List wiki documents with optional filtering
+   * @param {Object} params - Query parameters
+   * @param {string} params.category - Filter by category
+   * @param {string} params.tag - Filter by tag
+   * @returns {Promise<{documents, total, category_filter, tag_filter}>}
+   */
+  listDocuments: (params = {}) => api.get('/wiki/documents', { params }),
+
+  /**
+   * Get a specific document by slug
+   * @param {string} slug - Document slug (e.g., 'crt/crisis-response-guide')
+   * @param {boolean} render - Whether to render HTML (default: true)
+   * @returns {Promise<WikiDocument>}
+   */
+  getDocument: (slug, render = true) => api.get(`/wiki/documents/${slug}`, { params: { render } }),
+
+  /**
+   * Download document as PDF
+   * @param {string} slug - Document slug
+   * @returns {Promise<Blob>}
+   */
+  downloadPDF: (slug) => api.get(`/wiki/documents/${slug}/pdf`, { responseType: 'blob' }),
+
+  /**
+   * Get navigation structure grouped by category
+   * @returns {Promise<{categories, total_documents}>}
+   */
+  getNavigation: () => api.get('/wiki/navigation'),
+
+  /**
+   * Search documents
+   * @param {string} query - Search query
+   * @param {number} limit - Max results (default: 20)
+   * @returns {Promise<{query, results, total}>}
+   */
+  search: (query, limit = 20) => api.get('/wiki/search', { params: { q: query, limit } }),
+
+  /**
+   * Get all categories with document counts
+   * @returns {Promise<Array<WikiCategory>>}
+   */
+  getCategories: () => api.get('/wiki/categories'),
+
+  /**
+   * Get all tags with document counts
+   * @returns {Promise<Array<WikiTag>>}
+   */
+  getTags: () => api.get('/wiki/tags'),
+
+  /**
+   * Get CSS styles for wiki content
+   * @param {boolean} includeSyntax - Include syntax highlighting CSS
+   * @returns {Promise<string>}
+   */
+  getStyles: (includeSyntax = true) => api.get('/wiki/styles', { 
+    params: { include_syntax: includeSyntax },
+    transformResponse: [(data) => data], // Return raw CSS string
+  }),
+
+  /**
+   * Force refresh wiki cache
+   * @returns {Promise<{status, documents_found}>}
+   */
+  refresh: () => api.post('/wiki/refresh'),
+
+  /**
+   * Get wiki system status
+   * @returns {Promise<{status, docs_path, document_count, pdf_available, categories, tags}>}
+   */
+  getStatus: () => api.get('/wiki/status'),
 }
 
 // =============================================================================

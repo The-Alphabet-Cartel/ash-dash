@@ -13,18 +13,18 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Dashboard API Routes - Aggregated metrics and real-time data for dashboard
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-4-4.1-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 4 - Dashboard & Metrics
+FILE VERSION: v5.0-7-7.4-2
+LAST MODIFIED: 2026-01-08
+PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
 ENDPOINTS:
-    GET /api/v1/dashboard/metrics         - Aggregated metrics for cards
-    GET /api/v1/dashboard/crisis-trends   - 30-day crisis trend data
-    GET /api/v1/dashboard/crt-activity    - CRT member activity statistics
-    GET /api/v1/dashboard/active-sessions - Real-time active session list
+    GET /api/dashboard/metrics         - Aggregated metrics for cards
+    GET /api/dashboard/crisis-trends   - 30-day crisis trend data
+    GET /api/dashboard/crt-activity    - CRT member activity statistics
+    GET /api/dashboard/active-sessions - Real-time active session list
 """
 
 from datetime import datetime, timezone, timedelta
@@ -43,10 +43,10 @@ from src.repositories import (
     create_user_repository,
 )
 
-__version__ = "v5.0-4-4.1-1"
+__version__ = "v5.0-7-7.4-2"
 
-# Create router with v1 prefix for dashboard endpoints
-router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
+# Create router for dashboard endpoints
+router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
 
 # =============================================================================
