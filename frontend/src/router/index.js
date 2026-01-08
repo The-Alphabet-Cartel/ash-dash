@@ -13,9 +13,9 @@
  * ============================================================================
  * Vue Router Configuration - Page routing and navigation guards
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-3-3.1-1
+ * FILE VERSION: v5.0-5-5.4-1
  * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 3 - Frontend Foundation
+ * PHASE: Phase 5 - Session Management
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
