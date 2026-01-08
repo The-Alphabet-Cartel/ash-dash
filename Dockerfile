@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Production Dockerfile (Multi-Stage Build)
 # ============================================================================
-# FILE VERSION: v5.0-3-3.1-2
-# LAST MODIFIED: 2026-01-07
+# FILE VERSION: v5.0-7-7.1-1
+# LAST MODIFIED: 2026-01-08
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -62,10 +62,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /build
 
-# Install build dependencies
+# Install build dependencies (including WeasyPrint build deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libharfbuzz0b \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for layer caching
@@ -96,9 +100,21 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install runtime dependencies only
+# Install runtime dependencies including WeasyPrint system libraries (Phase 7)
+# WeasyPrint requires: Pango, HarfBuzz, Cairo, GDK-PixBuf, Fontconfig
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    # WeasyPrint dependencies (Phase 7 - PDF generation)
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libfontconfig1 \
+    libfreetype6 \
+    libgdk-pixbuf2.0-0 \
+    libcairo2 \
+    # Font support for PDF generation
+    fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

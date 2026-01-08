@@ -13,26 +13,70 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki Managers Package - Documentation wiki management
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-1-1.1-1
-LAST MODIFIED: 2026-01-06
-PHASE: Phase 1 - Foundation & Infrastructure (Placeholder for Phase 7)
+FILE VERSION: v5.0-7-7.1-1
+LAST MODIFIED: 2026-01-08
+PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
-PHASE 7 DELIVERABLES:
-- WikiManager: Markdown file scanning and parsing
-- Frontmatter extraction (title, category, tags)
-- Navigation tree generation
-- Search functionality
-- PDF export via WeasyPrint
+COMPONENTS:
+- WikiManager: Core wiki management (scan, parse, search)
+- Models: Pydantic models for documents, navigation, search results
+- (Future) MarkdownRenderer: Markdown to HTML conversion with syntax highlighting
+- (Future) PDFGenerator: PDF export via WeasyPrint
 
-This package will be implemented in Phase 7: Documentation Wiki
+USAGE:
+    from src.managers.wiki import create_wiki_manager, WikiDocument
+    
+    wiki = create_wiki_manager(config_manager, logging_manager)
+    docs = wiki.scan_documents()
+    doc = wiki.get_document("crt/crisis-response-guide")
 """
 
-__version__ = "v5.0-1-1.1-1"
+__version__ = "v5.0-7-7.1-1"
 
-# Phase 7 imports will be added here:
-# from .wiki_manager import WikiManager, create_wiki_manager
+# Core manager
+from .wiki_manager import WikiManager, create_wiki_manager
 
-__all__ = []
+# Models
+from .models import (
+    # Core document models
+    WikiDocument,
+    WikiDocumentSummary,
+    WikiTocEntry,
+    # Search models
+    WikiSearchResult,
+    # Navigation models
+    WikiNavItem,
+    WikiNavCategory,
+    WikiNavigation,
+    # Category/Tag models
+    WikiCategory,
+    WikiTag,
+    # Response models
+    WikiDocumentListResponse,
+    WikiSearchResponse,
+)
+
+__all__ = [
+    # Manager
+    "WikiManager",
+    "create_wiki_manager",
+    # Core models
+    "WikiDocument",
+    "WikiDocumentSummary",
+    "WikiTocEntry",
+    # Search models
+    "WikiSearchResult",
+    # Navigation models
+    "WikiNavItem",
+    "WikiNavCategory",
+    "WikiNavigation",
+    # Category/Tag models
+    "WikiCategory",
+    "WikiTag",
+    # Response models
+    "WikiDocumentListResponse",
+    "WikiSearchResponse",
+]

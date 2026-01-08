@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Requirements
 # ============================================================================
-# FILE VERSION: v5.0-2-2.1-1
-# LAST MODIFIED: 2026-01-07
+# FILE VERSION: v5.0-7-7.1-1
+# LAST MODIFIED: 2026-01-08
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -59,6 +59,25 @@ alembic>=1.13.0,<2.0.0
 
 # Redis - Async Redis client
 redis>=5.0.0,<6.0.0
+
+# =============================================================================
+# Documentation Wiki (Phase 7)
+# =============================================================================
+
+# PyYAML - YAML parser for frontmatter
+pyyaml>=6.0,<7.0.0
+
+# Markdown - Markdown to HTML conversion
+markdown>=3.5.0,<4.0.0
+
+# PyMdown Extensions - Additional markdown extensions
+pymdown-extensions>=10.0,<11.0.0
+
+# Pygments - Syntax highlighting for code blocks
+pygments>=2.17.0,<3.0.0
+
+# WeasyPrint - PDF generation from HTML
+weasyprint>=60.0,<61.0.0
 
 # =============================================================================
 # Testing
