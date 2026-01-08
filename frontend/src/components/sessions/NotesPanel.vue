@@ -3,19 +3,19 @@
 Ash-DASH: Discord Crisis Detection Dashboard
 The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
-NotesPanel - Session notes display and editor (Phase 6 placeholder)
+NotesPanel - Full session notes editor with TipTap integration
 ============================================================================
-FILE VERSION: v5.0-5-5.5-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 5 - Session Management (Editor in Phase 6)
+FILE VERSION: v5.0-6-6.7-4
+LAST MODIFIED: 2026-01-08
+PHASE: Phase 6 - Notes System
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
 
 <template>
-  <div class="card h-full flex flex-col">
+  <div class="card flex flex-col">
     <!-- Header -->
-    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -23,118 +23,414 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
             CRT Notes
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ noteCount }} note{{ noteCount !== 1 ? 's' : '' }}
+            {{ totalNotes }} note{{ totalNotes !== 1 ? 's' : '' }}
+            <span v-if="isSessionLocked" class="text-yellow-500">
+              • Session {{ session?.status }}
+            </span>
           </p>
         </div>
         
-        <!-- Lock Status -->
-        <div v-if="readonly" class="flex items-center gap-1 text-gray-400 dark:text-gray-500">
+        <!-- Session Lock Status -->
+        <div v-if="isSessionLocked" class="flex items-center gap-1 text-yellow-600 dark:text-yellow-500">
           <Lock class="w-4 h-4" />
-          <span class="text-xs">Locked</span>
+          <span class="text-sm">Locked</span>
         </div>
       </div>
     </div>
 
-    <!-- Notes List -->
-    <div class="flex-1 overflow-y-auto p-6">
-      <!-- Loading -->
-      <div v-if="loading" class="space-y-4 animate-pulse">
-        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded" />
-        <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded" />
+    <!-- Main Content -->
+    <div class="flex flex-col overflow-hidden p-4 gap-4">
+      <!-- Loading State -->
+      <div v-if="loading" class="flex items-center justify-center py-8">
+        <div class="flex flex-col items-center gap-3">
+          <Loader2 class="w-8 h-8 animate-spin text-purple-500" />
+          <p class="text-sm text-gray-500 dark:text-gray-400">Loading notes...</p>
+        </div>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="notes.length === 0" class="text-center py-12">
-        <FileText class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-        <p class="text-gray-500 dark:text-gray-400 mb-2">No notes yet</p>
-        <p class="text-xs text-gray-400 dark:text-gray-500">
-          Notes editor coming in Phase 6
-        </p>
+      <!-- Error State -->
+      <div v-else-if="error" class="flex items-center justify-center py-8">
+        <div class="text-center">
+          <AlertCircle class="w-12 h-12 mx-auto mb-4 text-red-500" />
+          <p class="text-red-500 mb-2">{{ error }}</p>
+          <button 
+            @click="loadNotes" 
+            class="text-purple-500 hover:text-purple-600 text-sm"
+          >
+            Try again
+          </button>
+        </div>
       </div>
 
-      <!-- Notes -->
-      <div v-else class="space-y-4">
+      <!-- Notes Content -->
+      <template v-else>
+        <!-- Current Note Editor (when active) -->
+        <div v-if="showEditor" class="flex flex-col">
+          <NotesEditor
+            ref="editorRef"
+            v-model="currentNoteContent"
+            :readonly="isNoteReadonly"
+            :placeholder="editorPlaceholder"
+            :auto-save-delay="2000"
+            @save="handleAutoSave"
+          />
+        </div>
+
+        <!-- Previous Notes (Clickable to view) -->
         <div 
-          v-for="note in notes" 
-          :key="note.id"
-          class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
+          v-if="previousNotes.length > 0" 
+          class="border-t border-gray-200 dark:border-gray-700 pt-4"
+          :class="showEditor ? 'max-h-48 overflow-y-auto' : 'max-h-64 overflow-y-auto'"
         >
-          <!-- Note Header -->
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                <span class="text-xs font-medium text-purple-600 dark:text-purple-400">
-                  {{ getInitials(note.author_name) }}
-                </span>
+          <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+            <History class="w-4 h-4" />
+            {{ showEditor ? 'Previous Notes' : 'All Notes' }}
+            <span class="text-xs text-gray-400">(click to view)</span>
+          </h4>
+          <div class="space-y-3">
+            <div 
+              v-for="note in previousNotes" 
+              :key="note.id"
+              @click="viewNote(note)"
+              class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
+            >
+              <!-- Note Header -->
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <span class="text-xs font-medium text-purple-600 dark:text-purple-400">
+                      {{ getInitials(getAuthorName(note)) }}
+                    </span>
+                  </div>
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ getAuthorName(note) }}
+                  </span>
+                  <span v-if="note.version > 1" class="text-xs text-gray-400">
+                    v{{ note.version }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Lock v-if="note.is_locked" class="w-3 h-3 text-gray-400" />
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ formatDate(note.created_at) }}
+                  </span>
+                </div>
               </div>
-              <span class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ note.author_name || 'Unknown' }}
-              </span>
-            </div>
-            <div class="flex items-center gap-2">
-              <Lock v-if="note.is_locked" class="w-3 h-3 text-gray-400" />
-              <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ formatDate(note.created_at) }}
-              </span>
+
+              <!-- Note Content Preview -->
+              <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                {{ note.content_preview }}
+              </p>
             </div>
           </div>
-
-          <!-- Note Content -->
-          <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-            {{ note.content_preview }}
-          </p>
         </div>
-      </div>
+
+        <!-- Empty State (no notes and no editor) -->
+        <div 
+          v-if="!showEditor && previousNotes.length === 0" 
+          class="flex items-center justify-center py-8"
+        >
+          <div class="text-center">
+            <FileText class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+            <p class="text-gray-500 dark:text-gray-400 mb-2">No notes yet</p>
+            <p v-if="!isSessionLocked" class="text-xs text-gray-400 dark:text-gray-500">
+              Click "Add Note" to start documenting
+            </p>
+          </div>
+        </div>
+      </template>
     </div>
 
-    <!-- Add Note Button (Phase 6) -->
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-      <button 
-        :disabled="readonly"
-        class="w-full py-2 px-4 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-      >
-        <span class="flex items-center justify-center gap-2">
-          <Plus class="w-4 h-4" />
-          Add Note
-        </span>
-      </button>
-      <p v-if="readonly" class="text-xs text-center text-gray-400 dark:text-gray-500 mt-2">
-        Session is {{ session?.status }} - notes are locked
-      </p>
-      <p v-else class="text-xs text-center text-gray-400 dark:text-gray-500 mt-2">
-        Full editor coming in Phase 6
-      </p>
+    <!-- Footer Actions -->
+    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <div class="flex items-center justify-between gap-2">
+        <!-- Left: Save/Add buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Save Button (when editing, not when just viewing) -->
+          <button 
+            v-if="showEditor && currentNoteId && !viewingExistingNote"
+            @click="saveNote"
+            :disabled="isNoteReadonly || saving"
+            class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            <Save v-if="!saving" class="w-4 h-4" />
+            <Loader2 v-else class="w-4 h-4 animate-spin" />
+            {{ saving ? 'Saving...' : 'Save' }}
+          </button>
+
+          <!-- Close Button (when viewing existing note) -->
+          <button 
+            v-if="showEditor && viewingExistingNote"
+            @click="cancelNewNote"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+          >
+            <X class="w-4 h-4" />
+            Close
+          </button>
+
+          <!-- Add Note Button -->
+          <button 
+            v-if="!showEditor || viewingExistingNote"
+            @click="startNewNote"
+            :disabled="isSessionLocked"
+            class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            <Plus class="w-4 h-4" />
+            Add Note
+          </button>
+
+          <!-- Cancel Button (when creating new) -->
+          <button 
+            v-if="showEditor && !currentNoteId && !viewingExistingNote"
+            @click="cancelNewNote"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+
+        <!-- Right: Status info -->
+        <div class="text-xs text-gray-400 dark:text-gray-500">
+          <span v-if="isSessionLocked">
+            Notes are locked (session {{ session?.status }})
+          </span>
+          <span v-else-if="viewingExistingNote">
+            Viewing note • Click "Add Note" to create new
+          </span>
+          <span v-else-if="lastSaved">
+            Last saved {{ formatTimeAgo(lastSaved) }}
+          </span>
+          <span v-else-if="showEditor">
+            Auto-saves every 2 seconds
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { FileText, Lock, Plus } from 'lucide-vue-next'
+/**
+ * NotesPanel Component
+ * 
+ * Full session notes management panel with TipTap editor integration.
+ * Features auto-save, note versioning, and lock state handling.
+ */
+import { ref, computed, watch, onMounted } from 'vue'
+import { 
+  FileText, 
+  Lock, 
+  Plus, 
+  Save, 
+  History,
+  Loader2,
+  AlertCircle,
+  X
+} from 'lucide-vue-next'
+import { notesApi } from '@/services/api'
+import { NotesEditor } from '@/components/notes'
+
+// =============================================================================
+// Props
+// =============================================================================
 
 const props = defineProps({
   session: {
     type: Object,
     default: null
   },
-  notes: {
-    type: Array,
-    default: () => []
-  },
   loading: {
-    type: Boolean,
-    default: false
-  },
-  readonly: {
     type: Boolean,
     default: false
   }
 })
 
-const noteCount = computed(() => props.notes?.length || 0)
+// =============================================================================
+// Emits
+// =============================================================================
+
+const emit = defineEmits(['notes-updated'])
+
+// =============================================================================
+// State
+// =============================================================================
+
+const editorRef = ref(null)
+const notes = ref([])
+const isSessionLocked = ref(false)
+const loadingNotes = ref(false)
+const error = ref(null)
+const saving = ref(false)
+const lastSaved = ref(null)
+
+// Current note being edited
+const showEditor = ref(false)
+const currentNoteId = ref(null)
+const currentNoteContent = ref('')
+const originalContent = ref('')
+const viewingExistingNote = ref(false)
+
+// =============================================================================
+// Computed
+// =============================================================================
+
+const totalNotes = computed(() => notes.value.length)
+
+const previousNotes = computed(() => {
+  // If editing an existing note, exclude it from the list
+  if (currentNoteId.value) {
+    return notes.value.filter(n => n.id !== currentNoteId.value)
+  }
+  return notes.value
+})
+
+const isNoteReadonly = computed(() => {
+  // Read-only if session is locked
+  if (isSessionLocked.value) return true
+  
+  // Read-only if viewing/editing a note that is individually locked
+  if (currentNoteId.value) {
+    const note = notes.value.find(n => n.id === currentNoteId.value)
+    if (note?.is_locked) return true
+  }
+  
+  return false
+})
+
+const hasUnsavedChanges = computed(() => {
+  return currentNoteContent.value !== originalContent.value
+})
+
+const editorPlaceholder = computed(() => {
+  if (isSessionLocked.value) {
+    return 'This session is closed. Notes are read-only.'
+  }
+  return 'Document your observations, actions taken, and follow-up plans...'
+})
+
+// Combined loading state
+const loading = computed(() => props.loading || loadingNotes.value)
+
+// =============================================================================
+// Methods
+// =============================================================================
+
+async function loadNotes() {
+  if (!props.session?.id) return
+  
+  loadingNotes.value = true
+  error.value = null
+  
+  try {
+    const response = await notesApi.list(props.session.id)
+    notes.value = response.data.notes || []
+    isSessionLocked.value = response.data.is_session_locked || false
+    
+    emit('notes-updated', notes.value)
+  } catch (err) {
+    console.error('Failed to load notes:', err)
+    error.value = 'Failed to load notes. Please try again.'
+  } finally {
+    loadingNotes.value = false
+  }
+}
+
+function startNewNote() {
+  if (isSessionLocked.value) return
+  
+  showEditor.value = true
+  currentNoteId.value = null
+  currentNoteContent.value = ''
+  originalContent.value = ''
+  viewingExistingNote.value = false
+}
+
+function cancelNewNote() {
+  showEditor.value = false
+  currentNoteId.value = null
+  currentNoteContent.value = ''
+  originalContent.value = ''
+  viewingExistingNote.value = false
+}
+
+async function viewNote(note) {
+  // Fetch the full note content
+  try {
+    const response = await notesApi.get(note.id)
+    const fullNote = response.data
+    
+    // Load into editor
+    showEditor.value = true
+    currentNoteId.value = fullNote.id
+    currentNoteContent.value = fullNote.content_html || fullNote.content || ''
+    originalContent.value = currentNoteContent.value
+    viewingExistingNote.value = true
+  } catch (err) {
+    console.error('Failed to load note:', err)
+    error.value = 'Failed to load note. Please try again.'
+  }
+}
+
+async function handleAutoSave(data) {
+  if (!props.session?.id || isNoteReadonly.value) return
+  
+  saving.value = true
+  
+  try {
+    if (currentNoteId.value) {
+      // Update existing note
+      await notesApi.update(currentNoteId.value, {
+        content: data.content || data.content_html,
+        content_html: data.content_html,
+      })
+    } else {
+      // Create new note
+      const response = await notesApi.create(props.session.id, {
+        content: data.content || data.content_html,
+        content_html: data.content_html,
+      })
+      currentNoteId.value = response.data.id
+    }
+    
+    lastSaved.value = new Date()
+    originalContent.value = currentNoteContent.value
+    
+    // Don't reload notes during auto-save - it causes focus loss
+    // Notes will be reloaded when user navigates away or on explicit save
+  } catch (err) {
+    console.error('Auto-save failed:', err)
+    // Don't show error for auto-save, just log it
+  } finally {
+    saving.value = false
+  }
+}
+
+async function saveNote() {
+  if (!props.session?.id || isNoteReadonly.value) return
+  
+  // Force save via editor
+  if (editorRef.value?.forceSave) {
+    await editorRef.value.forceSave()
+  } else {
+    // Manual save
+    await handleAutoSave({
+      content: currentNoteContent.value,
+      content_html: currentNoteContent.value,
+    })
+  }
+  
+  // Reload notes on explicit save to update the list
+  await loadNotes()
+}
+
+function getAuthorName(note) {
+  // If author_name exists, use it; otherwise show "CRT Member" as placeholder
+  // until authentication is implemented in Phase 8
+  return note.author_name || 'CRT Member'
+}
 
 function getInitials(name) {
-  if (!name) return '?'
+  if (!name) return 'CM'
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
@@ -149,4 +445,47 @@ function formatDate(dateString) {
     hour12: true
   })
 }
+
+function formatTimeAgo(date) {
+  if (!date) return ''
+  
+  const now = new Date()
+  const diff = Math.floor((now - date) / 1000)
+  
+  if (diff < 5) return 'just now'
+  if (diff < 60) return `${diff}s ago`
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  })
+}
+
+// =============================================================================
+// Watchers
+// =============================================================================
+
+// Watch for session changes
+watch(() => props.session?.id, (newId) => {
+  if (newId) {
+    loadNotes()
+  }
+}, { immediate: true })
+
+// Watch for session status changes (lock state)
+watch(() => props.session?.status, (newStatus) => {
+  isSessionLocked.value = newStatus === 'closed' || newStatus === 'archived'
+})
+
+// =============================================================================
+// Lifecycle
+// =============================================================================
+
+onMounted(() => {
+  if (props.session?.id) {
+    loadNotes()
+  }
+})
 </script>

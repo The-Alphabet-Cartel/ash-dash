@@ -6,9 +6,9 @@
  *
  * Sessions Components Index
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-5-5.6-1
+ * FILE VERSION: v5.0-6-6.6-1
  * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 5 - Session Management
+ * PHASE: Phase 6 - Notes System
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
  */

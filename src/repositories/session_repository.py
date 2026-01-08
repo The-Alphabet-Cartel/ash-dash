@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Session Repository - Data access layer for Crisis Session entities
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-5-5.1-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 5 - Session Management
+FILE VERSION: v5.0-6-6.7-2
+LAST MODIFIED: 2026-01-08
+PHASE: Phase 6 - Notes System
 CLEAN ARCHITECTURE: Compliant (Rule #1 Factory, Rule #2 DI)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -28,12 +28,12 @@ from uuid import UUID
 
 from sqlalchemy import select, func, and_, or_, case, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from src.models.session import Session, SEVERITY_LEVELS, SESSION_STATUSES
 from src.repositories.base import BaseRepository
 
-__version__ = "v5.0-5-5.1-1"
+__version__ = "v5.0-6-6.7-2"
 
 
 class SessionRepository(BaseRepository[Session, str]):
@@ -86,6 +86,10 @@ class SessionRepository(BaseRepository[Session, str]):
         
         query = (
             select(Session)
+            .options(
+                selectinload(Session.crt_user),
+                selectinload(Session.notes),
+            )
             .where(Session.status == "active")
             .order_by(severity_order, Session.started_at.desc())
             .offset(skip)
@@ -512,11 +516,14 @@ class SessionRepository(BaseRepository[Session, str]):
         Returns:
             Session with all relations or None
         """
+        # Import Note here to access Note.author for nested loading
+        from src.models.note import Note
+        
         query = (
             select(Session)
             .options(
                 selectinload(Session.crt_user),
-                selectinload(Session.notes),
+                selectinload(Session.notes).selectinload(Note.author),
                 selectinload(Session.archive),
             )
             .where(Session.id == session_id)
@@ -651,8 +658,14 @@ class SessionRepository(BaseRepository[Session, str]):
         Returns:
             Tuple of (list of sessions, total count)
         """
-        # Build base query
-        query = select(Session)
+        # Build base query with eager loading for relationships
+        query = (
+            select(Session)
+            .options(
+                selectinload(Session.crt_user),
+                selectinload(Session.notes),
+            )
+        )
         count_query = select(func.count(Session.id))
 
         # Build filter conditions

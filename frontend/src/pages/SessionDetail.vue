@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Session Detail Page - Comprehensive session view with analysis and history
 ============================================================================
-FILE VERSION: v5.0-5-5.5-1
+FILE VERSION: v5.0-6-6.6-1
 LAST MODIFIED: 2026-01-07
-PHASE: Phase 5 - Session Management
+PHASE: Phase 6 - Notes System
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -147,8 +147,6 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <div class="lg:col-span-2">
           <NotesPanel 
             :session="session"
-            :notes="session.notes || []"
-            :readonly="session.status !== 'active'"
           />
         </div>
       </div>

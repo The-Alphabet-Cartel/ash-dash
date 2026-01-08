@@ -13,9 +13,9 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-5-5.1-1
+ * FILE VERSION: v5.0-6-6.3-1
  * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 5 - Session Management
+ * PHASE: Phase 6 - Notes System
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -252,43 +252,70 @@ export const usersApi = {
 }
 
 // =============================================================================
-// Notes API (convenience wrappers)
+// Notes API (Phase 6)
 // =============================================================================
 
 export const notesApi = {
   /**
    * Get notes for a session
    * @param {string} sessionId - Session ID
-   * @returns {Promise<Array>}
+   * @returns {Promise<{session_id, notes, total, is_session_locked}>}
    */
-  list: (sessionId) => api.get(`/sessions/${sessionId}/notes`),
+  list: (sessionId) => api.get(`/notes/session/${sessionId}`),
 
   /**
    * Create a note for a session
    * @param {string} sessionId - Session ID
-   * @param {Object} data - Note data {content: string}
-   * @returns {Promise<Object>}
+   * @param {Object} data - Note data {content: string, content_html?: string}
+   * @returns {Promise<NoteDetail>}
    */
-  create: (sessionId, data) => api.post(`/sessions/${sessionId}/notes`, data),
+  create: (sessionId, data) => api.post(`/notes/session/${sessionId}`, data),
 
   /**
-   * Update a note
-   * @param {string} sessionId - Session ID
+   * Get a specific note
    * @param {string} noteId - Note UUID
-   * @param {Object} data - Updated note data
-   * @returns {Promise<Object>}
+   * @returns {Promise<NoteDetail>}
    */
-  update: (sessionId, noteId, data) => 
-    api.put(`/sessions/${sessionId}/notes/${noteId}`, data),
+  get: (noteId) => api.get(`/notes/${noteId}`),
+
+  /**
+   * Update a note's content
+   * @param {string} noteId - Note UUID
+   * @param {Object} data - Updated note data {content: string, content_html?: string}
+   * @returns {Promise<NoteDetail>}
+   */
+  update: (noteId, data) => api.put(`/notes/${noteId}`, data),
+
+  /**
+   * Delete a note (admin only)
+   * @param {string} noteId - Note UUID
+   * @returns {Promise<void>}
+   */
+  delete: (noteId) => api.delete(`/notes/${noteId}`),
 
   /**
    * Lock a note (prevent further edits)
-   * @param {string} sessionId - Session ID
    * @param {string} noteId - Note UUID
-   * @returns {Promise<Object>}
+   * @returns {Promise<NoteDetail>}
    */
-  lock: (sessionId, noteId) => 
-    api.post(`/sessions/${sessionId}/notes/${noteId}/lock`),
+  lock: (noteId) => api.post(`/notes/${noteId}/lock`),
+
+  /**
+   * Unlock a note (admin only)
+   * @param {string} noteId - Note UUID
+   * @returns {Promise<NoteDetail>}
+   */
+  unlock: (noteId) => api.post(`/notes/${noteId}/unlock`),
+
+  /**
+   * Search notes by content
+   * @param {string} query - Search query
+   * @param {Object} params - Optional parameters
+   * @param {string} params.session_id - Filter by session
+   * @param {number} params.limit - Max results (default: 50)
+   * @returns {Promise<Array<NoteSummary>>}
+   */
+  search: (query, params = {}) => api.get('/notes/search', { params: { q: query, ...params } }),
 }
 
 // =============================================================================
