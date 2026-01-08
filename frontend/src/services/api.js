@@ -13,9 +13,9 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-4-4.1-1
+ * FILE VERSION: v5.0-5-5.1-1
  * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 4 - Dashboard & Metrics
+ * PHASE: Phase 5 - Session Management
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -104,36 +104,39 @@ export const healthApi = {
 }
 
 // =============================================================================
-// Sessions API
+// Sessions API (Phase 5 Enhanced)
 // =============================================================================
 
 export const sessionsApi = {
   /**
-   * List sessions with pagination and filters
+   * List sessions with search, filtering, and pagination
    * @param {Object} params - Query parameters
-   * @param {number} params.skip - Offset for pagination
-   * @param {number} params.limit - Max results to return
-   * @param {string} params.severity - Filter by severity
-   * @param {string} params.status - Filter by status
-   * @returns {Promise<Array>}
+   * @param {string} params.search - Search by user ID, session ID, or username
+   * @param {string} params.severity - Filter by severity (critical, high, medium, low, safe)
+   * @param {string} params.status - Filter by status (active, closed, archived)
+   * @param {string} params.date_from - Filter sessions started after (ISO datetime)
+   * @param {string} params.date_to - Filter sessions started before (ISO datetime)
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.page_size - Items per page (default: 20, max: 100)
+   * @returns {Promise<{items, total, page, page_size, total_pages, has_more}>}
    */
   list: (params = {}) => api.get('/sessions', { params }),
 
   /**
    * Get active sessions for dashboard
-   * @returns {Promise<Array>}
+   * @returns {Promise<Array<SessionSummary>>}
    */
   getActive: () => api.get('/sessions/active'),
 
   /**
    * Get critical severity sessions
-   * @returns {Promise<Array>}
+   * @returns {Promise<Array<SessionSummary>>}
    */
   getCritical: () => api.get('/sessions/critical'),
 
   /**
    * Get unassigned sessions (no CRT member assigned)
-   * @returns {Promise<Array>}
+   * @returns {Promise<Array<SessionSummary>>}
    */
   getUnassigned: () => api.get('/sessions/unassigned'),
 
@@ -145,47 +148,62 @@ export const sessionsApi = {
   getStats: (days = 30) => api.get('/sessions/stats', { params: { days } }),
 
   /**
-   * Get single session by ID
+   * Get detailed session information with Ash analysis
    * @param {string} id - Session ID
-   * @returns {Promise<Object>}
+   * @returns {Promise<SessionDetail>}
    */
   get: (id) => api.get(`/sessions/${id}`),
 
   /**
    * Get notes for a session
    * @param {string} id - Session ID
-   * @returns {Promise<Array>}
+   * @returns {Promise<Array<NoteResponse>>}
    */
   getNotes: (id) => api.get(`/sessions/${id}/notes`),
 
   /**
+   * Get session history for a Discord user with pattern analysis
+   * @param {number} discordUserId - Discord user snowflake ID
+   * @param {Object} params - Query parameters
+   * @param {string} params.exclude_session - Session ID to exclude (current session)
+   * @param {number} params.limit - Max sessions to return (default: 10, max: 50)
+   * @returns {Promise<UserSessionHistory>}
+   */
+  getUserHistory: (discordUserId, params = {}) => 
+    api.get(`/sessions/user/${discordUserId}`, { params }),
+
+  /**
    * Assign CRT user to session
    * @param {string} id - Session ID
-   * @param {string} userId - User UUID to assign
-   * @returns {Promise<Object>}
+   * @param {string} crtUserId - CRT user UUID to assign
+   * @returns {Promise<SessionDetail>}
    */
-  assign: (id, userId) => api.post(`/sessions/${id}/assign`, { user_id: userId }),
+  assign: (id, crtUserId) => api.post(`/sessions/${id}/assign`, { crt_user_id: crtUserId }),
 
   /**
    * Remove CRT assignment from session
    * @param {string} id - Session ID
-   * @returns {Promise<Object>}
+   * @returns {Promise<SessionDetail>}
    */
   unassign: (id) => api.post(`/sessions/${id}/unassign`),
 
   /**
-   * Close a session
+   * Close an active session
    * @param {string} id - Session ID
-   * @returns {Promise<Object>}
+   * @param {string} summary - Optional closing summary
+   * @returns {Promise<SessionDetail>}
    */
-  close: (id) => api.post(`/sessions/${id}/close`),
+  close: (id, summary = null) => {
+    const body = summary ? { summary } : {}
+    return api.post(`/sessions/${id}/close`, body)
+  },
 
   /**
-   * Get session history for a Discord user
-   * @param {string} discordId - Discord user ID
-   * @returns {Promise<Array>}
+   * Reopen a closed session (admin only)
+   * @param {string} id - Session ID
+   * @returns {Promise<SessionDetail>}
    */
-  getUserHistory: (discordId) => api.get(`/sessions/user/${discordId}`),
+  reopen: (id) => api.post(`/sessions/${id}/reopen`),
 }
 
 // =============================================================================

@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Session Repository - Data access layer for Crisis Session entities
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.5-1
+FILE VERSION: v5.0-5-5.1-1
 LAST MODIFIED: 2026-01-07
-PHASE: Phase 2 - Data Layer
+PHASE: Phase 5 - Session Management
 CLEAN ARCHITECTURE: Compliant (Rule #1 Factory, Rule #2 DI)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -26,14 +26,14 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select, func, and_, or_, case
+from sqlalchemy import select, func, and_, or_, case, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.session import Session, SEVERITY_LEVELS, SESSION_STATUSES
 from src.repositories.base import BaseRepository
 
-__version__ = "v5.0-2-2.5-1"
+__version__ = "v5.0-5-5.1-1"
 
 
 class SessionRepository(BaseRepository[Session, str]):
@@ -616,6 +616,276 @@ class SessionRepository(BaseRepository[Session, str]):
             Updated session or None
         """
         return await self.update(session, session_id, {"status": "archived"})
+
+    # =========================================================================
+    # Search and Advanced Filtering
+    # =========================================================================
+
+    async def search_sessions(
+        self,
+        session: AsyncSession,
+        search: Optional[str] = None,
+        severity: Optional[str] = None,
+        status: Optional[str] = None,
+        date_from: Optional[datetime] = None,
+        date_to: Optional[datetime] = None,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> Tuple[List[Session], int]:
+        """
+        Search sessions with filters and pagination.
+
+        Searches across session_id, discord_user_id, and discord_username.
+        Returns both results and total count for pagination.
+
+        Args:
+            session: Database session
+            search: Search term (matches id, user_id, username)
+            severity: Filter by severity level
+            status: Filter by session status
+            date_from: Filter sessions started after this date
+            date_to: Filter sessions started before this date
+            skip: Records to skip (pagination offset)
+            limit: Maximum records to return
+
+        Returns:
+            Tuple of (list of sessions, total count)
+        """
+        # Build base query
+        query = select(Session)
+        count_query = select(func.count(Session.id))
+
+        # Build filter conditions
+        conditions = []
+
+        # Search filter - searches across multiple fields
+        if search:
+            search_term = f"%{search}%"
+            search_conditions = [
+                Session.id.ilike(search_term),
+                Session.discord_username.ilike(search_term),
+            ]
+            # Also try to match discord_user_id if search is numeric
+            if search.isdigit():
+                search_conditions.append(
+                    cast(Session.discord_user_id, String).like(f"%{search}%")
+                )
+            conditions.append(or_(*search_conditions))
+
+        # Severity filter
+        if severity:
+            if severity not in SEVERITY_LEVELS:
+                raise ValueError(f"Invalid severity: {severity}")
+            conditions.append(Session.severity == severity)
+
+        # Status filter
+        if status:
+            if status not in SESSION_STATUSES:
+                raise ValueError(f"Invalid status: {status}")
+            conditions.append(Session.status == status)
+
+        # Date range filters
+        if date_from:
+            conditions.append(Session.started_at >= date_from)
+        if date_to:
+            conditions.append(Session.started_at <= date_to)
+
+        # Apply conditions to both queries
+        if conditions:
+            query = query.where(and_(*conditions))
+            count_query = count_query.where(and_(*conditions))
+
+        # Get total count
+        count_result = await session.execute(count_query)
+        total = count_result.scalar() or 0
+
+        # Apply ordering and pagination
+        severity_order = case(
+            (Session.severity == "critical", 0),
+            (Session.severity == "high", 1),
+            (Session.severity == "medium", 2),
+            (Session.severity == "low", 3),
+            else_=4
+        )
+        query = (
+            query
+            .order_by(severity_order, Session.started_at.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+
+        # Execute query
+        result = await session.execute(query)
+        sessions = list(result.scalars().all())
+
+        return sessions, total
+
+    async def get_user_history_with_patterns(
+        self,
+        session: AsyncSession,
+        discord_user_id: int,
+        exclude_session_id: Optional[str] = None,
+        limit: int = 10,
+    ) -> Tuple[List[Session], Dict[str, Any]]:
+        """
+        Get user session history with pattern analysis.
+
+        Returns sessions for a Discord user along with detected patterns
+        like common time of day, frequency, and severity trends.
+
+        Args:
+            session: Database session
+            discord_user_id: Discord user snowflake ID
+            exclude_session_id: Session ID to exclude (current session)
+            limit: Maximum sessions to return
+
+        Returns:
+            Tuple of (list of sessions, pattern analysis dict)
+        """
+        # Build query for user sessions
+        query = (
+            select(Session)
+            .where(Session.discord_user_id == discord_user_id)
+        )
+
+        if exclude_session_id:
+            query = query.where(Session.id != exclude_session_id)
+
+        query = query.order_by(Session.started_at.desc()).limit(limit)
+
+        result = await session.execute(query)
+        sessions = list(result.scalars().all())
+
+        # Get total count for this user
+        count_query = (
+            select(func.count(Session.id))
+            .where(Session.discord_user_id == discord_user_id)
+        )
+        if exclude_session_id:
+            count_query = count_query.where(Session.id != exclude_session_id)
+        count_result = await session.execute(count_query)
+        total_sessions = count_result.scalar() or 0
+
+        # Calculate pattern analysis
+        patterns = await self._analyze_user_patterns(session, discord_user_id, sessions)
+        patterns["total_sessions"] = total_sessions
+
+        return sessions, patterns
+
+    async def _analyze_user_patterns(
+        self,
+        session: AsyncSession,
+        discord_user_id: int,
+        recent_sessions: List[Session],
+    ) -> Dict[str, Any]:
+        """
+        Analyze patterns in user's session history.
+
+        Args:
+            session: Database session
+            discord_user_id: Discord user ID
+            recent_sessions: Recent sessions to analyze
+
+        Returns:
+            Pattern analysis dictionary
+        """
+        patterns: Dict[str, Any] = {
+            "common_time_of_day": None,
+            "average_frequency_days": None,
+            "severity_trend": None,
+            "last_session_days_ago": None,
+        }
+
+        if not recent_sessions:
+            return patterns
+
+        # Calculate days since last session
+        now = datetime.now(timezone.utc)
+        if recent_sessions[0].started_at:
+            delta = now - recent_sessions[0].started_at
+            patterns["last_session_days_ago"] = delta.days
+
+        # Analyze time of day patterns
+        time_buckets = {"Morning (6AM-12PM)": 0, "Afternoon (12PM-6PM)": 0,
+                        "Evening (6PM-12AM)": 0, "Night (12AM-6AM)": 0}
+        for s in recent_sessions:
+            if s.started_at:
+                hour = s.started_at.hour
+                if 6 <= hour < 12:
+                    time_buckets["Morning (6AM-12PM)"] += 1
+                elif 12 <= hour < 18:
+                    time_buckets["Afternoon (12PM-6PM)"] += 1
+                elif 18 <= hour < 24:
+                    time_buckets["Evening (6PM-12AM)"] += 1
+                else:
+                    time_buckets["Night (12AM-6AM)"] += 1
+
+        if any(time_buckets.values()):
+            patterns["common_time_of_day"] = max(time_buckets, key=time_buckets.get)
+
+        # Calculate average frequency (days between sessions)
+        if len(recent_sessions) >= 2:
+            dates = [s.started_at for s in recent_sessions if s.started_at]
+            if len(dates) >= 2:
+                total_days = (dates[0] - dates[-1]).days
+                patterns["average_frequency_days"] = round(
+                    total_days / (len(dates) - 1), 1
+                ) if total_days > 0 else None
+
+        # Analyze severity trend
+        if len(recent_sessions) >= 3:
+            severity_scores = {
+                "critical": 4, "high": 3, "medium": 2, "low": 1, "safe": 0
+            }
+            recent_scores = [
+                severity_scores.get(s.severity, 0)
+                for s in recent_sessions[:3]
+            ]
+            older_scores = [
+                severity_scores.get(s.severity, 0)
+                for s in recent_sessions[-3:]
+            ]
+            recent_avg = sum(recent_scores) / len(recent_scores)
+            older_avg = sum(older_scores) / len(older_scores)
+
+            if recent_avg > older_avg + 0.5:
+                patterns["severity_trend"] = "escalating"
+            elif recent_avg < older_avg - 0.5:
+                patterns["severity_trend"] = "improving"
+            else:
+                patterns["severity_trend"] = "stable"
+
+        return patterns
+
+    async def reopen_session(
+        self,
+        session: AsyncSession,
+        session_id: str,
+    ) -> Optional[Session]:
+        """
+        Reopen a closed session (admin action).
+
+        Args:
+            session: Database session
+            session_id: Session ID
+
+        Returns:
+            Updated session or None
+        """
+        db_session = await self.get(session, session_id)
+        if not db_session:
+            return None
+
+        if db_session.status not in ("closed", "archived"):
+            raise ValueError(f"Cannot reopen session with status: {db_session.status}")
+
+        updates = {
+            "status": "active",
+            "ended_at": None,
+            "duration_seconds": None,
+        }
+
+        return await self.update(session, session_id, updates)
 
     # =========================================================================
     # Statistics

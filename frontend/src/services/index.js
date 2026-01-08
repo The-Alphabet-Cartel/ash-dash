@@ -6,9 +6,9 @@
  *
  * Services Index - Export all API services
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-4-4.1-1
+ * FILE VERSION: v5.0-5-5.1-1
  * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 4 - Dashboard & Metrics
+ * PHASE: Phase 5 - Session Management
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
  */

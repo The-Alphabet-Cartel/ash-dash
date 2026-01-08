@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Note Repository - Data access layer for Session Note entities
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.5-1
+FILE VERSION: v5.0-5-5.1-1
 LAST MODIFIED: 2026-01-07
-PHASE: Phase 2 - Data Layer
+PHASE: Phase 5 - Session Management
 CLEAN ARCHITECTURE: Compliant (Rule #1 Factory, Rule #2 DI)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -32,7 +32,7 @@ from sqlalchemy.orm import selectinload
 from src.models.note import Note
 from src.repositories.base import BaseRepository
 
-__version__ = "v5.0-2-2.5-1"
+__version__ = "v5.0-5-5.1-1"
 
 
 class NoteRepository(BaseRepository[Note, UUID]):
@@ -306,6 +306,29 @@ class NoteRepository(BaseRepository[Note, UUID]):
             session,
             filters={"session_id": session_id},
             values={"is_locked": True},
+        )
+
+    async def unlock_session_notes(
+        self,
+        session: AsyncSession,
+        session_id: str,
+    ) -> int:
+        """
+        Unlock all notes for a session.
+
+        Typically called when a session is reopened by admin.
+
+        Args:
+            session: Database session
+            session_id: Crisis session ID
+
+        Returns:
+            Number of notes unlocked
+        """
+        return await self.update_many(
+            session,
+            filters={"session_id": session_id},
+            values={"is_locked": False},
         )
 
     # =========================================================================
