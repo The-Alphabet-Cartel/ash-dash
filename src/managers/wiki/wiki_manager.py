@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki Manager - Documentation wiki management system
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.1-1
+FILE VERSION: v5.0-7-7.3-1
 LAST MODIFIED: 2026-01-08
 PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
@@ -70,7 +70,7 @@ from .models import (
 )
 
 # Module version
-__version__ = "v5.0-7-7.1-1"
+__version__ = "v5.0-7-7.3-1"
 
 # Initialize fallback logger
 logger = logging.getLogger(__name__)
@@ -362,6 +362,95 @@ class WikiManager:
         slug = slug.lower().strip("/")
         
         return self._cache.get(slug)
+    
+    def get_rendered_document(
+        self,
+        slug: str,
+        base_path: str = "/wiki",
+    ) -> Optional[WikiDocument]:
+        """
+        Get a document with rendered HTML content.
+        
+        Args:
+            slug: Document slug
+            base_path: Base path for internal links
+            
+        Returns:
+            WikiDocument with content_html populated, or None if not found
+        """
+        doc = self.get_document(slug)
+        if not doc:
+            return None
+        
+        # Render if not already rendered
+        if not doc.content_html:
+            doc = self.render_document(doc, base_path)
+        
+        return doc
+    
+    def render_document(
+        self,
+        doc: WikiDocument,
+        base_path: str = "/wiki",
+    ) -> WikiDocument:
+        """
+        Render a document's Markdown content to HTML.
+        
+        Args:
+            doc: WikiDocument to render
+            base_path: Base path for internal links
+            
+        Returns:
+            WikiDocument with content_html populated
+        """
+        from .markdown_renderer import create_markdown_renderer
+        
+        try:
+            renderer = create_markdown_renderer(base_path=base_path)
+            html = renderer.render(doc.content_md)
+            
+            # Create new document with rendered HTML
+            # (Pydantic models are immutable by default)
+            return WikiDocument(
+                slug=doc.slug,
+                file_path=doc.file_path,
+                title=doc.title,
+                description=doc.description,
+                category=doc.category,
+                tags=doc.tags,
+                author=doc.author,
+                version=doc.version,
+                last_updated=doc.last_updated,
+                file_modified=doc.file_modified,
+                content_md=doc.content_md,
+                content_html=html,
+                toc=doc.toc,
+            )
+            
+        except Exception as e:
+            self._logger.error(f"❌ Failed to render document {doc.slug}: {e}")
+            # Return with escaped content as fallback
+            escaped = (
+                doc.content_md
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+            )
+            return WikiDocument(
+                slug=doc.slug,
+                file_path=doc.file_path,
+                title=doc.title,
+                description=doc.description,
+                category=doc.category,
+                tags=doc.tags,
+                author=doc.author,
+                version=doc.version,
+                last_updated=doc.last_updated,
+                file_modified=doc.file_modified,
+                content_md=doc.content_md,
+                content_html=f"<pre>{escaped}</pre>",
+                toc=doc.toc,
+            )
     
     def get_document_summary(self, doc: WikiDocument) -> WikiDocumentSummary:
         """
@@ -739,6 +828,61 @@ class WikiManager:
         self._cache_time = None
         self._nav_cache = None
         self._logger.info("🔄 Wiki cache invalidated")
+    
+    # =========================================================================
+    # PDF Generation
+    # =========================================================================
+    
+    def generate_pdf(
+        self,
+        slug: str,
+        base_path: str = "/wiki",
+    ) -> bytes:
+        """
+        Generate a PDF for a wiki document.
+        
+        Args:
+            slug: Document slug
+            base_path: Base path for internal links
+            
+        Returns:
+            PDF file as bytes
+            
+        Raises:
+            ValueError: If document not found
+            RuntimeError: If PDF generation fails
+        """
+        from .pdf_generator import create_pdf_generator
+        
+        # Get rendered document
+        doc = self.get_rendered_document(slug, base_path)
+        if not doc:
+            raise ValueError(f"Document not found: {slug}")
+        
+        # Generate PDF
+        generator = create_pdf_generator()
+        
+        if not generator.available:
+            raise RuntimeError(
+                "PDF generation not available. "
+                "WeasyPrint may not be installed correctly."
+            )
+        
+        return generator.generate(doc)
+    
+    def is_pdf_available(self) -> bool:
+        """
+        Check if PDF generation is available.
+        
+        Returns:
+            True if WeasyPrint is installed and working
+        """
+        try:
+            from .pdf_generator import create_pdf_generator
+            generator = create_pdf_generator()
+            return generator.available
+        except Exception:
+            return False
     
     # =========================================================================
     # Utility Methods

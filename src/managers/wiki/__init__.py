@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki Managers Package - Documentation wiki management
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.1-1
+FILE VERSION: v5.0-7-7.3-1
 LAST MODIFIED: 2026-01-08
 PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
@@ -21,23 +21,47 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
 COMPONENTS:
-- WikiManager: Core wiki management (scan, parse, search)
+- WikiManager: Core wiki management (scan, parse, search, PDF)
+- MarkdownRenderer: Markdown to HTML conversion with syntax highlighting
+- PDFGenerator: PDF export via WeasyPrint
 - Models: Pydantic models for documents, navigation, search results
-- (Future) MarkdownRenderer: Markdown to HTML conversion with syntax highlighting
-- (Future) PDFGenerator: PDF export via WeasyPrint
 
 USAGE:
     from src.managers.wiki import create_wiki_manager, WikiDocument
     
     wiki = create_wiki_manager(config_manager, logging_manager)
     docs = wiki.scan_documents()
-    doc = wiki.get_document("crt/crisis-response-guide")
+    doc = wiki.get_rendered_document("crt/crisis-response-guide")
+    
+    # Generate PDF
+    if wiki.is_pdf_available():
+        pdf_bytes = wiki.generate_pdf("crt/crisis-response-guide")
+    
+    # Or use renderer/generator directly
+    from src.managers.wiki import create_markdown_renderer, create_pdf_generator
+    renderer = create_markdown_renderer()
+    generator = create_pdf_generator()
 """
 
-__version__ = "v5.0-7-7.1-1"
+__version__ = "v5.0-7-7.3-1"
 
 # Core manager
 from .wiki_manager import WikiManager, create_wiki_manager
+
+# Markdown renderer
+from .markdown_renderer import (
+    MarkdownRenderer,
+    create_markdown_renderer,
+    get_wiki_styles,
+    get_pygments_styles,
+)
+
+# PDF generator
+from .pdf_generator import (
+    PDFGenerator,
+    create_pdf_generator,
+    PDF_STYLES,
+)
 
 # Models
 from .models import (
@@ -60,9 +84,18 @@ from .models import (
 )
 
 __all__ = [
-    # Manager
+    # Managers
     "WikiManager",
     "create_wiki_manager",
+    # Markdown renderer
+    "MarkdownRenderer",
+    "create_markdown_renderer",
+    "get_wiki_styles",
+    "get_pygments_styles",
+    # PDF generator
+    "PDFGenerator",
+    "create_pdf_generator",
+    "PDF_STYLES",
     # Core models
     "WikiDocument",
     "WikiDocumentSummary",
