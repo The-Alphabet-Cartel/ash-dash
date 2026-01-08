@@ -13,9 +13,9 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-3-3.7-1
+ * FILE VERSION: v5.0-4-4.1-1
  * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 3 - Frontend Foundation
+ * PHASE: Phase 4 - Dashboard & Metrics
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -271,6 +271,38 @@ export const notesApi = {
    */
   lock: (sessionId, noteId) => 
     api.post(`/sessions/${sessionId}/notes/${noteId}/lock`),
+}
+
+// =============================================================================
+// Dashboard API (Phase 4)
+// =============================================================================
+
+export const dashboardApi = {
+  /**
+   * Get aggregated metrics for dashboard cards
+   * @returns {Promise<DashboardMetrics>}
+   */
+  getMetrics: () => api.get('/v1/dashboard/metrics'),
+
+  /**
+   * Get daily crisis trend data for charts
+   * @param {number} days - Number of days (default: 30, max: 90)
+   * @returns {Promise<Array<CrisisTrendPoint>>}
+   */
+  getCrisisTrends: (days = 30) => api.get('/v1/dashboard/crisis-trends', { params: { days } }),
+
+  /**
+   * Get CRT member activity statistics
+   * @param {number} days - Number of days (default: 7, max: 30)
+   * @returns {Promise<Array<CRTActivityItem>>}
+   */
+  getCRTActivity: (days = 7) => api.get('/v1/dashboard/crt-activity', { params: { days } }),
+
+  /**
+   * Get active sessions for real-time display
+   * @returns {Promise<Array<ActiveSessionItem>>}
+   */
+  getActiveSessions: () => api.get('/v1/dashboard/active-sessions'),
 }
 
 // =============================================================================
