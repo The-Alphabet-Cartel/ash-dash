@@ -12,7 +12,7 @@ last_updated: "2026-01-08"
 version: "1.0"
 ---
 
-# Crisis Response Guide
+# Ash-Dash Crisis Response Guide
 
 Welcome to the Crisis Response Team (CRT) guide. This document provides comprehensive guidance on handling crisis situations within [The Alphabet Cartel](https://discord.gg/alphabetcartel) community.
 
