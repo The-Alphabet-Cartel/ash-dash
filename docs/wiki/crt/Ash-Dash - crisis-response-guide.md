@@ -1,5 +1,5 @@
 ---
-title: Crisis Response Guide
+title: Ash-Dash Crisis Response Guide
 description: Comprehensive guide for CRT members on handling crisis situations within The Alphabet Cartel community
 category: CRT Operations
 tags:
