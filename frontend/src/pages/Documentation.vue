@@ -5,8 +5,8 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Documentation Page - Wiki and training materials
 ============================================================================
-FILE VERSION: v5.0-7-7.8-1
-LAST MODIFIED: 2026-01-08
+FILE VERSION: v5.0-7-7.8-2
+LAST MODIFIED: 2026-01-09
 PHASE: Phase 7 - Documentation Wiki
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -559,6 +559,24 @@ watch(() => route.query.doc, (newSlug) => {
 .wiki-content h2 {
   border-bottom: 1px solid rgba(128, 128, 128, 0.3);
   padding-bottom: 0.3em;
+}
+
+/* Hide TOC anchor links by default, show on hover */
+.wiki-content .toc-link {
+  opacity: 0;
+  margin-left: 0.5em;
+  text-decoration: none;
+  color: #9333EA;
+  transition: opacity 0.2s;
+}
+
+.wiki-content h1:hover .toc-link,
+.wiki-content h2:hover .toc-link,
+.wiki-content h3:hover .toc-link,
+.wiki-content h4:hover .toc-link,
+.wiki-content h5:hover .toc-link,
+.wiki-content h6:hover .toc-link {
+  opacity: 1;
 }
 
 .wiki-content a {

@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki Managers Package - Documentation wiki management
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.3-1
+FILE VERSION: v5.0-7-7.8-2
 LAST MODIFIED: 2026-01-08
 PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
@@ -43,7 +43,7 @@ USAGE:
     generator = create_pdf_generator()
 """
 
-__version__ = "v5.0-7-7.3-1"
+__version__ = "v5.0-7-7.8-2"
 
 # Core manager
 from .wiki_manager import WikiManager, create_wiki_manager

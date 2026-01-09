@@ -88,6 +88,8 @@ services:
 
     # Volume Mounts
     volumes:
+      # Wiki Documents
+      - ./docs/wiki:/app/docs/wiki
       # Logs directory
       - ./logs:/app/logs
       # Testing (Development only - remove in production)

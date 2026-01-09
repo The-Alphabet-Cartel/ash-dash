@@ -13,9 +13,9 @@
  * ============================================================================
  * Vue Router Configuration - Page routing and navigation guards
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-5-5.4-1
- * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 5 - Session Management
+ * FILE VERSION: v5.0-7-7.8-2
+ * LAST MODIFIED: 2026-01-09
+ * PHASE: Phase 7 - Documentation Wiki
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -53,7 +53,7 @@ const routes = [
     }
   },
   {
-    path: '/docs',
+    path: '/wiki',
     name: 'documentation',
     component: () => import('@/pages/Documentation.vue'),
     meta: { 

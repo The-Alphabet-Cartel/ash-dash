@@ -13,8 +13,8 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki API Routes - Documentation wiki REST API endpoints
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.4-1
-LAST MODIFIED: 2026-01-08
+FILE VERSION: v5.0-7-7.8-2
+LAST MODIFIED: 2026-01-09
 PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -23,7 +23,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 ENDPOINTS:
     GET  /api/wiki/documents           - List all documents
     GET  /api/wiki/documents/{slug}    - Get document by slug
-    GET  /api/wiki/documents/{slug}/pdf - Download document as PDF
+    GET  /api/wiki/pdf/{slug}          - Download document as PDF
     GET  /api/wiki/navigation          - Get navigation structure
     GET  /api/wiki/search              - Search documents
     GET  /api/wiki/categories          - List categories
@@ -31,6 +31,7 @@ ENDPOINTS:
     GET  /api/wiki/styles              - Get CSS styles
 """
 
+import logging
 from io import BytesIO
 from typing import List, Optional
 
@@ -53,7 +54,10 @@ from src.managers.wiki import (
 )
 
 # Module version
-__version__ = "v5.0-7-7.4-1"
+__version__ = "v5.0-7-7.8-2"
+
+# Initialize module logger
+logger = logging.getLogger(__name__)
 
 # Create router
 router = APIRouter(prefix="/api/wiki", tags=["Wiki"])
@@ -162,7 +166,7 @@ async def get_document(
 
 
 @router.get(
-    "/documents/{slug:path}/pdf",
+    "/pdf/{slug:path}",
     summary="Download document as PDF",
     description="Generate and download a PDF version of the document.",
     responses={
@@ -180,8 +184,11 @@ async def download_pdf(
     The PDF includes Ash-Dash branding, headers, footers with page numbers,
     and print-optimized styling.
     """
+    logger.info(f"📄 PDF download requested for: {slug}")
+    
     # Check if PDF generation is available
     if not wiki.is_pdf_available():
+        logger.error("❌ PDF generation unavailable - WeasyPrint not installed")
         raise HTTPException(
             status_code=503,
             detail="PDF generation is not available. WeasyPrint may not be installed.",
@@ -190,17 +197,22 @@ async def download_pdf(
     # Get document to check it exists
     doc = wiki.get_document(slug)
     if not doc:
+        logger.warning(f"⚠️ PDF request for non-existent document: {slug}")
         raise HTTPException(
             status_code=404,
             detail=f"Document not found: {slug}",
         )
     
     try:
+        logger.info(f"📄 Generating PDF for: {doc.title}")
+        
         # Generate PDF
         pdf_bytes = wiki.generate_pdf(slug)
         
         # Generate filename from slug
         filename = slug.split("/")[-1] + ".pdf"
+        
+        logger.info(f"✅ PDF generated: {filename} ({len(pdf_bytes):,} bytes)")
         
         return StreamingResponse(
             BytesIO(pdf_bytes),
@@ -212,6 +224,8 @@ async def download_pdf(
         )
         
     except Exception as e:
+        # Log the full exception with traceback
+        logger.error(f"❌ PDF generation failed for {slug}: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"PDF generation failed: {str(e)}",

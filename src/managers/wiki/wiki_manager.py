@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki Manager - Documentation wiki management system
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.3-1
+FILE VERSION: v5.0-7-7.8-2
 LAST MODIFIED: 2026-01-08
 PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
@@ -21,7 +21,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
 RESPONSIBILITIES:
-- Scan docs/ directory for Markdown files
+- Scan docs/wiki/ directory for Markdown files
 - Parse frontmatter metadata (YAML)
 - Cache parsed documents for performance
 - Generate navigation structure from directory layout
@@ -70,7 +70,7 @@ from .models import (
 )
 
 # Module version
-__version__ = "v5.0-7-7.3-1"
+__version__ = "v5.0-7-7.8-2"
 
 # Initialize fallback logger
 logger = logging.getLogger(__name__)
@@ -110,10 +110,9 @@ CATEGORY_CONFIG: Dict[str, Dict[str, str]] = {
 }
 
 # Directories to exclude from wiki scanning
+# Note: With wiki content now in docs/wiki/, these are less relevant
+# but kept for safety in case of accidental nested directories
 EXCLUDED_DIRS: Set[str] = {
-    "v5.0",           # Development phases
-    "standards",      # Internal standards
-    "api",            # Internal API reference
     ".obsidian",      # Obsidian config
     ".git",           # Git directory
     "__pycache__",    # Python cache
@@ -165,8 +164,8 @@ class WikiManager:
         if docs_path:
             self._docs_path = Path(docs_path)
         else:
-            # Default to docs/ in project root
-            self._docs_path = Path(__file__).parent.parent.parent.parent / "docs"
+            # Default to docs/wiki/ in project root
+            self._docs_path = Path(__file__).parent.parent.parent.parent / "docs" / "wiki"
         
         # Document cache
         self._cache: Dict[str, WikiDocument] = {}

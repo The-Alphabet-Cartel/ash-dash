@@ -73,9 +73,9 @@ venv.bak/
 # Testing
 # =============================================================================
 testing/
-#tests/
-#test_*.py
-#*_test.py
+tests/
+test_*.py
+*_test.py
 .pytest_cache/
 .coverage
 htmlcov/
@@ -89,6 +89,7 @@ coverage.xml
 # =============================================================================
 # Documentation
 # =============================================================================
+.editorconfig
 docs/
 *.md
 !README.md

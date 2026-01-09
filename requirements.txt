@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Requirements
 # ============================================================================
-# FILE VERSION: v5.0-7-7.1-1
-# LAST MODIFIED: 2026-01-08
+# FILE VERSION: v5.0-7-7.8-2
+# LAST MODIFIED: 2026-01-09
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -77,7 +77,7 @@ pymdown-extensions>=10.0,<11.0.0
 pygments>=2.17.0,<3.0.0
 
 # WeasyPrint - PDF generation from HTML
-weasyprint>=60.0,<61.0.0
+weasyprint>=62.0
 
 # =============================================================================
 # Testing

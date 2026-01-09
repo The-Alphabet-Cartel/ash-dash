@@ -13,8 +13,8 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 PDF Generator - Generate PDFs from wiki documents using WeasyPrint
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.3-1
-LAST MODIFIED: 2026-01-08
+FILE VERSION: v5.0-7-7.8-3
+LAST MODIFIED: 2026-01-09
 PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -49,10 +49,13 @@ from typing import Any, Optional
 from .models import WikiDocument
 
 # Module version
-__version__ = "v5.0-7-7.3-1"
+__version__ = "v5.0-7-7.8-3"
 
 # Initialize fallback logger
 logger = logging.getLogger(__name__)
+
+# Suppress noisy fontTools subset logging during PDF generation
+logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
 
 
 # =============================================================================
@@ -103,11 +106,16 @@ PDF_STYLES = """
 
 /* Base styles */
 body {
-    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'DejaVu Sans', 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Color Emoji', sans-serif;
     font-size: 11pt;
     line-height: 1.6;
     color: #1a1a1a;
     max-width: 100%;
+}
+
+/* Emoji font */
+.emoji {
+    font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
 }
 
 /* Cover / Title section */
@@ -217,7 +225,11 @@ li > ul, li > ol {
 }
 
 .task-item input[type="checkbox"] {
+    display: inline;
     margin-right: 0.5em;
+    vertical-align: baseline;
+    width: 1em;
+    height: 1em;
 }
 
 /* Tables */
@@ -260,11 +272,12 @@ pre {
     color: #e5e7eb;
     padding: 1em;
     border-radius: 6px;
-    overflow-x: auto;
     font-size: 9pt;
     line-height: 1.5;
     margin: 1em 0;
     page-break-inside: avoid;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 pre code {
@@ -375,6 +388,11 @@ h1, h2, h3 {
 table, pre, blockquote, img {
     page-break-inside: avoid;
 }
+
+/* Hide TOC anchor links in PDF */
+.toc-link {
+    display: none !important;
+}
 """
 
 
@@ -403,7 +421,7 @@ PDF_TEMPLATE = """<!DOCTYPE html>
             {last_updated_html}
         </div>
         <div class="pride-bar"></div>
-        <div class="logo">🏳️‍🌈 The Alphabet Cartel</div>
+        <div class="logo">The Alphabet Cartel</div>
     </div>
     
     <!-- Content -->
@@ -519,6 +537,9 @@ class PDFGenerator:
             renderer = create_markdown_renderer(base_path="/wiki")
             content_html = renderer.render(document.content_md)
         
+        # Convert HTML checkboxes to Unicode for PDF (WeasyPrint doesn't render inputs well)
+        content_html = self._convert_checkboxes_to_unicode(content_html)
+        
         # Build description HTML
         description_html = ""
         if document.description:
@@ -616,6 +637,40 @@ class PDFGenerator:
             .replace('"', "&quot;")
             .replace("'", "&#39;")
         )
+    
+    def _convert_checkboxes_to_unicode(self, html: str) -> str:
+        """
+        Convert HTML checkbox inputs to Unicode symbols for PDF rendering.
+        
+        WeasyPrint doesn't render HTML input elements well, so we convert
+        them to Unicode box symbols that render cleanly in PDF.
+        
+        Args:
+            html: HTML content with checkbox inputs
+            
+        Returns:
+            HTML with checkboxes replaced by Unicode symbols
+        """
+        import re
+        
+        # Unchecked: ☐ (U+2610 BALLOT BOX)
+        # Checked: ☑ (U+2611 BALLOT BOX WITH CHECK)
+        
+        # Replace unchecked checkboxes
+        html = re.sub(
+            r'<input type="checkbox" disabled>',
+            '☐ ',
+            html
+        )
+        
+        # Replace checked checkboxes
+        html = re.sub(
+            r'<input type="checkbox" disabled checked>',
+            '☑ ',
+            html
+        )
+        
+        return html
     
     def __repr__(self) -> str:
         """String representation for debugging."""

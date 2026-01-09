@@ -377,7 +377,7 @@ export const wikiApi = {
    * @param {string} slug - Document slug
    * @returns {Promise<Blob>}
    */
-  downloadPDF: (slug) => api.get(`/wiki/documents/${slug}/pdf`, { responseType: 'blob' }),
+  downloadPDF: (slug) => api.get(`/wiki/pdf/${slug}`, { responseType: 'blob' }),
 
   /**
    * Get navigation structure grouped by category

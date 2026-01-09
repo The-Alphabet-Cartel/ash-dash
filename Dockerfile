@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Production Dockerfile (Multi-Stage Build)
 # ============================================================================
-# FILE VERSION: v5.0-7-7.1-1
-# LAST MODIFIED: 2026-01-08
+# FILE VERSION: v5.0-7-7.8-3
+# LAST MODIFIED: 2026-01-09
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -111,10 +111,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libharfbuzz0b \
     libfontconfig1 \
     libfreetype6 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-2.0-0 \
     libcairo2 \
     # Font support for PDF generation
     fonts-dejavu-core \
+    fonts-noto-color-emoji \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

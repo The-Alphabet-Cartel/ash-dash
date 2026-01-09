@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Sidebar Component - Main navigation sidebar with logo and nav items
 ============================================================================
-FILE VERSION: v5.0-3-3.3-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 3 - Frontend Foundation
+FILE VERSION: v5.0-7-7.8-2
+LAST MODIFIED: 2026-01-09
+PHASE: Phase 7 - Documentation Wiki
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -108,7 +108,7 @@ const navItems = [
     badge: null // Will show count of active sessions in Phase 4
   },
   { 
-    path: '/docs', 
+    path: '/wiki', 
     label: 'Documentation', 
     icon: BookOpen 
   },
