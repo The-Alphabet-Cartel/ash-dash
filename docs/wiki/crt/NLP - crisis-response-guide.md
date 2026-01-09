@@ -1,5 +1,5 @@
 ---
-title: Ash-NLPCrisis Response Guide
+title: Ash-NLP Crisis Response Guide
 description: Comprehensive guide for CRT members on handling crisis situations within The Alphabet Cartel community
 category: CRT Operations
 tags:
@@ -13,7 +13,7 @@ last_updated: "2026-01-08"
 version: "1.0"
 ---
 
-# Crisis Response Team Guide
+# Ash-NLP Crisis Response Team Guide
 
 ## What This Document Is For
 
