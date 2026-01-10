@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 MinIO Manager - S3-compatible object storage client for session archives
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-8-8.1-1
+FILE VERSION: v5.0-9-9.2-2
 LAST MODIFIED: 2026-01-09
-PHASE: Phase 8 - Archive Infrastructure
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant (Rule #1 Factory, Rule #2 DI)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -59,7 +59,7 @@ from minio import Minio
 from minio.error import S3Error
 from urllib3.exceptions import MaxRetryError
 
-__version__ = "v5.0-8-8.1-1"
+__version__ = "v5.0-9-9.2-2"
 
 
 class MinIOManager:
@@ -702,8 +702,8 @@ async def create_minio_manager(
     minio_config = config_manager.get_minio_config()
 
     # Get MinIO credentials from secrets
-    access_key = secrets_manager.get_minio_access_key()
-    secret_key = secrets_manager.get_minio_secret_key()
+    access_key = secrets_manager.get_minio_root_user()
+    secret_key = secrets_manager.get_minio_root_password()
 
     # Create manager
     manager = MinIOManager(

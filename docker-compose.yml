@@ -1,7 +1,7 @@
 # ============================================================================
 # Ash-Dash v5.0 Docker Compose Configuration
 # ============================================================================
-# FILE VERSION: v5.0-9-9.1-1
+# FILE VERSION: v5.0-9-9.2-2
 # LAST MODIFIED: 2026-01-09
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
@@ -29,8 +29,8 @@
 #   Secrets are stored in ./secrets/ directory:
 #   - ./secrets/postgres_token      - PostgreSQL password
 #   - ./secrets/archive_master_key  - AES-256 encryption key for archives
-#   - ./secrets/minio_access_key    - MinIO access key
-#   - ./secrets/minio_secret_key    - MinIO secret key
+#   - ./secrets/minio_root_user      - MinIO username
+#   - ./secrets/minio_root_password   - MinIO password
 #   - ./secrets/discord_alert_token - Discord webhook for alerts (optional)
 #   - ./secrets/redis_token         - Redis password (optional)
 #
@@ -106,8 +106,8 @@ services:
     secrets:
       - archive_master_key
       - discord_alert_token
-      - minio_access_key
-      - minio_secret_key
+      - minio_root_user
+      - minio_root_password
       - postgres_token
       - redis_token
 
@@ -197,10 +197,10 @@ secrets:
     file: ./secrets/archive_master_key
   discord_alert_token:
     file: ./secrets/discord_alert_token
-  minio_access_key:
-    file: ./secrets/minio_access_key
-  minio_secret_key:
-    file: ./secrets/minio_secret_key
+  minio_root_user:
+    file: ./secrets/minio_root_user
+  minio_root_password:
+    file: ./secrets/minio_root_password
   postgres_token:
     file: ./secrets/postgres_token
   redis_token:

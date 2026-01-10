@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Secrets Manager for Ash-Dash Service
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.1-1
+FILE VERSION: v5.0-9-9.2-2
 LAST MODIFIED: 2026-01-09
 PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant
@@ -50,7 +50,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 # Module version
-__version__ = "v5.0-9-9.1-1"
+__version__ = "v5.0-9-9.2-2"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -72,8 +72,8 @@ KNOWN_SECRETS = {
     "discord_alert_token": "Discord webhook URL for system alerts",
     "discord_bot_token": "Discord bot token",
     "huggingface_token": "HuggingFace API token for authenticated model downloads",
-    "minio_access_key": "MinIO access key (username) for archive storage",
-    "minio_secret_key": "MinIO secret key (password) for archive storage",
+    "minio_root_user": "MinIO root username for archive storage",
+    "minio_root_password": "MinIO root password for archive storage",
     "postgres_token": "PostgreSQL password for secure connections",
     "redis_token": "Redis password for secure connections",
     "webhook_token": "Webhook signing secret",
@@ -469,56 +469,67 @@ class SecretsManager:
     # MinIO Archive Storage Credentials (Phase 8)
     # =========================================================================
 
-    def get_minio_access_key(self) -> Optional[str]:
+    def get_minio_root_user(self) -> Optional[str]:
         """
-        Get MinIO access key (username).
+        Get MinIO root username.
 
-        Also checks MINIO_ACCESS_KEY environment variable as fallback.
+        Also checks MINIO_ROOT_USER and MINIO_ACCESS_KEY environment
+        variables as fallback.
 
         Returns:
-            MinIO access key or None
+            MinIO username or None
         """
         # Try our secrets system first
-        key = self.get("minio_access_key")
-
-        # Fallback to standard MinIO env var
-        if key is None:
-            key = os.environ.get("MINIO_ACCESS_KEY")
-        if key is None:
-            key = os.environ.get("MINIO_ROOT_USER")
-
-        return key
-
-    def get_minio_secret_key(self) -> Optional[str]:
-        """
-        Get MinIO secret key (password).
-
-        Also checks MINIO_SECRET_KEY environment variable as fallback.
-
-        Returns:
-            MinIO secret key or None
-        """
-        # Try our secrets system first
-        key = self.get("minio_secret_key")
+        user = self.get("minio_root_user")
 
         # Fallback to standard MinIO env vars
-        if key is None:
-            key = os.environ.get("MINIO_SECRET_KEY")
-        if key is None:
-            key = os.environ.get("MINIO_ROOT_PASSWORD")
+        if user is None:
+            user = os.environ.get("MINIO_ROOT_USER")
+        if user is None:
+            user = os.environ.get("MINIO_ACCESS_KEY")
 
-        return key
+        return user
+
+    def get_minio_root_password(self) -> Optional[str]:
+        """
+        Get MinIO root password.
+
+        Also checks MINIO_ROOT_PASSWORD and MINIO_SECRET_KEY environment
+        variables as fallback.
+
+        Returns:
+            MinIO password or None
+        """
+        # Try our secrets system first
+        password = self.get("minio_root_password")
+
+        # Fallback to standard MinIO env vars
+        if password is None:
+            password = os.environ.get("MINIO_ROOT_PASSWORD")
+        if password is None:
+            password = os.environ.get("MINIO_SECRET_KEY")
+
+        return password
+
+    # Aliases for backward compatibility
+    def get_minio_access_key(self) -> Optional[str]:
+        """Alias for get_minio_root_user() for backward compatibility."""
+        return self.get_minio_root_user()
+
+    def get_minio_secret_key(self) -> Optional[str]:
+        """Alias for get_minio_root_password() for backward compatibility."""
+        return self.get_minio_root_password()
 
     def has_minio_credentials(self) -> bool:
         """
         Check if MinIO credentials are available.
 
         Returns:
-            True if both access key and secret key are available
+            True if both username and password are available
         """
         return (
-            self.has_secret("minio_access_key") and 
-            self.has_secret("minio_secret_key")
+            self.has_secret("minio_root_user") and 
+            self.has_secret("minio_root_password")
         )
 
     # =========================================================================
@@ -610,11 +621,11 @@ class SecretsManager:
         if secret_name == "huggingface_token":
             if os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN"):
                 return True
-        if secret_name == "minio_access_key":
-            if os.environ.get("MINIO_ACCESS_KEY") or os.environ.get("MINIO_ROOT_USER"):
+        if secret_name == "minio_root_user":
+            if os.environ.get("MINIO_ROOT_USER") or os.environ.get("MINIO_ACCESS_KEY"):
                 return True
-        if secret_name == "minio_secret_key":
-            if os.environ.get("MINIO_SECRET_KEY") or os.environ.get("MINIO_ROOT_PASSWORD"):
+        if secret_name == "minio_root_password":
+            if os.environ.get("MINIO_ROOT_PASSWORD") or os.environ.get("MINIO_SECRET_KEY"):
                 return True
 
         return False

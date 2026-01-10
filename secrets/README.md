@@ -1,6 +1,6 @@
 # Ash-Dash Secrets
 
-**Version**: v5.0-9-9.1-1
+**Version**: v5.0-9-9.2-2
 **Repository**: https://github.com/the-alphabet-cartel/ash-dash
 **Community**: [The Alphabet Cartel](https://discord.gg/alphabetcartel) | [alphabetcartel.org](https://alphabetcartel.org)
 
@@ -20,8 +20,8 @@ This directory contains sensitive credentials used by Ash-Dash. These files are:
 | File | Description | Required | Usage |
 |------|-------------|----------|-------|
 | `postgres_token` | PostgreSQL password | ✅ Required | Database connections |
-| `minio_access_key` | MinIO access key (username) | ✅ Required | Archive storage |
-| `minio_secret_key` | MinIO secret key (password) | ✅ Required | Archive storage |
+| `minio_root_user` | MinIO root username | ✅ Required | Archive storage |
+| `minio_root_password` | MinIO root password | ✅ Required | Archive storage |
 | `archive_master_key` | AES-256 encryption key | ✅ Required | Session archive encryption |
 | `discord_alert_token` | Discord webhook URL | Optional | System alerts |
 | `redis_token` | Redis password | Optional | Session data cache |
@@ -51,22 +51,21 @@ chmod 600 secrets/postgres_token
 
 MinIO runs on the Syn VM (10.20.30.202) and provides S3-compatible storage.
 
+**Naming Convention**: We use `minio_root_user` and `minio_root_password` to match the naming on Syn VM.
+
 ```bash
-# Get credentials from Syn VM's MinIO setup
-# These should match the credentials in /opt/minio/secrets/ on Syn
+# Copy credentials from Syn VM (recommended)
+ssh syn 'cat /opt/minio/secrets/minio_root_user' > secrets/minio_root_user
+ssh syn 'cat /opt/minio/secrets/minio_root_password' > secrets/minio_root_password
+chmod 600 secrets/minio_root_user secrets/minio_root_password
 
-# MinIO access key (username)
-echo "ashadmin" > secrets/minio_access_key
-chmod 600 secrets/minio_access_key
-
-# MinIO secret key (password) - copy from Syn VM
-cat /opt/minio/secrets/minio_root_password > secrets/minio_secret_key
-# Or if setting up new:
-openssl rand -base64 32 > secrets/minio_secret_key
-chmod 600 secrets/minio_secret_key
+# Or manually create if setting up fresh (must match Syn VM!)
+echo "ashadmin" > secrets/minio_root_user
+openssl rand -base64 32 > secrets/minio_root_password
+chmod 600 secrets/minio_root_user secrets/minio_root_password
 ```
 
-**Important**: The MinIO credentials must match what's configured on the Syn VM. If you're setting up fresh, ensure both systems use the same credentials.
+**Important**: The MinIO credentials must match what's configured on the Syn VM (`/opt/minio/secrets/`). If setting up fresh, ensure both systems use the same credentials.
 
 ### 4. Archive Master Key (Required for Session Archives)
 
@@ -121,8 +120,8 @@ ls -la secrets/
 
 # Verify no trailing whitespace on text secrets
 cat -A secrets/postgres_token
-cat -A secrets/minio_access_key
-cat -A secrets/minio_secret_key
+cat -A secrets/minio_root_user
+cat -A secrets/minio_root_password
 
 # Verify archive_master_key is exactly 32 bytes (binary)
 wc -c secrets/archive_master_key
@@ -270,10 +269,10 @@ Secrets are defined in `docker-compose.yml` and mounted at `/run/secrets/`:
 secrets:
   postgres_token:
     file: ./secrets/postgres_token
-  minio_access_key:
-    file: ./secrets/minio_access_key
-  minio_secret_key:
-    file: ./secrets/minio_secret_key
+  minio_root_user:
+    file: ./secrets/minio_root_user
+  minio_root_password:
+    file: ./secrets/minio_root_password
   archive_master_key:
     file: ./secrets/archive_master_key
   discord_alert_token:
@@ -285,8 +284,8 @@ services:
   ash-dash:
     secrets:
       - postgres_token
-      - minio_access_key
-      - minio_secret_key
+      - minio_root_user
+      - minio_root_password
       - archive_master_key
       - discord_alert_token
       - redis_token
@@ -308,8 +307,8 @@ secrets = create_secrets_manager()
 postgres_pass = secrets.get_postgres_token()
 
 # MinIO Archive Storage
-minio_key = secrets.get_minio_access_key()
-minio_secret = secrets.get_minio_secret_key()
+minio_user = secrets.get_minio_root_user()
+minio_pass = secrets.get_minio_root_password()
 
 # Archive Encryption (returns raw bytes)
 archive_key = secrets.get_archive_master_key()
@@ -424,9 +423,9 @@ DEBUG: Secret 'minio_access_key' not found
 ```
 
 Check:
-1. File exists: `ls -la secrets/minio_access_key`
-2. File has content: `cat secrets/minio_access_key`
-3. Permissions correct: `chmod 600 secrets/minio_access_key`
+1. File exists: `ls -la secrets/minio_root_user`
+2. File has content: `cat secrets/minio_root_user`
+3. Permissions correct: `chmod 600 secrets/minio_root_user`
 
 ### MinIO Connection Failed
 
