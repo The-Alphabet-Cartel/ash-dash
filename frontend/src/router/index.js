@@ -13,9 +13,9 @@
  * ============================================================================
  * Vue Router Configuration - Page routing and navigation guards
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-7-7.8-2
+ * FILE VERSION: v5.0-9-9.7-1
  * LAST MODIFIED: 2026-01-09
- * PHASE: Phase 7 - Documentation Wiki
+ * PHASE: Phase 9 - Archive System Implementation
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -53,6 +53,24 @@ const routes = [
     }
   },
   {
+    path: '/archives',
+    name: 'archives',
+    component: () => import('@/pages/Archives.vue'),
+    meta: { 
+      title: 'Archives', 
+      requiresAuth: true 
+    }
+  },
+  {
+    path: '/archives/:id',
+    name: 'archive-detail',
+    component: () => import('@/pages/ArchiveDetail.vue'),
+    meta: { 
+      title: 'Archive Detail', 
+      requiresAuth: true 
+    }
+  },
+  {
     path: '/wiki',
     name: 'documentation',
     component: () => import('@/pages/Documentation.vue'),
@@ -84,7 +102,7 @@ router.beforeEach((to, from, next) => {
   // Set document title
   document.title = `${to.meta.title || 'Page'} | Ash-Dash`
   
-  // TODO: Add authentication checks in Phase 4
+  // TODO: Add authentication checks in Phase 10
   // For now, allow all navigation
   next()
 })

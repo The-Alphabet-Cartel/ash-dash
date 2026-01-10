@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Sidebar Component - Main navigation sidebar with logo and nav items
 ============================================================================
-FILE VERSION: v5.0-7-7.8-2
+FILE VERSION: v5.0-9-9.7-1
 LAST MODIFIED: 2026-01-09
-PHASE: Phase 7 - Documentation Wiki
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -65,7 +65,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <!-- Theme Toggle -->
       <ThemeToggle />
       
-      <!-- User Info (placeholder for Phase 4) -->
+      <!-- User Info (placeholder for Phase 10) -->
       <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800">
         <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
           <User class="w-4 h-4 text-white" />
@@ -85,7 +85,8 @@ import { useRoute } from 'vue-router'
 import { 
   Shield, 
   LayoutDashboard, 
-  MessageSquareWarning, 
+  MessageSquareWarning,
+  Archive,
   BookOpen, 
   Settings,
   User 
@@ -105,7 +106,12 @@ const navItems = [
     path: '/sessions', 
     label: 'Sessions', 
     icon: MessageSquareWarning,
-    badge: null // Will show count of active sessions in Phase 4
+    badge: null // Will show count of active sessions in Phase 10
+  },
+  { 
+    path: '/archives', 
+    label: 'Archives', 
+    icon: Archive 
   },
   { 
     path: '/wiki', 
