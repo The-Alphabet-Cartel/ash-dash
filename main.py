@@ -14,9 +14,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.4-1
+FILE VERSION: v5.0-9-9.5-1
 LAST MODIFIED: 2026-01-08
-PHASE: Phase 7 - Documentation Wiki
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -64,12 +64,13 @@ from src.api.routes.users import router as users_router
 from src.api.routes.dashboard import router as dashboard_router
 from src.api.routes.notes import router as notes_router
 from src.api.routes.wiki import router as wiki_router
+from src.api.routes.archives import router as archives_router
 
 # =============================================================================
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-7-7.4-1"
+__version__ = "v5.0-9-9.5-1"
 
 # Frontend build directory
 FRONTEND_DIR = Path(__file__).parent / "frontend" / "dist"
@@ -273,6 +274,7 @@ app.include_router(users_router)
 app.include_router(dashboard_router)
 app.include_router(notes_router)
 app.include_router(wiki_router)
+app.include_router(archives_router)
 
 
 # =============================================================================

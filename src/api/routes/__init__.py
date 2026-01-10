@@ -13,15 +13,15 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 API Routes Package - FastAPI route handlers
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.4-1
-LAST MODIFIED: 2026-01-08
-PHASE: Phase 7 - Documentation Wiki
+FILE VERSION: v5.0-9-9.5-1
+LAST MODIFIED: 2026-01-09
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 """
 
-__version__ = "v5.0-7-7.4-1"
+__version__ = "v5.0-9-9.5-1"
 
 # Health check routes (Phase 1)
 from src.api.routes.health import router as health_router
@@ -41,6 +41,9 @@ from src.api.routes.notes import router as notes_router
 # Wiki routes (Phase 7)
 from src.api.routes.wiki import router as wiki_router
 
+# Archive routes (Phase 9)
+from src.api.routes.archives import router as archives_router
+
 __all__ = [
     "health_router",
     "sessions_router",
@@ -48,4 +51,5 @@ __all__ = [
     "dashboard_router",
     "notes_router",
     "wiki_router",
+    "archives_router",
 ]
