@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 User Model - CRT members and administrators linked to Pocket-ID
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.3-3
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 2 - Data Layer
+FILE VERSION: v5.0-10-10.1.6-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant (Rule #14 - SQLAlchemy 2.0 Standards)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from src.models.archive import Archive
     from src.models.audit_log import AuditLog
 
-__version__ = "v5.0-2-2.3-3"
+__version__ = "v5.0-10-10.1.6-1"
 
 
 class User(TimestampMixin, Base):
@@ -80,7 +80,7 @@ class User(TimestampMixin, Base):
 
     role: Mapped[str] = mapped_column(
         String(20),
-        default="crt_member",
+        default="member",  # member, lead, admin
     )
 
     is_active: Mapped[bool] = mapped_column(
@@ -122,16 +122,21 @@ class User(TimestampMixin, Base):
 
     @property
     def is_admin(self) -> bool:
-        """Check if user has admin privileges."""
-        return self.role == "admin" or "admin" in (self.groups or [])
+        """Check if user has admin privileges (role=admin)."""
+        return self.role == "admin"
+
+    @property
+    def is_lead(self) -> bool:
+        """Check if user is Lead or Admin."""
+        return self.role in ("lead", "admin")
 
     @property
     def is_crt_member(self) -> bool:
-        """Check if user is a CRT member."""
-        return "crt" in (self.groups or []) or self.role == "crt_member"
+        """Check if user has any CRT role (member, lead, or admin)."""
+        return self.role in ("member", "lead", "admin")
 
     def has_group(self, group_name: str) -> bool:
-        """Check if user belongs to a specific group."""
+        """Check if user belongs to a specific Pocket-ID group."""
         return group_name in (self.groups or [])
 
     def record_login(self) -> None:

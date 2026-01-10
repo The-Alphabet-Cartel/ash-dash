@@ -11,34 +11,48 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Services Package - Background services and workers
+Dependencies Package - FastAPI dependency injection utilities
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.1.5-1
+FILE VERSION: v5.0-10-10.1.4-1
 LAST MODIFIED: 2026-01-10
 PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
+
+This package provides reusable FastAPI dependencies for:
+- Authentication and authorization
+- Database session management
+- Request validation
+
+USAGE:
+    from src.api.dependencies import require_member, require_lead, require_admin
+    
+    @router.get("/protected")
+    async def protected_route(user: UserContext = Depends(require_member)):
+        return {"user": user.email}
 """
 
-__version__ = "v5.0-10-10.1.5-1"
+__version__ = "v5.0-10-10.1.4-1"
 
-from src.services.sync_service import (
-    SyncService,
-    create_sync_service,
-)
-
-from src.services.user_sync_service import (
-    UserSyncService,
-    create_user_sync_service,
+# Authentication dependencies
+from src.api.dependencies.auth import (
+    get_current_user,
+    get_optional_user,
+    get_user_db_id,
+    require_member,
+    require_lead,
+    require_admin,
+    require_role,
 )
 
 __all__ = [
-    "__version__",
-    # Session sync service
-    "SyncService",
-    "create_sync_service",
-    # User sync service (Phase 10)
-    "UserSyncService",
-    "create_user_sync_service",
+    # Authentication
+    "get_current_user",
+    "get_optional_user",
+    "get_user_db_id",
+    "require_member",
+    "require_lead",
+    "require_admin",
+    "require_role",
 ]

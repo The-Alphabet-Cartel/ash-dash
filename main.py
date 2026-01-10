@@ -14,9 +14,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.5-1
-LAST MODIFIED: 2026-01-08
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-10-10.1.7-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -57,7 +57,8 @@ from src.managers.logging_config_manager import create_logging_config_manager
 from src.managers.secrets_manager import create_secrets_manager
 from src.managers.database import create_database_manager
 from src.managers.redis import create_redis_manager
-from src.services import create_sync_service
+from src.services import create_sync_service, create_user_sync_service
+from src.api.middleware.auth_middleware import AuthMiddleware
 from src.api.routes.health import router as health_router
 from src.api.routes.sessions import router as sessions_router
 from src.api.routes.users import router as users_router
@@ -71,7 +72,7 @@ from src.api.routes.admin import router as admin_router
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-9-9.9-1"
+__version__ = "v5.0-10-10.1.7-1"
 
 # Frontend build directory
 FRONTEND_DIR = Path(__file__).parent / "frontend" / "dist"
@@ -88,6 +89,7 @@ secrets_manager = None
 database_manager = None
 redis_manager = None
 sync_service = None
+user_sync_service = None
 logger = None
 
 
@@ -106,7 +108,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     - Resource cleanup at shutdown
     """
     global config_manager, logging_manager, secrets_manager
-    global database_manager, redis_manager, sync_service, logger
+    global database_manager, redis_manager, sync_service, user_sync_service, logger
 
     # =========================================================================
     # STARTUP
@@ -184,6 +186,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Server: {server_config.get('host')}:{server_config.get('port')}")
     logger.info(f"Debug mode: {server_config.get('debug')}")
 
+    # Initialize User Sync Service (Phase 10 - for auth middleware)
+    user_sync_service = create_user_sync_service(
+        db_manager=database_manager,
+        logging_manager=logging_manager,
+    )
+    logger.info("User sync service initialized")
+
     # Store managers in app state for access in routes
     app.state.config_manager = config_manager
     app.state.logging_manager = logging_manager
@@ -191,6 +200,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.database_manager = database_manager
     app.state.redis_manager = redis_manager
     app.state.sync_service = sync_service
+    app.state.user_sync_service = user_sync_service
 
     logger.info("Application startup complete")
 
@@ -237,7 +247,7 @@ app = FastAPI(
 # Middleware
 # =============================================================================
 
-# CORS Middleware
+# CORS Middleware (must be added AFTER auth middleware due to reverse order)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Configure appropriately for production
@@ -246,20 +256,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Authentication Middleware (Phase 1 - prepared but not active)
-# To enable authentication, uncomment the following lines:
+# Authentication Middleware (Phase 10 - Pocket-ID Integration)
+# Note: Middleware is applied in reverse order, so CORS runs first, then Auth
 #
-# from src.api.middleware.auth_middleware import AuthMiddleware
+# This middleware:
+# - Parses Pocket-ID session cookies (JWT)
+# - Extracts user info and computes role from groups
+# - Injects UserContext into request.state.user
+# - Returns 401 for unauthenticated requests (except bypass paths)
+# - Returns 403 for non-CRT members
 #
-# app.add_middleware(
-#     AuthMiddleware,
-#     config_manager=config_manager,  # Will need to be set after startup
-# )
-#
-# NOTE: For Phase 1, auth middleware is ready but not enabled because:
-# 1. Pocket-ID integration needs testing with actual cookies
-# 2. Health endpoints should remain accessible without auth
-# 3. We want to verify core functionality first
+# The middleware checks DASH_AUTH_ENABLED env var automatically.
+# To disable auth for development, set DASH_AUTH_ENABLED=false in .env
+# WARNING: Never disable authentication in production!
+app.add_middleware(
+    AuthMiddleware,
+    cookie_name="pocket_id_session",
+    required_groups=["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
+    bypass_paths=[
+        "/health",
+        "/health/ready",
+        "/health/detailed",
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+    ],
+)
 
 
 # =============================================================================

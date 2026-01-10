@@ -1,7 +1,7 @@
 {
   "_metadata": {
-    "file_version": "v5.0-8-8.1-1",
-    "last_modified": "2026-01-09",
+    "file_version": "v5.0-10-10.1.3-1",
+    "last_modified": "2026-01-10",
     "clean_architecture": "Compliant",
     "description": "Ash-Dash v5.0 Default Configuration",
     "repository": "https://github.com/the-alphabet-cartel/ash-dash",
@@ -77,27 +77,56 @@
   },
 
   "auth": {
-    "description": "Authentication configuration for Pocket-ID integration",
+    "description": "Authentication configuration for Pocket-ID integration (Phase 10)",
+    "enabled": "${DASH_AUTH_ENABLED}",
     "cookie_name": "${DASH_AUTH_COOKIE_NAME}",
+    "pocket_id_issuer": "${DASH_POCKET_ID_ISSUER}",
+    "pocket_id_jwks_url": "${DASH_POCKET_ID_JWKS_URL}",
     "required_groups": "${DASH_AUTH_REQUIRED_GROUPS}",
-    "admin_groups": "${DASH_AUTH_ADMIN_GROUPS}",
+    "group_role_map": "${DASH_AUTH_GROUP_ROLE_MAP}",
     "bypass_paths": "${DASH_AUTH_BYPASS_PATHS}",
     "defaults": {
+      "enabled": true,
       "cookie_name": "pocket_id_session",
-      "required_groups": ["crt", "admin"],
-      "admin_groups": ["admin"],
-      "bypass_paths": ["/health", "/health/ready", "/health/detailed", "/docs", "/openapi.json"]
+      "pocket_id_issuer": "https://id.alphabetcartel.net",
+      "pocket_id_jwks_url": "https://id.alphabetcartel.net/.well-known/jwks.json",
+      "required_groups": ["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
+      "group_role_map": {
+        "cartel_crt": "member",
+        "cartel_crt_lead": "lead",
+        "cartel_crt_admin": "admin"
+      },
+      "bypass_paths": [
+        "/health",
+        "/health/ready",
+        "/health/detailed",
+        "/docs",
+        "/redoc",
+        "/openapi.json"
+      ]
     },
     "validation": {
+      "enabled": {
+        "type": "boolean",
+        "required": false
+      },
       "cookie_name": {
         "type": "string",
         "required": true
+      },
+      "pocket_id_issuer": {
+        "type": "string",
+        "required": false
+      },
+      "pocket_id_jwks_url": {
+        "type": "string",
+        "required": false
       },
       "required_groups": {
         "type": "list",
         "required": true
       },
-      "admin_groups": {
+      "group_role_map": {
         "type": "list",
         "required": true
       },

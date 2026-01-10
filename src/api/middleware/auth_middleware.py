@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Authentication Middleware - Pocket-ID Cookie Parsing and Authorization
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-1-1.6-1
-LAST MODIFIED: 2026-01-06
-PHASE: Phase 1 - Foundation & Infrastructure
+FILE VERSION: v5.0-10-10.1.7-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -23,19 +23,25 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 RESPONSIBILITIES:
 - Parse Pocket-ID session cookies from incoming requests
 - Extract user information (email, groups, etc.)
+- Compute user role from Pocket-ID groups (Member/Lead/Admin)
 - Inject user context into request state for downstream handlers
 - Block unauthorized requests with appropriate 401/403 responses
 - Allow bypass for health endpoints and public paths
 
 POCKET-ID COOKIE FORMAT:
-    The Pocket-ID session cookie is a base64-encoded JWT containing:
+    The Pocket-ID session cookie is a JWT containing:
     {
         "sub": "user-uuid",
         "email": "user@example.com",
         "name": "Display Name",
-        "groups": ["crt", "admin"],
+        "groups": ["cartel_crt", "cartel_crt_lead"],
         "exp": 1234567890
     }
+
+ROLE MAPPING (from Pocket-ID groups):
+    cartel_crt_admin  → Admin  (full access)
+    cartel_crt_lead   → Lead   (member + reopen, unlock, retention)
+    cartel_crt        → Member (base CRT access)
 
 USAGE:
     # In main.py
@@ -44,7 +50,7 @@ USAGE:
     app.add_middleware(
         AuthMiddleware,
         cookie_name="pocket_id_session",
-        required_groups=["crt", "admin"],
+        required_groups=["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
         bypass_paths=["/health", "/docs"]
     )
 
@@ -52,7 +58,9 @@ USAGE:
     @router.get("/protected")
     async def protected_route(request: Request):
         user = request.state.user  # User context from middleware
-        return {"message": f"Hello, {user.email}"}
+        if user.is_lead:
+            # Lead or Admin access
+            pass
 """
 
 import base64
@@ -61,13 +69,22 @@ import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set
+from uuid import UUID
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import JSONResponse
 
+# Import role enumeration
+from src.models.enums import (
+    UserRole,
+    ROLE_HIERARCHY,
+    get_role_from_groups,
+    role_meets_requirement,
+)
+
 # Module version
-__version__ = "v5.0-1-1.6-1"
+__version__ = "v5.0-10-10.1.7-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -86,60 +103,158 @@ class UserContext:
     for use throughout the request lifecycle.
 
     Attributes:
-        user_id: Unique user identifier (from 'sub' claim)
+        user_id: Unique user identifier (from 'sub' claim - Pocket-ID UUID)
         email: User's email address
         name: User's display name
-        groups: List of group memberships
-        is_admin: Whether user is in admin group
+        groups: List of Pocket-ID group memberships
+        role: Computed CRT role (Member/Lead/Admin) or None if not CRT
         raw_claims: Full JWT claims for advanced usage
+        db_user_id: Database user UUID (set after user sync)
     """
 
     user_id: str
     email: str
     name: str = ""
     groups: List[str] = field(default_factory=list)
-    is_admin: bool = False
+    role: Optional[UserRole] = None
     raw_claims: Dict[str, Any] = field(default_factory=dict)
+    db_user_id: Optional[UUID] = None
+
+    # -------------------------------------------------------------------------
+    # Role-Based Properties
+    # -------------------------------------------------------------------------
+
+    @property
+    def is_crt_member(self) -> bool:
+        """
+        Check if user has any CRT role (Member, Lead, or Admin).
+        
+        Returns True if user is part of the Crisis Response Team.
+        """
+        return self.role is not None
+
+    @property
+    def is_lead(self) -> bool:
+        """
+        Check if user is Lead or Admin.
+        
+        Leads have elevated permissions including:
+        - Reopen closed sessions
+        - Unlock locked notes
+        - Change archive retention tier
+        - View CRT roster and audit logs
+        """
+        return self.role in (UserRole.LEAD, UserRole.ADMIN)
+
+    @property
+    def is_admin(self) -> bool:
+        """
+        Check if user is Admin.
+        
+        Admins have full permissions including:
+        - Edit any note (not just their own)
+        - Delete notes
+        - Delete archives
+        - Execute cleanup jobs
+        - View system health
+        """
+        return self.role == UserRole.ADMIN
+
+    def has_permission(self, required_role: UserRole) -> bool:
+        """
+        Check if user meets or exceeds the required role level.
+        
+        Uses the role hierarchy: Member < Lead < Admin
+        
+        Args:
+            required_role: The minimum role required for access
+            
+        Returns:
+            True if user's role >= required_role
+            
+        Examples:
+            >>> user.role = UserRole.LEAD
+            >>> user.has_permission(UserRole.MEMBER)  # True
+            >>> user.has_permission(UserRole.LEAD)    # True
+            >>> user.has_permission(UserRole.ADMIN)   # False
+        """
+        return role_meets_requirement(self.role, required_role)
+
+    # -------------------------------------------------------------------------
+    # Factory Methods
+    # -------------------------------------------------------------------------
 
     @classmethod
-    def from_claims(
-        cls,
-        claims: Dict[str, Any],
-        admin_groups: Optional[List[str]] = None
-    ) -> "UserContext":
+    def from_claims(cls, claims: Dict[str, Any]) -> "UserContext":
         """
         Create UserContext from JWT claims.
 
+        Automatically computes the user's role from their Pocket-ID groups.
+
         Args:
             claims: Decoded JWT claims dictionary
-            admin_groups: List of groups that grant admin status
 
         Returns:
-            UserContext instance
+            UserContext instance with computed role
         """
-        admin_groups = admin_groups or ["admin"]
         user_groups = claims.get("groups", [])
+        
+        # Compute role from Pocket-ID groups
+        role = get_role_from_groups(user_groups)
 
         return cls(
             user_id=claims.get("sub", ""),
             email=claims.get("email", ""),
             name=claims.get("name", ""),
             groups=user_groups,
-            is_admin=any(g in admin_groups for g in user_groups),
+            role=role,
             raw_claims=claims,
+            db_user_id=None,  # Set later by user sync
         )
 
     @classmethod
     def anonymous(cls) -> "UserContext":
-        """Create an anonymous (unauthenticated) user context."""
+        """
+        Create an anonymous (unauthenticated) user context.
+        
+        Used for bypassed paths like /health endpoints.
+        """
         return cls(
             user_id="anonymous",
             email="",
             name="Anonymous",
             groups=[],
-            is_admin=False,
+            role=None,
             raw_claims={},
+            db_user_id=None,
         )
+
+    # -------------------------------------------------------------------------
+    # Utility Methods
+    # -------------------------------------------------------------------------
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert UserContext to dictionary for API responses.
+        
+        Returns:
+            Dictionary representation of user context
+        """
+        return {
+            "id": str(self.db_user_id) if self.db_user_id else None,
+            "pocket_id": self.user_id,
+            "email": self.email,
+            "name": self.name,
+            "role": self.role.value if self.role else None,
+            "groups": self.groups,
+            "is_crt_member": self.is_crt_member,
+            "is_lead": self.is_lead,
+            "is_admin": self.is_admin,
+        }
+
+    def __repr__(self) -> str:
+        role_str = self.role.value if self.role else "none"
+        return f"<UserContext(email='{self.email}', role='{role_str}')>"
 
 
 # =============================================================================
@@ -150,17 +265,24 @@ class AuthMiddleware(BaseHTTPMiddleware):
     """
     FastAPI middleware for Pocket-ID authentication.
 
-    Parses session cookies, validates tokens, and injects
-    user context into the request state.
+    Parses session cookies, validates tokens, computes user roles,
+    and injects user context into the request state.
 
     Configuration is loaded from ConfigManager if provided,
     or can be passed directly as constructor arguments.
+    
+    The middleware can be disabled by:
+    - Setting enabled=False in constructor
+    - Setting DASH_AUTH_ENABLED=false in environment
+    - Setting enabled=false in config
+    
+    When disabled, all requests pass through with an anonymous user context.
 
     Example:
         app.add_middleware(
             AuthMiddleware,
             cookie_name="pocket_id_session",
-            required_groups=["crt"],
+            required_groups=["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
             bypass_paths=["/health"]
         )
     """
@@ -170,9 +292,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         app,
         cookie_name: str = "pocket_id_session",
         required_groups: Optional[List[str]] = None,
-        admin_groups: Optional[List[str]] = None,
         bypass_paths: Optional[List[str]] = None,
         config_manager: Optional[Any] = None,
+        enabled: Optional[bool] = None,
     ):
         """
         Initialize AuthMiddleware.
@@ -180,12 +302,25 @@ class AuthMiddleware(BaseHTTPMiddleware):
         Args:
             app: FastAPI application instance
             cookie_name: Name of the session cookie
-            required_groups: Groups required for access (any match)
-            admin_groups: Groups that grant admin privileges
+            required_groups: CRT groups required for access (any match)
             bypass_paths: Paths that don't require authentication
             config_manager: Optional ConfigManager for loading settings
+            enabled: Override to enable/disable auth (None = check config/env)
         """
         super().__init__(app)
+        
+        # Determine if auth is enabled
+        # Priority: constructor arg > config > env var > default (True)
+        if enabled is not None:
+            self._enabled = enabled
+        elif config_manager:
+            auth_config = config_manager.get_auth_config()
+            self._enabled = auth_config.get("enabled", True)
+        else:
+            # Check environment variable
+            import os
+            env_enabled = os.environ.get("DASH_AUTH_ENABLED", "true").lower()
+            self._enabled = env_enabled not in ("false", "0", "no", "off")
 
         # Load from config manager if provided
         if config_manager:
@@ -194,14 +329,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             self.required_groups = set(
                 auth_config.get("required_groups", required_groups or [])
             )
-            self.admin_groups = auth_config.get("admin_groups", admin_groups or ["admin"])
             self.bypass_paths = set(
                 auth_config.get("bypass_paths", bypass_paths or [])
             )
         else:
             self.cookie_name = cookie_name
             self.required_groups = set(required_groups or [])
-            self.admin_groups = admin_groups or ["admin"]
             self.bypass_paths = set(bypass_paths or [])
 
         # Add common bypass paths
@@ -217,9 +350,19 @@ class AuthMiddleware(BaseHTTPMiddleware):
         }
         self.bypass_paths.update(self._default_bypass)
 
-        logger.info(f"✅ AuthMiddleware initialized (cookie: {self.cookie_name})")
-        logger.debug(f"   Required groups: {self.required_groups}")
-        logger.debug(f"   Bypass paths: {len(self.bypass_paths)} configured")
+        # Log initialization status
+        if self._enabled:
+            logger.info(f"✅ AuthMiddleware initialized (cookie: {self.cookie_name})")
+            logger.debug(f"   Required groups: {self.required_groups}")
+            logger.debug(f"   Bypass paths: {len(self.bypass_paths)} configured")
+        else:
+            logger.warning("⚠️  AuthMiddleware DISABLED - all requests will pass through!")
+            logger.warning("   Set DASH_AUTH_ENABLED=true for production!")
+    
+    @property
+    def enabled(self) -> bool:
+        """Check if authentication is enabled."""
+        return self._enabled
 
     async def dispatch(
         self,
@@ -237,6 +380,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             HTTP response
         """
         path = request.url.path
+        
+        # If auth is disabled, pass all requests through with anonymous user
+        if not self._enabled:
+            request.state.user = UserContext.anonymous()
+            request.state.authenticated = False
+            return await call_next(request)
 
         # Check if path should bypass authentication
         if self._should_bypass(path):
@@ -253,24 +402,30 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 logger.warning(f"🔒 No valid session cookie for: {path}")
                 return self._unauthorized_response("Authentication required")
 
-            # Check group membership
-            if not self._has_required_groups(user_context):
+            # Check CRT membership (user must have a role)
+            if not user_context.is_crt_member:
                 logger.warning(
-                    f"🚫 Access denied for {user_context.email} to {path} "
-                    f"(groups: {user_context.groups})"
+                    f"🚫 Access denied for {user_context.email} to {path} - "
+                    f"Not a CRT member (groups: {user_context.groups})"
                 )
-                return self._forbidden_response("Insufficient permissions")
+                return self._forbidden_response(
+                    "Access denied: CRT membership required"
+                )
 
             # Attach user context to request
             request.state.user = user_context
             request.state.authenticated = True
 
-            logger.debug(f"✅ Authenticated: {user_context.email} -> {path}")
+            logger.debug(
+                f"✅ Authenticated: {user_context.email} "
+                f"(role: {user_context.role.value if user_context.role else 'none'}) "
+                f"-> {path}"
+            )
 
             return await call_next(request)
 
         except Exception as e:
-            logger.error(f"❌ Authentication error: {e}")
+            logger.error(f"❌ Authentication error: {e}", exc_info=True)
             return self._unauthorized_response("Authentication failed")
 
     def _should_bypass(self, path: str) -> bool:
@@ -293,7 +448,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 return True
 
         # Check for static file extensions
-        static_extensions = {".css", ".js", ".ico", ".png", ".jpg", ".svg"}
+        static_extensions = {".css", ".js", ".ico", ".png", ".jpg", ".svg", ".woff", ".woff2"}
         if any(path.endswith(ext) for ext in static_extensions):
             return True
 
@@ -316,8 +471,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return None
 
         try:
-            # Decode the cookie (base64 + JSON)
-            # Note: In production, this should verify JWT signature
+            # Decode the cookie (JWT format)
             claims = self._decode_session_cookie(cookie_value)
 
             if not claims:
@@ -328,7 +482,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 logger.debug("Session token expired")
                 return None
 
-            return UserContext.from_claims(claims, self.admin_groups)
+            return UserContext.from_claims(claims)
 
         except Exception as e:
             logger.debug(f"Failed to decode session cookie: {e}")
@@ -338,9 +492,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """
         Decode Pocket-ID session cookie.
 
-        The cookie is expected to be a JWT. For Phase 1, we do simplified
-        decoding. Full JWT verification will be added when we have the
-        Pocket-ID public key configuration.
+        The cookie is expected to be a JWT. We decode the payload
+        to extract claims. Full JWT signature verification should
+        be added when Pocket-ID JWKS is configured.
 
         Args:
             cookie_value: Raw cookie string
@@ -396,28 +550,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         except (TypeError, ValueError):
             return True
 
-    def _has_required_groups(self, user: UserContext) -> bool:
-        """
-        Check if user has required group membership.
-
-        Args:
-            user: User context to check
-
-        Returns:
-            True if user has at least one required group
-        """
-        # If no groups required, allow access
-        if not self.required_groups:
-            return True
-
-        # Admin always has access
-        if user.is_admin:
-            return True
-
-        # Check for any matching group
-        user_groups = set(user.groups)
-        return bool(user_groups & self.required_groups)
-
     def _unauthorized_response(self, detail: str) -> JSONResponse:
         """Create 401 Unauthorized response."""
         return JSONResponse(
@@ -442,7 +574,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 
 # =============================================================================
-# Factory Function - Clean Architecture v5.1 Compliance (Rule #1)
+# Factory Function - Clean Architecture v5.2 Compliance (Rule #1)
 # =============================================================================
 
 def create_auth_middleware(
@@ -450,18 +582,16 @@ def create_auth_middleware(
     config_manager: Optional[Any] = None,
     cookie_name: str = "pocket_id_session",
     required_groups: Optional[List[str]] = None,
-    admin_groups: Optional[List[str]] = None,
     bypass_paths: Optional[List[str]] = None,
 ) -> AuthMiddleware:
     """
-    Factory function for AuthMiddleware (Clean Architecture v5.1 Pattern).
+    Factory function for AuthMiddleware (Clean Architecture Pattern).
 
     Args:
         app: FastAPI application instance
         config_manager: Optional ConfigManager for loading settings
         cookie_name: Name of the session cookie
-        required_groups: Groups required for access
-        admin_groups: Groups that grant admin privileges
+        required_groups: CRT groups required for access
         bypass_paths: Paths that don't require authentication
 
     Returns:
@@ -477,7 +607,6 @@ def create_auth_middleware(
         config_manager=config_manager,
         cookie_name=cookie_name,
         required_groups=required_groups,
-        admin_groups=admin_groups,
         bypass_paths=bypass_paths,
     )
 

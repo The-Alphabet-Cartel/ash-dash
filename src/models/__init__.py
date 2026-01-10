@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Models Package - SQLAlchemy 2.0 ORM models
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.3-3
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 2 - Data Layer
+FILE VERSION: v5.0-10-10.1.1-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant (Rule #14 - SQLAlchemy 2.0 Standards)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -23,7 +23,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 All models use SQLAlchemy 2.0 Mapped[] type annotations per Rule #14.
 """
 
-__version__ = "v5.0-2-2.3-3"
+__version__ = "v5.0-10-10.1.1-1"
 
 # Base class and mixins
 from src.models.database import (
@@ -31,6 +31,16 @@ from src.models.database import (
     TimestampMixin,
     SoftDeleteMixin,
     NAMING_CONVENTION,
+)
+
+# Enumerations
+from src.models.enums import (
+    UserRole,
+    POCKET_ID_GROUP_MAP,
+    ROLE_HIERARCHY,
+    get_role_from_groups,
+    role_meets_requirement,
+    get_role_permissions,
 )
 
 # Entity models
@@ -46,6 +56,13 @@ __all__ = [
     "TimestampMixin",
     "SoftDeleteMixin",
     "NAMING_CONVENTION",
+    # Enumerations
+    "UserRole",
+    "POCKET_ID_GROUP_MAP",
+    "ROLE_HIERARCHY",
+    "get_role_from_groups",
+    "role_meets_requirement",
+    "get_role_permissions",
     # Entity models
     "User",
     "Session",
