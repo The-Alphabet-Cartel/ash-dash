@@ -11,19 +11,24 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Admin API Routes - Administrative operations including archive cleanup
+Admin API Routes - Administrative operations with authorization
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.9-1
-LAST MODIFIED: 2026-01-09
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-10-10.2.9-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
 ENDPOINTS:
-    GET  /api/admin/archives/cleanup/status   - Get cleanup status and stats
-    POST /api/admin/archives/cleanup/execute  - Execute archive cleanup
-    GET  /api/admin/archives/expiring         - Get archives expiring soon
+    GET  /api/admin/archives/cleanup/status   - Get cleanup status (Lead+)
+    POST /api/admin/archives/cleanup/execute  - Execute archive cleanup (Admin)
+    GET  /api/admin/archives/expiring         - Get archives expiring soon (Lead+)
+
+AUTHORIZATION (Phase 10):
+    - Cleanup status and expiring list: Requires Lead or Admin role
+    - Cleanup execution: Requires Admin role only
+    - All audit logs include user_id for tracking
 """
 
 from datetime import datetime, timezone
@@ -37,8 +42,15 @@ from src.managers.database import DatabaseManager
 from src.repositories.archive_repository import create_archive_repository
 from src.repositories.audit_log_repository import create_audit_log_repository
 
+# Phase 10: Import auth dependencies
+from src.api.dependencies.auth import (
+    require_lead,
+    require_admin,
+)
+from src.api.middleware.auth_middleware import UserContext
 
-__version__ = "v5.0-9-9.9-1"
+
+__version__ = "v5.0-10-10.2.9-1"
 
 
 # =============================================================================
@@ -121,6 +133,19 @@ def get_secrets_manager(request: Request):
     return request.app.state.secrets_manager
 
 
+def get_user_id_for_audit(user: UserContext) -> Optional[str]:
+    """
+    Get user ID string for audit logging.
+    
+    Prefers db_user_id if available, falls back to pocket_id.
+    """
+    if user.db_user_id:
+        return str(user.db_user_id)
+    if user.user_id and user.user_id != "anonymous":
+        return user.user_id
+    return None
+
+
 async def get_archive_manager(request: Request):
     """Get or create archive manager."""
     # Check if already cached
@@ -177,14 +202,18 @@ async def get_archive_manager(request: Request):
     "/archives/cleanup/status",
     response_model=CleanupStatusResponse,
     summary="Get cleanup status",
-    description="Get archive cleanup status and statistics.",
+    description="Get archive cleanup status and statistics. Requires Lead or Admin role.",
 )
 async def get_cleanup_status(
     request: Request,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get current archive cleanup status.
+    
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
     
     Returns:
         - Total archive counts by tier
@@ -241,15 +270,19 @@ async def get_cleanup_status(
     "/archives/cleanup/execute",
     response_model=CleanupExecuteResponse,
     summary="Execute archive cleanup",
-    description="Delete expired standard-tier archives.",
+    description="Delete expired standard-tier archives. Requires Admin role.",
 )
 async def execute_cleanup(
     request: Request,
+    user: UserContext = Depends(require_admin),  # Phase 10: Admin only
     dry_run: bool = Query(True, description="If true, only report what would be deleted"),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Execute archive cleanup.
+    
+    Authorization (Phase 10):
+        - Requires Admin role only
     
     By default, runs in dry-run mode (no deletion).
     Set dry_run=false to actually delete expired archives.
@@ -272,6 +305,8 @@ async def execute_cleanup(
         expired = await archive_repo.get_expired_standard_tier(db, limit=1000)
         expired_count = len(list(expired))
         
+        logger.info(f"Cleanup dry run by admin {user.email}: {expired_count} archives would be deleted")
+        
         return CleanupExecuteResponse(
             success=True,
             deleted_count=expired_count,
@@ -281,27 +316,29 @@ async def execute_cleanup(
         )
     
     # Execute actual cleanup
-    logger.info("🗑️ Admin initiated archive cleanup")
+    logger.info(f"🗑️ Admin {user.email} initiated archive cleanup")
     
     deleted_count = await archive_manager.delete_expired_archives()
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "archive.cleanup",
-            "user_id": None,  # TODO: Get from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "system",
             "entity_id": "cleanup",
             "new_values": {
                 "deleted_count": deleted_count,
                 "executed_at": executed_at.isoformat(),
+                "executed_by": user.email,
+                "executed_by_role": user.role.value if user.role else None,
             },
         },
     )
     await db.commit()
     
-    logger.info(f"✅ Archive cleanup complete: {deleted_count} archives deleted")
+    logger.info(f"✅ Archive cleanup complete by {user.email}: {deleted_count} archives deleted")
     
     return CleanupExecuteResponse(
         success=True,
@@ -316,15 +353,19 @@ async def execute_cleanup(
     "/archives/expiring",
     response_model=List[ExpiringArchiveResponse],
     summary="Get expiring archives",
-    description="Get list of archives expiring within N days.",
+    description="Get list of archives expiring within N days. Requires Lead or Admin role.",
 )
 async def get_expiring_archives(
     request: Request,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
     days: int = Query(30, ge=1, le=365, description="Days until expiration"),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get archives that will expire within the specified number of days.
+    
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
     
     Useful for:
     - Review before cleanup

@@ -11,14 +11,22 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Notes API Routes - CRUD operations for session notes
+Notes API Routes - CRUD operations for session notes with authorization
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-6-6.7-3
-LAST MODIFIED: 2026-01-08
-PHASE: Phase 6 - Notes System
+FILE VERSION: v5.0-10-10.2.1-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
+
+AUTHORIZATION (Phase 10):
+    - All endpoints require CRT membership (require_member)
+    - Note create: Sets author_id from authenticated user
+    - Note update: Users can only edit their own notes (Admin can edit any)
+    - Note unlock: Requires Lead or Admin role
+    - Note delete: Requires Admin role only
+    - All audit logs include user_id for tracking
 """
 
 from datetime import datetime, timezone
@@ -34,7 +42,15 @@ from src.repositories.note_repository import create_note_repository
 from src.repositories.session_repository import create_session_repository
 from src.repositories.audit_log_repository import create_audit_log_repository
 
-__version__ = "v5.0-6-6.7-3"
+# Phase 10: Import auth dependencies
+from src.api.dependencies.auth import (
+    require_member,
+    require_lead,
+    require_admin,
+)
+from src.api.middleware.auth_middleware import UserContext
+
+__version__ = "v5.0-10-10.2.1-1"
 
 
 # =============================================================================
@@ -161,6 +177,19 @@ def note_to_summary(note, author_name: Optional[str] = None) -> NoteSummary:
     )
 
 
+def get_user_id_for_audit(user: UserContext) -> Optional[str]:
+    """
+    Get user ID string for audit logging.
+    
+    Prefers db_user_id if available, falls back to pocket_id.
+    """
+    if user.db_user_id:
+        return str(user.db_user_id)
+    if user.user_id and user.user_id != "anonymous":
+        return user.user_id
+    return None
+
+
 # =============================================================================
 # Routes - Session Notes
 # =============================================================================
@@ -169,17 +198,21 @@ def note_to_summary(note, author_name: Optional[str] = None) -> NoteSummary:
     "/session/{session_id}",
     response_model=NoteListResponse,
     summary="List session notes",
-    description="Get all notes for a crisis session.",
+    description="Get all notes for a crisis session. Requires CRT membership.",
 )
 async def list_session_notes(
     session_id: str,
     request: Request,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get all notes for a session.
     
     Returns notes ordered by creation time (oldest first).
+    
+    Authorization:
+        - Requires CRT membership (any role)
     """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
@@ -217,20 +250,26 @@ async def list_session_notes(
     response_model=NoteDetail,
     status_code=status.HTTP_201_CREATED,
     summary="Create note",
-    description="Create a new note for a crisis session.",
+    description="Create a new note for a crisis session. Requires CRT membership.",
 )
 async def create_note(
     session_id: str,
     note_data: NoteCreate,
     request: Request,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Create a new note for the session.
     
+    The note's author_id is automatically set from the authenticated user.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+    
     Fails if:
         - Session does not exist
-        - Session is closed/archived (unless admin - TODO in Phase 10)
+        - Session is closed/archived
     """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
@@ -255,51 +294,56 @@ async def create_note(
             detail=f"Cannot add notes to {session.status} session",
         )
     
-    # Create the note
-    # TODO: Get actual author_id from authentication (Phase 10)
-    # For now, use None for author_id
+    # Create the note with author from authenticated user (Phase 10)
     note = await note_repo.create_note(
         session=db,
         session_id=session_id,
-        author_id=None,  # Will be set from auth in Phase 10
+        author_id=user.db_user_id,  # Set from authenticated user
         content=note_data.content,
         content_html=note_data.content_html,
     )
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "note.create",
-            "user_id": None,  # Will be set from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "note",
             "entity_id": str(note.id),
             "new_values": {
                 "session_id": session_id,
                 "content_length": len(note_data.content),
+                "author_email": user.email,
             },
         },
     )
     
     await db.commit()
     
-    logger.info(f"Created note {note.id} for session {session_id}")
+    logger.info(f"Created note {note.id} for session {session_id} by {user.email}")
     
-    return note_to_detail(note)
+    return note_to_detail(note, author_name=user.name or user.email)
 
 
 @router.get(
     "/{note_id}",
     response_model=NoteDetail,
     summary="Get note",
-    description="Get a specific note by ID.",
+    description="Get a specific note by ID. Requires CRT membership.",
 )
 async def get_note(
     note_id: UUID,
     request: Request,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get a specific note with full content."""
+    """
+    Get a specific note with full content.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+    """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
     
@@ -319,27 +363,26 @@ async def get_note(
     "/{note_id}",
     response_model=NoteDetail,
     summary="Update note",
-    description="Update an existing note's content.",
+    description="Update an existing note. Users can only edit their own notes unless Admin.",
 )
 async def update_note(
     note_id: UUID,
     note_data: NoteUpdate,
     request: Request,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Update an existing note.
     
+    Authorization (Phase 10):
+        - Users can only edit their own notes
+        - Admins can edit any note
+    
     Behavior:
         - Increments version number
         - Updates updated_at timestamp
         - Fails if note is locked
-    
-    TODO (Phase 10 - Authentication/User Management):
-        - Get current user from request.user
-        - Check if current_user.id == note.author_id
-        - Only allow edit if user owns the note OR user is admin
-        - Return 403 Forbidden if user doesn't own the note
     """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
@@ -363,14 +406,14 @@ async def update_note(
             detail="Cannot edit locked note",
         )
     
-    # TODO (Phase 10): Ownership check
-    # current_user = request.state.user  # From auth middleware
-    # if note.author_id and note.author_id != current_user.id:
-    #     if not current_user.is_admin:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_403_FORBIDDEN,
-    #             detail="You can only edit your own notes",
-    #         )
+    # Phase 10: Ownership check (Admin can edit any note)
+    if note.author_id and note.author_id != user.db_user_id:
+        if not user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only edit your own notes",
+            )
+        logger.info(f"Admin {user.email} editing note {note_id} owned by {note.author_id}")
     
     # Update the note
     old_version = note.version
@@ -387,12 +430,12 @@ async def update_note(
             detail="Failed to update note",
         )
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "note.update",
-            "user_id": None,  # Will be set from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "note",
             "entity_id": str(note_id),
             "old_values": {
@@ -402,13 +445,14 @@ async def update_note(
                 "session_id": note.session_id,
                 "version": updated_note.version,
                 "content_length": len(note_data.content),
+                "editor_email": user.email,
             },
         },
     )
     
     await db.commit()
     
-    logger.info(f"Updated note {note_id} to version {updated_note.version}")
+    logger.info(f"Updated note {note_id} to version {updated_note.version} by {user.email}")
     
     return note_to_detail(updated_note)
 
@@ -417,17 +461,19 @@ async def update_note(
     "/{note_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete note",
-    description="Delete a note (admin only - enforced in Phase 10).",
+    description="Delete a note. Requires Admin role.",
 )
 async def delete_note(
     note_id: UUID,
     request: Request,
+    user: UserContext = Depends(require_admin),  # Phase 10: Admin only
     db: AsyncSession = Depends(get_db),
 ):
     """
     Delete a note.
     
-    Note: Admin permission check will be added in Phase 10.
+    Authorization (Phase 10):
+        - Requires Admin role only
     """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
@@ -445,6 +491,7 @@ async def delete_note(
         )
     
     session_id = note.session_id
+    author_id = note.author_id
     
     # Delete the note
     deleted = await note_repo.delete(db, note_id)
@@ -454,23 +501,27 @@ async def delete_note(
             detail="Failed to delete note",
         )
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "note.delete",
-            "user_id": None,  # Will be set from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "note",
             "entity_id": str(note_id),
             "old_values": {
                 "session_id": session_id,
+                "author_id": str(author_id) if author_id else None,
+            },
+            "new_values": {
+                "deleted_by": user.email,
             },
         },
     )
     
     await db.commit()
     
-    logger.info(f"Deleted note {note_id}")
+    logger.info(f"Deleted note {note_id} by admin {user.email}")
     
     return None
 
@@ -483,14 +534,20 @@ async def delete_note(
     "/{note_id}/lock",
     response_model=NoteDetail,
     summary="Lock note",
-    description="Lock a note to prevent further edits.",
+    description="Lock a note to prevent further edits. Requires CRT membership.",
 )
 async def lock_note(
     note_id: UUID,
     request: Request,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
-    """Manually lock a note."""
+    """
+    Manually lock a note.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+    """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
     logger = logging_manager.get_logger("notes")
@@ -513,25 +570,26 @@ async def lock_note(
     # Lock the note
     locked_note = await note_repo.lock_note(db, note_id)
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "note.lock",
-            "user_id": None,  # Will be set from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "note",
             "entity_id": str(note_id),
             "old_values": {"is_locked": False},
             "new_values": {
                 "session_id": note.session_id,
                 "is_locked": True,
+                "locked_by": user.email,
             },
         },
     )
     
     await db.commit()
     
-    logger.info(f"Locked note {note_id}")
+    logger.info(f"Locked note {note_id} by {user.email}")
     
     return note_to_detail(locked_note)
 
@@ -540,17 +598,19 @@ async def lock_note(
     "/{note_id}/unlock",
     response_model=NoteDetail,
     summary="Unlock note",
-    description="Unlock a note to allow edits (admin only - enforced in Phase 10).",
+    description="Unlock a note to allow edits. Requires Lead or Admin role.",
 )
 async def unlock_note(
     note_id: UUID,
     request: Request,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
     db: AsyncSession = Depends(get_db),
 ):
     """
     Unlock a note to allow edits.
     
-    Note: Admin permission check will be added in Phase 10.
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
     """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
@@ -574,25 +634,26 @@ async def unlock_note(
     # Unlock the note
     unlocked_note = await note_repo.unlock_note(db, note_id)
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "note.unlock",
-            "user_id": None,  # Will be set from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "note",
             "entity_id": str(note_id),
             "old_values": {"is_locked": True},
             "new_values": {
                 "session_id": note.session_id,
                 "is_locked": False,
+                "unlocked_by": user.email,
             },
         },
     )
     
     await db.commit()
     
-    logger.info(f"Unlocked note {note_id}")
+    logger.info(f"Unlocked note {note_id} by {user.email} (role: {user.role.value})")
     
     return note_to_detail(unlocked_note)
 
@@ -605,19 +666,23 @@ async def unlock_note(
     "/search",
     response_model=List[NoteSummary],
     summary="Search notes",
-    description="Search notes by content.",
+    description="Search notes by content. Requires CRT membership.",
 )
 async def search_notes(
     q: str,
     session_id: Optional[str] = None,
     limit: int = 50,
     request: Request = None,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Search notes by content.
     
     Optionally filter by session_id.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)

@@ -12,11 +12,11 @@ MISSION - NEVER TO BE VIOLATED:
 
 ============================================================================
 Sessions API Routes - Crisis session endpoints with search, filtering, and
-state management for the dashboard.
+state management for the dashboard with authorization.
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.6-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-10-10.2.6-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -30,7 +30,12 @@ ENDPOINTS:
     GET  /api/sessions/user/{id}    - Get user session history with patterns
     POST /api/sessions/{id}/assign  - Assign CRT user to session
     POST /api/sessions/{id}/close   - Close a session
-    POST /api/sessions/{id}/reopen  - Reopen a closed session (admin)
+    POST /api/sessions/{id}/reopen  - Reopen a closed session (Lead+ only)
+
+AUTHORIZATION (Phase 10):
+    - All endpoints require CRT membership (require_member)
+    - Session reopen: Requires Lead or Admin role
+    - All audit logs include user_id for tracking
 """
 
 from datetime import datetime, timezone
@@ -46,7 +51,14 @@ from src.repositories import (
     create_audit_log_repository,
 )
 
-__version__ = "v5.0-9-9.6-1"
+# Phase 10: Import auth dependencies
+from src.api.dependencies.auth import (
+    require_member,
+    require_lead,
+)
+from src.api.middleware.auth_middleware import UserContext
+
+__version__ = "v5.0-10-10.2.6-1"
 
 # Create router
 router = APIRouter(prefix="/api/sessions", tags=["Sessions"])
@@ -300,6 +312,19 @@ def build_note_summary(note) -> NoteSummary:
     )
 
 
+def get_user_id_for_audit(user: UserContext) -> Optional[str]:
+    """
+    Get user ID string for audit logging.
+    
+    Prefers db_user_id if available, falls back to pocket_id.
+    """
+    if user.db_user_id:
+        return str(user.db_user_id)
+    if user.user_id and user.user_id != "anonymous":
+        return user.user_id
+    return None
+
+
 # =============================================================================
 # Dependency Injection Helpers
 # =============================================================================
@@ -335,6 +360,7 @@ def get_audit_repo(request: Request):
 @router.get("", response_model=PaginatedSessionList)
 async def list_sessions(
     request: Request,
+    user: UserContext = Depends(require_member),
     search: Optional[str] = Query(None, description="Search by user ID, session ID, or username"),
     severity: Optional[str] = Query(None, description="Filter by severity"),
     status: Optional[str] = Query(None, description="Filter by status"),
@@ -345,6 +371,9 @@ async def list_sessions(
 ):
     """
     List sessions with search, filtering, and pagination.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Query Parameters:
         search: Search term (matches session ID, Discord user ID, username)
@@ -390,9 +419,15 @@ async def list_sessions(
 
 
 @router.get("/active", response_model=List[SessionSummary])
-async def get_active_sessions(request: Request):
+async def get_active_sessions(
+    request: Request,
+    user: UserContext = Depends(require_member),
+):
     """
     Get all active sessions for the dashboard.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Returns sessions ordered by severity (critical first) then by time.
     This is the primary endpoint for the real-time dashboard view.
@@ -407,9 +442,15 @@ async def get_active_sessions(request: Request):
 
 
 @router.get("/critical", response_model=List[SessionSummary])
-async def get_critical_sessions(request: Request):
+async def get_critical_sessions(
+    request: Request,
+    user: UserContext = Depends(require_member),
+):
     """
     Get critical severity sessions.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Returns only critical sessions that need immediate attention.
     """
@@ -423,9 +464,15 @@ async def get_critical_sessions(request: Request):
 
 
 @router.get("/unassigned", response_model=List[SessionSummary])
-async def get_unassigned_sessions(request: Request):
+async def get_unassigned_sessions(
+    request: Request,
+    user: UserContext = Depends(require_member),
+):
     """
     Get active sessions not assigned to any CRT user.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Useful for CRT members looking to pick up new sessions.
     """
@@ -441,10 +488,14 @@ async def get_unassigned_sessions(request: Request):
 @router.get("/stats", response_model=SessionStatsResponse)
 async def get_session_stats(
     request: Request,
+    user: UserContext = Depends(require_member),
     days: int = Query(30, ge=1, le=365, description="Days to analyze"),
 ):
     """
     Get session statistics for the specified time period.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Query Parameters:
         days: Number of days to analyze (default: 30, max: 365)
@@ -463,9 +514,16 @@ async def get_session_stats(
 # =============================================================================
 
 @router.get("/{session_id}", response_model=SessionDetail)
-async def get_session(request: Request, session_id: str):
+async def get_session(
+    request: Request,
+    session_id: str,
+    user: UserContext = Depends(require_member),
+):
     """
     Get detailed session information including Ash analysis data.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Path Parameters:
         session_id: Session ID (Ash-Bot format)
@@ -514,9 +572,16 @@ async def get_session(request: Request, session_id: str):
 
 
 @router.get("/{session_id}/notes", response_model=List[NoteResponse])
-async def get_session_notes(request: Request, session_id: str):
+async def get_session_notes(
+    request: Request,
+    session_id: str,
+    user: UserContext = Depends(require_member),
+):
     """
     Get all notes for a session.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Path Parameters:
         session_id: Session ID
@@ -544,11 +609,15 @@ async def get_session_notes(request: Request, session_id: str):
 async def get_user_sessions(
     request: Request,
     discord_user_id: int,
+    user: UserContext = Depends(require_member),
     exclude_session: Optional[str] = Query(None, description="Session ID to exclude"),
     limit: int = Query(10, ge=1, le=50, description="Max sessions to return"),
 ):
     """
     Get session history for a Discord user with pattern analysis.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Path Parameters:
         discord_user_id: Discord user snowflake ID
@@ -597,9 +666,13 @@ async def assign_session(
     request: Request,
     session_id: str,
     assign_request: AssignRequest,
+    user: UserContext = Depends(require_member),
 ):
     """
     Assign a CRT user to a session.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Path Parameters:
         session_id: Session ID
@@ -624,15 +697,18 @@ async def assign_session(
             db, session_id, assign_request.crt_user_id
         )
         
-        # Log the action
+        # Log the action with user tracking (Phase 10)
         await audit_repo.log_action(
             db,
             action="session_assign",
-            user_id=assign_request.crt_user_id,
+            user_id=user.db_user_id or assign_request.crt_user_id,
             entity_type="session",
             entity_id=session_id,
             old_values={"crt_user_id": str(old_crt_id) if old_crt_id else None},
-            new_values={"crt_user_id": str(assign_request.crt_user_id)},
+            new_values={
+                "crt_user_id": str(assign_request.crt_user_id),
+                "assigned_by": user.email,
+            },
         )
         
         await db.commit()
@@ -640,13 +716,20 @@ async def assign_session(
         # Fetch updated session with relations
         updated = await session_repo.get_with_all_relations(db, session_id)
     
-    return await get_session(request, session_id)
+    return await get_session(request, session_id, user)
 
 
 @router.post("/{session_id}/unassign", response_model=SessionDetail)
-async def unassign_session(request: Request, session_id: str):
+async def unassign_session(
+    request: Request,
+    session_id: str,
+    user: UserContext = Depends(require_member),
+):
     """
     Remove CRT user assignment from a session.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Path Parameters:
         session_id: Session ID
@@ -664,18 +747,23 @@ async def unassign_session(request: Request, session_id: str):
         
         await session_repo.unassign(db, session_id)
         
+        # Log with user tracking (Phase 10)
         await audit_repo.log_action(
             db,
             action="session_unassign",
+            user_id=user.db_user_id,
             entity_type="session",
             entity_id=session_id,
             old_values={"crt_user_id": str(old_crt_id) if old_crt_id else None},
-            new_values={"crt_user_id": None},
+            new_values={
+                "crt_user_id": None,
+                "unassigned_by": user.email,
+            },
         )
         
         await db.commit()
     
-    return await get_session(request, session_id)
+    return await get_session(request, session_id, user)
 
 
 @router.post("/{session_id}/close", response_model=SessionDetail)
@@ -683,9 +771,13 @@ async def close_session(
     request: Request,
     session_id: str,
     close_request: Optional[CloseRequest] = None,
+    user: UserContext = Depends(require_member),
 ):
     """
     Close an active session.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Actions performed:
         - Set status to 'closed'
@@ -723,30 +815,36 @@ async def close_session(
         # Lock all notes
         await note_repo.lock_session_notes(db, session_id)
         
-        # Log the action
+        # Log the action with user tracking (Phase 10)
         await audit_repo.log_action(
             db,
             action="session_close",
+            user_id=user.db_user_id,
             entity_type="session",
             entity_id=session_id,
             new_values={
                 "status": "closed",
                 "summary": summary,
+                "closed_by": user.email,
             },
         )
         
         await db.commit()
     
-    return await get_session(request, session_id)
+    return await get_session(request, session_id, user)
 
 
 @router.post("/{session_id}/reopen", response_model=SessionDetail)
 async def reopen_session(
     request: Request,
     session_id: str,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
 ):
     """
-    Reopen a closed session (admin only).
+    Reopen a closed session.
+    
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
     
     Actions performed:
         - Set status back to 'active'
@@ -757,12 +855,14 @@ async def reopen_session(
     Path Parameters:
         session_id: Session ID
     
-    Note: This endpoint should be protected by admin middleware in production.
+    Cannot reopen archived sessions - they are permanently sealed.
     """
     session_repo = get_session_repo(request)
     note_repo = get_note_repo(request)
     audit_repo = get_audit_repo(request)
     db_manager = request.app.state.database_manager
+    logging_manager = request.app.state.logging_manager
+    logger = logging_manager.get_logger("sessions")
     
     async with db_manager.session() as db:
         session = await session_repo.get(db, session_id)
@@ -789,19 +889,26 @@ async def reopen_session(
         # Unlock all notes
         await note_repo.unlock_session_notes(db, session_id)
         
-        # Log the action
+        # Log the action with user tracking (Phase 10)
         await audit_repo.log_action(
             db,
             action="session_reopen",
+            user_id=user.db_user_id,
             entity_type="session",
             entity_id=session_id,
             old_values={"status": old_status},
-            new_values={"status": "active"},
+            new_values={
+                "status": "active",
+                "reopened_by": user.email,
+                "reopened_by_role": user.role.value if user.role else None,
+            },
         )
         
         await db.commit()
+        
+        logger.info(f"Session {session_id} reopened by {user.email} (role: {user.role.value})")
     
-    return await get_session(request, session_id)
+    return await get_session(request, session_id, user)
 
 
 __all__ = ["router"]

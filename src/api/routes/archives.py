@@ -11,11 +11,11 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Archive API Routes - Session archiving with encryption
+Archive API Routes - Session archiving with encryption and authorization
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.5-1
-LAST MODIFIED: 2026-01-09
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-10-10.2.7-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -27,8 +27,15 @@ ENDPOINTS:
     GET    /api/archives/expiring               - Get archives expiring soon
     GET    /api/archives/{archive_id}           - Get archive metadata
     GET    /api/archives/{archive_id}/download  - Retrieve and decrypt archive
-    PUT    /api/archives/{archive_id}/retention - Update retention tier
-    DELETE /api/archives/{archive_id}           - Delete archive (admin only)
+    PUT    /api/archives/{archive_id}/retention - Update retention tier (Lead+)
+    DELETE /api/archives/{archive_id}           - Delete archive (Admin only)
+
+AUTHORIZATION (Phase 10):
+    - All view endpoints require CRT membership (require_member)
+    - Archive creation: Requires CRT membership, sets archived_by from user
+    - Retention tier change: Requires Lead or Admin role
+    - Archive delete: Requires Admin role only
+    - All audit logs include user_id for tracking
 """
 
 from datetime import datetime, timezone
@@ -51,7 +58,15 @@ from src.managers.archive import (
     ArchiveManager,
 )
 
-__version__ = "v5.0-9-9.5-1"
+# Phase 10: Import auth dependencies
+from src.api.dependencies.auth import (
+    require_member,
+    require_lead,
+    require_admin,
+)
+from src.api.middleware.auth_middleware import UserContext
+
+__version__ = "v5.0-10-10.2.7-1"
 
 
 # =============================================================================
@@ -222,6 +237,19 @@ def get_secrets_manager(request: Request):
     return request.app.state.secrets_manager
 
 
+def get_user_id_for_audit(user: UserContext) -> Optional[str]:
+    """
+    Get user ID string for audit logging.
+    
+    Prefers db_user_id if available, falls back to pocket_id.
+    """
+    if user.db_user_id:
+        return str(user.db_user_id)
+    if user.user_id and user.user_id != "anonymous":
+        return user.user_id
+    return None
+
+
 async def get_archive_manager(request: Request) -> ArchiveManager:
     """
     Get or create archive manager.
@@ -290,16 +318,21 @@ async def get_archive_manager(request: Request) -> ArchiveManager:
     response_model=ArchiveCreateResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Archive a session",
-    description="Archive a completed session with encryption.",
+    description="Archive a completed session with encryption. Requires CRT membership.",
 )
 async def archive_session(
     session_id: str,
     archive_request: ArchiveCreateRequest,
     request: Request,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Archive a crisis session.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+        - archived_by is set from authenticated user
     
     The session and all its notes are encrypted with AES-256-GCM
     and uploaded to MinIO storage on the Syn VM.
@@ -376,18 +409,9 @@ async def archive_session(
         "analysis_data": session.analysis_data,
     }
     
-    # TODO (Phase 10): Get actual user from auth
-    # For now, use placeholder
-    archived_by_id = None
-    archived_by_name = "System"  # Will be replaced with actual user
-    
-    # Try to get a user ID from note authors as a temporary measure
-    for note in notes:
-        if note.author_id:
-            archived_by_id = note.author_id
-            if note.author:
-                archived_by_name = note.author.display_name
-            break
+    # Phase 10: Get archived_by from authenticated user
+    archived_by_id = user.db_user_id
+    archived_by_name = user.name or user.email
     
     # Archive the session
     result = await archive_manager.archive_session(
@@ -409,25 +433,26 @@ async def archive_session(
     # Update session status to archived
     await session_repo.update(db, session_id, {"status": "archived"})
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "archive.create",
-            "user_id": archived_by_id,
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "archive",
             "entity_id": str(result.archive_id),
             "new_values": {
                 "session_id": session_id,
                 "retention_tier": archive_request.retention_tier,
                 "size_bytes": result.size_bytes,
+                "archived_by": user.email,
             },
         },
     )
     
     await db.commit()
     
-    logger.info(f"Archived session {session_id} → {result.storage_key}")
+    logger.info(f"Archived session {session_id} → {result.storage_key} by {user.email}")
     
     return ArchiveCreateResponse(
         success=True,
@@ -447,10 +472,11 @@ async def archive_session(
     "",
     response_model=ArchiveListResponse,
     summary="List archives",
-    description="List archives with optional filtering.",
+    description="List archives with optional filtering. Requires CRT membership.",
 )
 async def list_archives(
     request: Request,
+    user: UserContext = Depends(require_member),
     discord_user_id: Optional[int] = Query(None, description="Filter by Discord user ID"),
     severity: Optional[str] = Query(None, description="Filter by severity level"),
     retention_tier: Optional[str] = Query(None, description="Filter by retention tier"),
@@ -460,6 +486,9 @@ async def list_archives(
 ):
     """
     List archives with optional filtering.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Supports filtering by:
     - Discord user ID
@@ -494,12 +523,18 @@ async def list_archives(
     "/statistics",
     response_model=ArchiveStatistics,
     summary="Get archive statistics",
-    description="Get storage statistics for all archives.",
+    description="Get storage statistics for all archives. Requires CRT membership.",
 )
 async def get_statistics(
     request: Request,
+    user: UserContext = Depends(require_member),
 ):
-    """Get archive storage statistics."""
+    """
+    Get archive storage statistics.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+    """
     archive_manager = await get_archive_manager(request)
     
     stats = await archive_manager.get_statistics()
@@ -511,13 +546,19 @@ async def get_statistics(
     "/expiring",
     response_model=List[ExpiringArchive],
     summary="Get expiring archives",
-    description="Get archives expiring within N days.",
+    description="Get archives expiring within N days. Requires CRT membership.",
 )
 async def get_expiring_archives(
     request: Request,
+    user: UserContext = Depends(require_member),
     days: int = Query(30, ge=1, le=365, description="Days until expiration"),
 ):
-    """Get archives that will expire within the specified number of days."""
+    """
+    Get archives that will expire within the specified number of days.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+    """
     archive_manager = await get_archive_manager(request)
     
     expiring = await archive_manager.get_expiring_soon(days=days)
@@ -533,13 +574,19 @@ async def get_expiring_archives(
     "/{archive_id}",
     response_model=ArchiveMetadata,
     summary="Get archive metadata",
-    description="Get metadata for a specific archive without decrypting.",
+    description="Get metadata for a specific archive. Requires CRT membership.",
 )
 async def get_archive(
     archive_id: UUID,
     request: Request,
+    user: UserContext = Depends(require_member),
 ):
-    """Get archive metadata without decrypting content."""
+    """
+    Get archive metadata without decrypting content.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+    """
     archive_manager = await get_archive_manager(request)
     
     metadata = await archive_manager.get_archive_metadata(archive_id)
@@ -557,15 +604,19 @@ async def get_archive(
     "/{archive_id}/download",
     response_model=ArchivePackageResponse,
     summary="Download and decrypt archive",
-    description="Retrieve and decrypt the full archive package.",
+    description="Retrieve and decrypt the full archive package. Requires CRT membership.",
 )
 async def download_archive(
     archive_id: UUID,
     request: Request,
+    user: UserContext = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Download and decrypt an archive.
+    
+    Authorization:
+        - Requires CRT membership (any role)
     
     Returns the full decrypted archive package including
     session data and all notes.
@@ -586,19 +637,22 @@ async def download_archive(
             detail=f"Archive {archive_id} not found or could not be decrypted",
         )
     
-    # Create audit log entry for archive access
+    # Create audit log entry for archive access with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "archive.access",
-            "user_id": None,  # Will be set from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "archive",
             "entity_id": str(archive_id),
+            "new_values": {
+                "accessed_by": user.email,
+            },
         },
     )
     await db.commit()
     
-    logger.info(f"Archive {archive_id} downloaded and decrypted")
+    logger.info(f"Archive {archive_id} downloaded by {user.email}")
     
     return ArchivePackageResponse(
         version=package.version,
@@ -617,16 +671,20 @@ async def download_archive(
     "/{archive_id}/retention",
     response_model=ArchiveMetadata,
     summary="Update retention tier",
-    description="Change the retention tier for an archive.",
+    description="Change the retention tier for an archive. Requires Lead or Admin role.",
 )
 async def update_retention(
     archive_id: UUID,
     retention_request: RetentionUpdateRequest,
     request: Request,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
     db: AsyncSession = Depends(get_db),
 ):
     """
     Update an archive's retention tier.
+    
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
     
     Tier options:
     - "standard": 1 year retention (auto-deleted after)
@@ -654,9 +712,9 @@ async def update_retention(
             detail=f"Archive {archive_id} not found",
         )
     
-    # TODO (Phase 10): Get actual user from auth
-    updated_by_id = None
-    updated_by_name = "Admin"
+    # Phase 10: Get user from auth
+    updated_by_id = user.db_user_id
+    updated_by_name = user.name or user.email
     
     # Update retention
     success = await archive_manager.update_retention_tier(
@@ -672,12 +730,12 @@ async def update_retention(
             detail="Failed to update retention tier",
         )
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "archive.retention_update",
-            "user_id": updated_by_id,
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "archive",
             "entity_id": str(archive_id),
             "old_values": {
@@ -685,6 +743,8 @@ async def update_retention(
             },
             "new_values": {
                 "retention_tier": retention_request.retention_tier,
+                "updated_by": user.email,
+                "updated_by_role": user.role.value if user.role else None,
             },
         },
     )
@@ -692,7 +752,8 @@ async def update_retention(
     
     logger.info(
         f"Updated archive {archive_id} retention: "
-        f"{old_metadata['retention_tier']} → {retention_request.retention_tier}"
+        f"{old_metadata['retention_tier']} → {retention_request.retention_tier} "
+        f"by {user.email} (role: {user.role.value})"
     )
     
     # Return updated metadata
@@ -704,16 +765,20 @@ async def update_retention(
     "/{archive_id}/extend",
     response_model=ArchiveMetadata,
     summary="Extend retention",
-    description="Extend an archive's retention by a number of days.",
+    description="Extend an archive's retention by a number of days. Requires Lead or Admin role.",
 )
 async def extend_retention(
     archive_id: UUID,
     extend_request: RetentionExtendRequest,
     request: Request,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
     db: AsyncSession = Depends(get_db),
 ):
     """
     Extend an archive's retention period.
+    
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
     
     Adds the specified number of days to the current retention date.
     """
@@ -732,11 +797,14 @@ async def extend_retention(
             detail=f"Archive {archive_id} not found",
         )
     
+    # Phase 10: Get user from auth
+    extended_by_name = user.name or user.email
+    
     # Extend retention
     success = await archive_manager.extend_retention(
         archive_id=archive_id,
         days=extend_request.days,
-        extended_by_name="Admin",  # TODO: Get from auth
+        extended_by_name=extended_by_name,
     )
     
     if not success:
@@ -745,12 +813,12 @@ async def extend_retention(
             detail="Failed to extend retention",
         )
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "archive.retention_extend",
-            "user_id": None,
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "archive",
             "entity_id": str(archive_id),
             "old_values": {
@@ -758,12 +826,13 @@ async def extend_retention(
             },
             "new_values": {
                 "days_extended": extend_request.days,
+                "extended_by": user.email,
             },
         },
     )
     await db.commit()
     
-    logger.info(f"Extended archive {archive_id} retention by {extend_request.days} days")
+    logger.info(f"Extended archive {archive_id} retention by {extend_request.days} days by {user.email}")
     
     # Return updated metadata
     new_metadata = await archive_manager.get_archive_metadata(archive_id)
@@ -778,20 +847,22 @@ async def extend_retention(
     "/{archive_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete archive",
-    description="Delete an archive (admin only - enforced in Phase 10).",
+    description="Delete an archive. Requires Admin role.",
 )
 async def delete_archive(
     archive_id: UUID,
     request: Request,
+    user: UserContext = Depends(require_admin),  # Phase 10: Admin only
     db: AsyncSession = Depends(get_db),
 ):
     """
     Delete an archive.
     
+    Authorization (Phase 10):
+        - Requires Admin role only
+    
     This permanently deletes both the encrypted blob from MinIO
     and the metadata from PostgreSQL.
-    
-    Note: Admin permission check will be added in Phase 10.
     """
     logging_manager = get_logging_manager(request)
     db_manager = get_db_manager(request)
@@ -839,12 +910,12 @@ async def delete_archive(
             detail="Failed to delete archive metadata",
         )
     
-    # Create audit log entry
+    # Create audit log entry with user tracking (Phase 10)
     await audit_repo.create(
         db,
         {
             "action": "archive.delete",
-            "user_id": None,  # Will be set from auth in Phase 10
+            "user_id": get_user_id_for_audit(user),
             "entity_type": "archive",
             "entity_id": str(archive_id),
             "old_values": {
@@ -852,11 +923,15 @@ async def delete_archive(
                 "retention_tier": metadata.get("retention_tier"),
                 "size_bytes": metadata.get("size_bytes"),
             },
+            "new_values": {
+                "deleted_by": user.email,
+                "deleted_by_role": user.role.value if user.role else None,
+            },
         },
     )
     await db.commit()
     
-    logger.info(f"Deleted archive {archive_id}")
+    logger.info(f"Deleted archive {archive_id} by admin {user.email}")
     
     return None
 
@@ -868,13 +943,19 @@ async def delete_archive(
 @router.get(
     "/session/{session_id}/check",
     summary="Check if session is archived",
-    description="Check if a session has been archived.",
+    description="Check if a session has been archived. Requires CRT membership.",
 )
 async def check_session_archived(
     session_id: str,
     request: Request,
+    user: UserContext = Depends(require_member),
 ):
-    """Check if a session has been archived."""
+    """
+    Check if a session has been archived.
+    
+    Authorization:
+        - Requires CRT membership (any role)
+    """
     archive_manager = await get_archive_manager(request)
     
     is_archived = await archive_manager.session_has_archive(session_id)
