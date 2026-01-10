@@ -11,9 +11,9 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Authentication Middleware - Pocket-ID Cookie Parsing and Authorization
+Authentication Middleware - Session-Based Authorization
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.1.7-1
+FILE VERSION: v5.0-10-10.4-1
 LAST MODIFIED: 2026-01-10
 PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
@@ -21,27 +21,23 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
 RESPONSIBILITIES:
-- Parse Pocket-ID session cookies from incoming requests
-- Extract user information (email, groups, etc.)
-- Compute user role from Pocket-ID groups (Member/Lead/Admin)
-- Inject user context into request state for downstream handlers
-- Block unauthorized requests with appropriate 401/403 responses
+- Read session ID from cookie
+- Validate session against Redis session store
+- Check CRT membership from session role
+- Inject user context into request state
+- Handle token refresh when needed
+- Return 401/403 for unauthorized requests
 - Allow bypass for health endpoints and public paths
 
-POCKET-ID COOKIE FORMAT:
-    The Pocket-ID session cookie is a JWT containing:
-    {
-        "sub": "user-uuid",
-        "email": "user@example.com",
-        "name": "Display Name",
-        "groups": ["cartel_crt", "cartel_crt_lead"],
-        "exp": 1234567890
-    }
+SESSION-BASED AUTH:
+    Unlike the previous JWT-cookie approach, this middleware reads
+    sessions from Redis. The session was created during the OIDC
+    callback and contains all user claims and tokens.
 
-ROLE MAPPING (from Pocket-ID groups):
-    cartel_crt_admin  → Admin  (full access)
-    cartel_crt_lead   → Lead   (member + reopen, unlock, retention)
-    cartel_crt        → Member (base CRT access)
+ROLE MAPPING (from session):
+    admin  → Admin  (full access)
+    lead   → Lead   (member + reopen, unlock, retention)
+    member → Member (base CRT access)
 
 USAGE:
     # In main.py
@@ -49,9 +45,7 @@ USAGE:
 
     app.add_middleware(
         AuthMiddleware,
-        cookie_name="pocket_id_session",
-        required_groups=["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
-        bypass_paths=["/health", "/docs"]
+        bypass_paths=["/health", "/docs", "/auth/"]
     )
 
     # In route handlers
@@ -63,8 +57,6 @@ USAGE:
             pass
 """
 
-import base64
-import json
 import logging
 import time
 from dataclasses import dataclass, field
@@ -73,18 +65,17 @@ from uuid import UUID
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 # Import role enumeration
 from src.models.enums import (
     UserRole,
     ROLE_HIERARCHY,
-    get_role_from_groups,
     role_meets_requirement,
 )
 
 # Module version
-__version__ = "v5.0-10-10.1.7-1"
+__version__ = "v5.0-10-10.4-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -97,19 +88,19 @@ logger = logging.getLogger(__name__)
 @dataclass
 class UserContext:
     """
-    User context extracted from Pocket-ID session.
+    User context extracted from session.
 
     Contains user identity and authorization information
     for use throughout the request lifecycle.
 
     Attributes:
-        user_id: Unique user identifier (from 'sub' claim - Pocket-ID UUID)
+        user_id: PocketID user ID (from 'sub' claim)
         email: User's email address
         name: User's display name
-        groups: List of Pocket-ID group memberships
+        groups: List of PocketID group memberships
         role: Computed CRT role (Member/Lead/Admin) or None if not CRT
-        raw_claims: Full JWT claims for advanced usage
-        db_user_id: Database user UUID (set after user sync)
+        db_user_id: Database user UUID
+        session_id: Session ID for reference
     """
 
     user_id: str
@@ -117,8 +108,8 @@ class UserContext:
     name: str = ""
     groups: List[str] = field(default_factory=list)
     role: Optional[UserRole] = None
-    raw_claims: Dict[str, Any] = field(default_factory=dict)
     db_user_id: Optional[UUID] = None
+    session_id: Optional[str] = None
 
     # -------------------------------------------------------------------------
     # Role-Based Properties
@@ -128,7 +119,7 @@ class UserContext:
     def is_crt_member(self) -> bool:
         """
         Check if user has any CRT role (Member, Lead, or Admin).
-        
+
         Returns True if user is part of the Crisis Response Team.
         """
         return self.role is not None
@@ -137,7 +128,7 @@ class UserContext:
     def is_lead(self) -> bool:
         """
         Check if user is Lead or Admin.
-        
+
         Leads have elevated permissions including:
         - Reopen closed sessions
         - Unlock locked notes
@@ -150,7 +141,7 @@ class UserContext:
     def is_admin(self) -> bool:
         """
         Check if user is Admin.
-        
+
         Admins have full permissions including:
         - Edit any note (not just their own)
         - Delete notes
@@ -163,15 +154,15 @@ class UserContext:
     def has_permission(self, required_role: UserRole) -> bool:
         """
         Check if user meets or exceeds the required role level.
-        
+
         Uses the role hierarchy: Member < Lead < Admin
-        
+
         Args:
             required_role: The minimum role required for access
-            
+
         Returns:
             True if user's role >= required_role
-            
+
         Examples:
             >>> user.role = UserRole.LEAD
             >>> user.has_permission(UserRole.MEMBER)  # True
@@ -185,38 +176,40 @@ class UserContext:
     # -------------------------------------------------------------------------
 
     @classmethod
-    def from_claims(cls, claims: Dict[str, Any]) -> "UserContext":
+    def from_session(cls, session) -> "UserContext":
         """
-        Create UserContext from JWT claims.
-
-        Automatically computes the user's role from their Pocket-ID groups.
+        Create UserContext from a UserSession object.
 
         Args:
-            claims: Decoded JWT claims dictionary
+            session: UserSession from session manager
 
         Returns:
-            UserContext instance with computed role
+            UserContext instance
         """
-        user_groups = claims.get("groups", [])
-        
-        # Compute role from Pocket-ID groups
-        role = get_role_from_groups(user_groups)
+        # Map string role to UserRole enum
+        role = None
+        if session.role == "admin":
+            role = UserRole.ADMIN
+        elif session.role == "lead":
+            role = UserRole.LEAD
+        elif session.role == "member":
+            role = UserRole.MEMBER
 
         return cls(
-            user_id=claims.get("sub", ""),
-            email=claims.get("email", ""),
-            name=claims.get("name", ""),
-            groups=user_groups,
+            user_id=session.user_id,
+            email=session.email,
+            name=session.name,
+            groups=session.groups,
             role=role,
-            raw_claims=claims,
-            db_user_id=None,  # Set later by user sync
+            db_user_id=UUID(session.db_user_id) if session.db_user_id else None,
+            session_id=session.session_id,
         )
 
     @classmethod
     def anonymous(cls) -> "UserContext":
         """
         Create an anonymous (unauthenticated) user context.
-        
+
         Used for bypassed paths like /health endpoints.
         """
         return cls(
@@ -225,8 +218,8 @@ class UserContext:
             name="Anonymous",
             groups=[],
             role=None,
-            raw_claims={},
             db_user_id=None,
+            session_id=None,
         )
 
     # -------------------------------------------------------------------------
@@ -236,7 +229,7 @@ class UserContext:
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert UserContext to dictionary for API responses.
-        
+
         Returns:
             Dictionary representation of user context
         """
@@ -263,35 +256,27 @@ class UserContext:
 
 class AuthMiddleware(BaseHTTPMiddleware):
     """
-    FastAPI middleware for Pocket-ID authentication.
+    FastAPI middleware for session-based authentication.
 
-    Parses session cookies, validates tokens, computes user roles,
+    Reads session ID from cookie, validates against Redis session store,
     and injects user context into the request state.
 
-    Configuration is loaded from ConfigManager if provided,
-    or can be passed directly as constructor arguments.
-    
     The middleware can be disabled by:
     - Setting enabled=False in constructor
     - Setting DASH_AUTH_ENABLED=false in environment
-    - Setting enabled=false in config
-    
+
     When disabled, all requests pass through with an anonymous user context.
 
     Example:
         app.add_middleware(
             AuthMiddleware,
-            cookie_name="pocket_id_session",
-            required_groups=["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
-            bypass_paths=["/health"]
+            bypass_paths=["/health", "/auth/"]
         )
     """
 
     def __init__(
         self,
         app,
-        cookie_name: str = "pocket_id_session",
-        required_groups: Optional[List[str]] = None,
         bypass_paths: Optional[List[str]] = None,
         config_manager: Optional[Any] = None,
         enabled: Optional[bool] = None,
@@ -301,14 +286,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         Args:
             app: FastAPI application instance
-            cookie_name: Name of the session cookie
-            required_groups: CRT groups required for access (any match)
             bypass_paths: Paths that don't require authentication
             config_manager: Optional ConfigManager for loading settings
             enabled: Override to enable/disable auth (None = check config/env)
         """
         super().__init__(app)
-        
+
         # Determine if auth is enabled
         # Priority: constructor arg > config > env var > default (True)
         if enabled is not None:
@@ -319,23 +302,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
         else:
             # Check environment variable
             import os
-            env_enabled = os.environ.get("DASH_AUTH_ENABLED", "true").lower()
+            env_enabled = os.environ.get("DASH_OIDC_ENABLED", "true").lower()
             self._enabled = env_enabled not in ("false", "0", "no", "off")
 
-        # Load from config manager if provided
-        if config_manager:
-            auth_config = config_manager.get_auth_config()
-            self.cookie_name = auth_config.get("cookie_name", cookie_name)
-            self.required_groups = set(
-                auth_config.get("required_groups", required_groups or [])
-            )
-            self.bypass_paths = set(
-                auth_config.get("bypass_paths", bypass_paths or [])
-            )
-        else:
-            self.cookie_name = cookie_name
-            self.required_groups = set(required_groups or [])
-            self.bypass_paths = set(bypass_paths or [])
+        # Configure bypass paths
+        self.bypass_paths = set(bypass_paths or [])
 
         # Add common bypass paths
         self._default_bypass = {
@@ -347,18 +318,22 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/redoc",
             "/openapi.json",
             "/favicon.ico",
+            "/favicon.svg",
+            # OIDC flow endpoints must bypass auth
+            "/auth/login",
+            "/auth/callback",
+            "/auth/logout",
         }
         self.bypass_paths.update(self._default_bypass)
 
         # Log initialization status
         if self._enabled:
-            logger.info(f"✅ AuthMiddleware initialized (cookie: {self.cookie_name})")
-            logger.debug(f"   Required groups: {self.required_groups}")
+            logger.info("✅ AuthMiddleware initialized (session-based)")
             logger.debug(f"   Bypass paths: {len(self.bypass_paths)} configured")
         else:
             logger.warning("⚠️  AuthMiddleware DISABLED - all requests will pass through!")
-            logger.warning("   Set DASH_AUTH_ENABLED=true for production!")
-    
+            logger.warning("   Set DASH_OIDC_ENABLED=true for production!")
+
     @property
     def enabled(self) -> bool:
         """Check if authentication is enabled."""
@@ -380,7 +355,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             HTTP response
         """
         path = request.url.path
-        
+
         # If auth is disabled, pass all requests through with anonymous user
         if not self._enabled:
             request.state.user = UserContext.anonymous()
@@ -394,27 +369,56 @@ class AuthMiddleware(BaseHTTPMiddleware):
             request.state.authenticated = False
             return await call_next(request)
 
-        # Try to extract and validate token
-        try:
-            user_context = self._extract_user_context(request)
+        # Get session manager from app state
+        session_manager = getattr(request.app.state, "session_manager", None)
 
-            if user_context is None:
-                logger.warning(f"🔒 No valid session cookie for: {path}")
-                return self._unauthorized_response("Authentication required")
+        if not session_manager:
+            logger.error("SessionManager not available in app state")
+            return self._unauthorized_response("Authentication service unavailable")
+
+        if not session_manager.is_connected:
+            logger.error("SessionManager not connected to Redis")
+            return self._unauthorized_response("Authentication service unavailable")
+
+        # Get session ID from cookie
+        session_id = request.cookies.get(session_manager.cookie_name)
+
+        if not session_id:
+            logger.debug(f"🔒 No session cookie for: {path}")
+            return self._unauthorized_response(request, "Authentication required")
+
+        try:
+            # Get session from Redis
+            session = await session_manager.get_session(session_id)
+
+            if session is None:
+                logger.debug(f"🔒 Invalid or expired session for: {path}")
+                return self._unauthorized_response(request, "Session expired")
 
             # Check CRT membership (user must have a role)
-            if not user_context.is_crt_member:
+            if not session.is_crt_member:
                 logger.warning(
-                    f"🚫 Access denied for {user_context.email} to {path} - "
-                    f"Not a CRT member (groups: {user_context.groups})"
+                    f"🚫 Access denied for {session.email} to {path} - "
+                    f"Not a CRT member (groups: {session.groups})"
                 )
                 return self._forbidden_response(
                     "Access denied: CRT membership required"
                 )
 
+            # Check if token needs refresh
+            oidc_config = getattr(request.app.state, "oidc_config", None)
+            if oidc_config and session.should_refresh_token(
+                oidc_config.token_refresh_threshold
+            ):
+                await self._refresh_session_tokens(request, session)
+
+            # Create user context from session
+            user_context = UserContext.from_session(session)
+
             # Attach user context to request
             request.state.user = user_context
             request.state.authenticated = True
+            request.state.session = session
 
             logger.debug(
                 f"✅ Authenticated: {user_context.email} "
@@ -426,7 +430,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             logger.error(f"❌ Authentication error: {e}", exc_info=True)
-            return self._unauthorized_response("Authentication failed")
+            return self._unauthorized_response(request, "Authentication failed")
 
     def _should_bypass(self, path: str) -> bool:
         """
@@ -452,114 +456,105 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if any(path.endswith(ext) for ext in static_extensions):
             return True
 
+        # Check for /assets/ path (static files)
+        if path.startswith("/assets/"):
+            return True
+
         return False
 
-    def _extract_user_context(self, request: Request) -> Optional[UserContext]:
+    async def _refresh_session_tokens(
+        self,
+        request: Request,
+        session,
+    ) -> None:
         """
-        Extract user context from session cookie.
+        Refresh tokens for a session that is near expiry.
 
         Args:
-            request: HTTP request
-
-        Returns:
-            UserContext if valid session exists, None otherwise
+            request: FastAPI request
+            session: Current session
         """
-        # Get cookie value
-        cookie_value = request.cookies.get(self.cookie_name)
+        oidc_service = getattr(request.app.state, "oidc_service", None)
+        session_manager = request.app.state.session_manager
 
-        if not cookie_value:
-            return None
+        if not oidc_service or not session.refresh_token:
+            return
 
         try:
-            # Decode the cookie (JWT format)
-            claims = self._decode_session_cookie(cookie_value)
+            # Refresh tokens
+            new_tokens = await oidc_service.refresh_tokens(session.refresh_token)
 
-            if not claims:
-                return None
+            # Update session
+            await session_manager.update_session(session.session_id, new_tokens)
 
-            # Check token expiration
-            if not self._is_token_valid(claims):
-                logger.debug("Session token expired")
-                return None
-
-            return UserContext.from_claims(claims)
+            logger.debug(f"Tokens refreshed for {session.email}")
 
         except Exception as e:
-            logger.debug(f"Failed to decode session cookie: {e}")
-            return None
+            # Log but don't fail the request - session still valid until expiry
+            logger.warning(f"Token refresh failed for {session.user_id}: {e}")
 
-    def _decode_session_cookie(self, cookie_value: str) -> Optional[Dict[str, Any]]:
+    def _is_api_request(self, request: Request) -> bool:
         """
-        Decode Pocket-ID session cookie.
-
-        The cookie is expected to be a JWT. We decode the payload
-        to extract claims. Full JWT signature verification should
-        be added when Pocket-ID JWKS is configured.
-
+        Check if request is an API call vs a browser page request.
+        
+        API requests should get JSON responses.
+        Browser requests should get redirects.
+        
         Args:
-            cookie_value: Raw cookie string
-
+            request: FastAPI request
+            
         Returns:
-            Decoded claims dict or None
+            True if this is an API request
         """
-        try:
-            # JWT format: header.payload.signature
-            parts = cookie_value.split(".")
+        path = request.url.path
+        
+        # API paths always get JSON
+        if path.startswith("/api/"):
+            return True
+        
+        # Check Accept header for JSON preference
+        accept = request.headers.get("accept", "")
+        if "application/json" in accept and "text/html" not in accept:
+            return True
+        
+        # Check for XHR/fetch requests
+        if request.headers.get("x-requested-with", "").lower() == "xmlhttprequest":
+            return True
+        
+        return False
 
-            if len(parts) != 3:
-                # Not a valid JWT format, try direct base64
-                decoded = base64.urlsafe_b64decode(
-                    cookie_value + "=" * (4 - len(cookie_value) % 4)
-                )
-                return json.loads(decoded)
-
-            # Decode JWT payload (middle part)
-            payload = parts[1]
-
-            # Add padding if needed
-            padding = 4 - len(payload) % 4
-            if padding != 4:
-                payload += "=" * padding
-
-            decoded = base64.urlsafe_b64decode(payload)
-            return json.loads(decoded)
-
-        except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as e:
-            logger.debug(f"Cookie decode error: {e}")
-            return None
-
-    def _is_token_valid(self, claims: Dict[str, Any]) -> bool:
+    def _unauthorized_response(self, request: Request, detail: str) -> Response:
         """
-        Check if token is still valid (not expired).
-
+        Create 401 Unauthorized response.
+        
+        For API requests: returns JSON error.
+        For browser requests: redirects to login page.
+        
         Args:
-            claims: Decoded JWT claims
-
+            request: FastAPI request
+            detail: Error message
+            
         Returns:
-            True if token is valid
+            JSONResponse or RedirectResponse
         """
-        exp = claims.get("exp")
-
-        if exp is None:
-            # No expiration claim - consider valid
-            # (Pocket-ID may handle expiration differently)
-            return True
-
-        try:
-            return time.time() < float(exp)
-        except (TypeError, ValueError):
-            return True
-
-    def _unauthorized_response(self, detail: str) -> JSONResponse:
-        """Create 401 Unauthorized response."""
-        return JSONResponse(
-            status_code=401,
-            content={
-                "status": "error",
-                "error": "unauthorized",
-                "detail": detail,
-            },
-        )
+        if self._is_api_request(request):
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "status": "error",
+                    "error": "unauthorized",
+                    "detail": detail,
+                },
+            )
+        
+        # Browser request - redirect to login with return path
+        from urllib.parse import quote
+        current_path = request.url.path
+        if request.url.query:
+            current_path += f"?{request.url.query}"
+        
+        login_url = f"/auth/login?redirect={quote(current_path)}"
+        return RedirectResponse(url=login_url, status_code=302)
 
     def _forbidden_response(self, detail: str) -> JSONResponse:
         """Create 403 Forbidden response."""
@@ -580,8 +575,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
 def create_auth_middleware(
     app,
     config_manager: Optional[Any] = None,
-    cookie_name: str = "pocket_id_session",
-    required_groups: Optional[List[str]] = None,
     bypass_paths: Optional[List[str]] = None,
 ) -> AuthMiddleware:
     """
@@ -590,8 +583,6 @@ def create_auth_middleware(
     Args:
         app: FastAPI application instance
         config_manager: Optional ConfigManager for loading settings
-        cookie_name: Name of the session cookie
-        required_groups: CRT groups required for access
         bypass_paths: Paths that don't require authentication
 
     Returns:
@@ -605,8 +596,6 @@ def create_auth_middleware(
     return AuthMiddleware(
         app=app,
         config_manager=config_manager,
-        cookie_name=cookie_name,
-        required_groups=required_groups,
         bypass_paths=bypass_paths,
     )
 

@@ -1,6 +1,6 @@
 # Ash-Dash Secrets
 
-**Version**: v5.0-9-9.2-2
+**Version**: v5.0-10-10.4-1
 **Repository**: https://github.com/the-alphabet-cartel/ash-dash
 **Community**: [The Alphabet Cartel](https://discord.gg/alphabetcartel) | [alphabetcartel.org](https://alphabetcartel.org)
 
@@ -23,6 +23,7 @@ This directory contains sensitive credentials used by Ash-Dash. These files are:
 | `minio_root_user` | MinIO root username | ✅ Required | Archive storage |
 | `minio_root_password` | MinIO root password | ✅ Required | Archive storage |
 | `archive_master_key` | AES-256 encryption key | ✅ Required | Session archive encryption |
+| `oidc_client_secret` | PocketID client secret | ✅ Required | OIDC authentication |
 | `discord_alert_token` | Discord webhook URL | Optional | System alerts |
 | `redis_token` | Redis password | Optional | Session data cache |
 
@@ -103,7 +104,23 @@ echo "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN" > sec
 chmod 600 secrets/discord_alert_token
 ```
 
-### 6. Redis Password (Optional)
+### 6. OIDC Client Secret (Required for Authentication)
+
+Obtained from PocketID when registering Ash-Dash as an OIDC client:
+
+1. Log into PocketID admin panel
+2. Register new OIDC client for Ash-Dash
+3. Copy the Client Secret
+4. Create the secret file:
+
+```bash
+echo "your-client-secret-from-pocketid" > secrets/oidc_client_secret
+chmod 600 secrets/oidc_client_secret
+```
+
+**Note**: The Client ID goes in `.env` as `DASH_OIDC_CLIENT_ID`. Only the secret goes here.
+
+### 7. Redis Password (Optional)
 
 If Redis requires authentication:
 
@@ -112,7 +129,7 @@ openssl rand -base64 32 > secrets/redis_token
 chmod 600 secrets/redis_token
 ```
 
-### 7. Verify Setup
+### 8. Verify Setup
 
 ```bash
 # Check files exist and have correct permissions
@@ -122,6 +139,7 @@ ls -la secrets/
 cat -A secrets/postgres_token
 cat -A secrets/minio_root_user
 cat -A secrets/minio_root_password
+cat -A secrets/oidc_client_secret
 
 # Verify archive_master_key is exactly 32 bytes (binary)
 wc -c secrets/archive_master_key

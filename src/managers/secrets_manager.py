@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Secrets Manager for Ash-Dash Service
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.2-2
-LAST MODIFIED: 2026-01-09
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-10-10.4-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -50,7 +50,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 # Module version
-__version__ = "v5.0-9-9.2-2"
+__version__ = "v5.0-10-10.4-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -74,6 +74,7 @@ KNOWN_SECRETS = {
     "huggingface_token": "HuggingFace API token for authenticated model downloads",
     "minio_root_user": "MinIO root username for archive storage",
     "minio_root_password": "MinIO root password for archive storage",
+    "oidc_client_secret": "PocketID OIDC client secret for authentication",
     "postgres_token": "PostgreSQL password for secure connections",
     "redis_token": "Redis password for secure connections",
     "webhook_token": "Webhook signing secret",
@@ -530,6 +531,41 @@ class SecretsManager:
         return (
             self.has_secret("minio_root_user") and 
             self.has_secret("minio_root_password")
+        )
+
+    # =========================================================================
+    # OIDC Authentication Credentials (Phase 10)
+    # =========================================================================
+
+    def get_oidc_client_secret(self) -> Optional[str]:
+        """
+        Get PocketID OIDC client secret.
+
+        Also checks OIDC_CLIENT_SECRET environment variable as fallback.
+
+        Returns:
+            OIDC client secret or None
+        """
+        # Try our secrets system first
+        secret = self.get("oidc_client_secret")
+
+        # Fallback to environment variable
+        if secret is None:
+            secret = os.environ.get("OIDC_CLIENT_SECRET")
+
+        return secret
+
+    def has_oidc_credentials(self) -> bool:
+        """
+        Check if OIDC client secret is available.
+
+        Note: Client ID is not a secret and is stored in .env/config.
+
+        Returns:
+            True if client secret is available
+        """
+        return self.has_secret("oidc_client_secret") or bool(
+            os.environ.get("OIDC_CLIENT_SECRET")
         )
 
     # =========================================================================

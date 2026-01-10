@@ -1,0 +1,127 @@
+{
+  "_metadata": {
+    "file_version": "v5.0-10-10.4-1",
+    "last_modified": "2026-01-10",
+    "clean_architecture": "Compliant",
+    "description": "PocketID OIDC Authentication Configuration",
+    "repository": "https://github.com/the-alphabet-cartel/ash-dash",
+    "community": "The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org"
+  },
+
+  "oidc": {
+    "description": "OpenID Connect configuration for PocketID authentication",
+    "enabled": "${DASH_OIDC_ENABLED}",
+    "issuer_url": "${DASH_OIDC_ISSUER_URL}",
+    "client_id": "${DASH_OIDC_CLIENT_ID}",
+    "redirect_uri": "${DASH_OIDC_REDIRECT_URI}",
+    "post_logout_redirect_uri": "${DASH_OIDC_POST_LOGOUT_REDIRECT_URI}",
+    "scopes": "${DASH_OIDC_SCOPES}",
+    "defaults": {
+      "enabled": true,
+      "issuer_url": "https://id.alphabetcartel.net",
+      "client_id": "",
+      "redirect_uri": "https://crt.alphabetcartel.net/auth/callback",
+      "post_logout_redirect_uri": "https://crt.alphabetcartel.net/",
+      "scopes": ["openid", "profile", "email", "groups"]
+    },
+    "validation": {
+      "enabled": {
+        "type": "boolean",
+        "required": false
+      },
+      "issuer_url": {
+        "type": "string",
+        "required": true
+      },
+      "client_id": {
+        "type": "string",
+        "required": true
+      },
+      "redirect_uri": {
+        "type": "string",
+        "required": true
+      },
+      "post_logout_redirect_uri": {
+        "type": "string",
+        "required": true
+      },
+      "scopes": {
+        "type": "list",
+        "required": true
+      }
+    }
+  },
+
+  "session": {
+    "description": "Session management configuration",
+    "lifetime_seconds": "${DASH_SESSION_LIFETIME}",
+    "token_refresh_threshold_seconds": "${DASH_TOKEN_REFRESH_THRESHOLD}",
+    "cookie_name": "${DASH_SESSION_COOKIE_NAME}",
+    "cookie_secure": "${DASH_SESSION_COOKIE_SECURE}",
+    "cookie_httponly": "${DASH_SESSION_COOKIE_HTTPONLY}",
+    "cookie_samesite": "${DASH_SESSION_COOKIE_SAMESITE}",
+    "defaults": {
+      "lifetime_seconds": 86400,
+      "token_refresh_threshold_seconds": 300,
+      "cookie_name": "ash_session_id",
+      "cookie_secure": true,
+      "cookie_httponly": true,
+      "cookie_samesite": "lax"
+    },
+    "validation": {
+      "lifetime_seconds": {
+        "type": "integer",
+        "range": [3600, 604800],
+        "required": false
+      },
+      "token_refresh_threshold_seconds": {
+        "type": "integer",
+        "range": [60, 3600],
+        "required": false
+      },
+      "cookie_name": {
+        "type": "string",
+        "required": true
+      },
+      "cookie_secure": {
+        "type": "boolean",
+        "required": false
+      },
+      "cookie_httponly": {
+        "type": "boolean",
+        "required": false
+      },
+      "cookie_samesite": {
+        "type": "string",
+        "allowed_values": ["strict", "lax", "none"],
+        "required": false
+      }
+    }
+  },
+
+  "role_mapping": {
+    "description": "Map PocketID groups to CRT roles",
+    "admin_group": "${DASH_OIDC_ADMIN_GROUP}",
+    "lead_group": "${DASH_OIDC_LEAD_GROUP}",
+    "member_group": "${DASH_OIDC_MEMBER_GROUP}",
+    "defaults": {
+      "admin_group": "cartel_crt_admin",
+      "lead_group": "cartel_crt_lead",
+      "member_group": "cartel_crt"
+    },
+    "validation": {
+      "admin_group": {
+        "type": "string",
+        "required": true
+      },
+      "lead_group": {
+        "type": "string",
+        "required": true
+      },
+      "member_group": {
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}

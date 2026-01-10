@@ -14,7 +14,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.1.7-1
+FILE VERSION: v5.0-10-10.4-1
 LAST MODIFIED: 2026-01-10
 PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
@@ -57,7 +57,9 @@ from src.managers.logging_config_manager import create_logging_config_manager
 from src.managers.secrets_manager import create_secrets_manager
 from src.managers.database import create_database_manager
 from src.managers.redis import create_redis_manager
-from src.services import create_sync_service, create_user_sync_service
+from src.managers.oidc import create_oidc_config_manager
+from src.managers.session import create_session_manager
+from src.services import create_sync_service, create_user_sync_service, create_oidc_service
 from src.api.middleware.auth_middleware import AuthMiddleware
 from src.api.routes.health import router as health_router
 from src.api.routes.sessions import router as sessions_router
@@ -67,12 +69,13 @@ from src.api.routes.notes import router as notes_router
 from src.api.routes.wiki import router as wiki_router
 from src.api.routes.archives import router as archives_router
 from src.api.routes.admin import router as admin_router
+from src.api.routes.auth import router as auth_router, api_router as auth_api_router
 
 # =============================================================================
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-10-10.1.7-1"
+__version__ = "v5.0-10-10.4-1"
 
 # Frontend build directory
 FRONTEND_DIR = Path(__file__).parent / "frontend" / "dist"
@@ -90,6 +93,9 @@ database_manager = None
 redis_manager = None
 sync_service = None
 user_sync_service = None
+oidc_config = None
+oidc_service = None
+session_manager = None
 logger = None
 
 
@@ -104,11 +110,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     This handles:
     - Manager initialization at startup
+    - OIDC and session services (Phase 10)
     - Background service startup
     - Resource cleanup at shutdown
     """
     global config_manager, logging_manager, secrets_manager
-    global database_manager, redis_manager, sync_service, user_sync_service, logger
+    global database_manager, redis_manager, sync_service, user_sync_service
+    global oidc_config, oidc_service, session_manager, logger
 
     # =========================================================================
     # STARTUP
@@ -146,7 +154,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             "system will retry on first use"
         )
 
-    # Initialize Redis manager (Phase 2 - optional, graceful degradation)
+    # Initialize Redis manager (Phase 2 - for Ash-Bot data on DB 0)
     try:
         redis_manager = await create_redis_manager(
             config_manager=config_manager,
@@ -154,7 +162,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logging_manager=logging_manager,
         )
         if redis_manager.is_connected:
-            logger.info("Redis manager initialized and connected")
+            logger.info("Redis manager initialized and connected (DB 0 - Ash-Bot data)")
         else:
             logger.warning("Redis manager initialized but not connected")
     except Exception as e:
@@ -181,17 +189,79 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Sync service not started (requires Redis and Database)")
         sync_service = None
 
-    # Log configuration
-    server_config = config_manager.get_server_config()
-    logger.info(f"Server: {server_config.get('host')}:{server_config.get('port')}")
-    logger.info(f"Debug mode: {server_config.get('debug')}")
-
-    # Initialize User Sync Service (Phase 10 - for auth middleware)
+    # Initialize User Sync Service (Phase 10 - for auth)
     user_sync_service = create_user_sync_service(
         db_manager=database_manager,
         logging_manager=logging_manager,
     )
     logger.info("User sync service initialized")
+
+    # =========================================================================
+    # OIDC Authentication Services (Phase 10)
+    # =========================================================================
+
+    # Initialize OIDC Config Manager
+    try:
+        oidc_config = await create_oidc_config_manager(
+            config_manager=config_manager,
+            logging_manager=logging_manager,
+        )
+        logger.info("OIDC config manager initialized")
+
+        # Check for required configuration
+        if not oidc_config.client_id:
+            logger.warning(
+                "⚠️  OIDC Client ID not configured! "
+                "Set DASH_OIDC_CLIENT_ID in environment."
+            )
+        if not secrets_manager.has_oidc_credentials():
+            logger.warning(
+                "⚠️  OIDC Client Secret not configured! "
+                "Create secrets/oidc_client_secret file."
+            )
+
+    except Exception as e:
+        logger.error(f"Failed to initialize OIDC config: {e}")
+        oidc_config = None
+
+    # Initialize OIDC Service
+    if oidc_config:
+        try:
+            oidc_service = create_oidc_service(
+                oidc_config=oidc_config,
+                secrets_manager=secrets_manager,
+                logging_manager=logging_manager,
+            )
+            logger.info("OIDC service initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize OIDC service: {e}")
+            oidc_service = None
+    else:
+        logger.warning("OIDC service not initialized (config not available)")
+        oidc_service = None
+
+    # Initialize Session Manager (uses separate Redis DB)
+    if oidc_config:
+        try:
+            session_manager = await create_session_manager(
+                config_manager=config_manager,
+                secrets_manager=secrets_manager,
+                oidc_config=oidc_config,
+                logging_manager=logging_manager,
+            )
+            logger.info("Session manager initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize session manager: {e}")
+            logger.warning("Authentication will not be available!")
+            session_manager = None
+    else:
+        logger.warning("Session manager not initialized (OIDC config not available)")
+        session_manager = None
+
+    # Log configuration
+    server_config = config_manager.get_server_config()
+    logger.info(f"Server: {server_config.get('host')}:{server_config.get('port')}")
+    logger.info(f"Debug mode: {server_config.get('debug')}")
 
     # Store managers in app state for access in routes
     app.state.config_manager = config_manager
@@ -201,6 +271,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.redis_manager = redis_manager
     app.state.sync_service = sync_service
     app.state.user_sync_service = user_sync_service
+    app.state.oidc_config = oidc_config
+    app.state.oidc_service = oidc_service
+    app.state.session_manager = session_manager
 
     logger.info("Application startup complete")
 
@@ -217,7 +290,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if sync_service:
         await sync_service.stop()
 
-    # Cleanup Redis connection
+    # Close session manager (separate Redis connection)
+    if session_manager:
+        await session_manager.close()
+
+    # Cleanup Redis connection (Ash-Bot data)
     if redis_manager:
         await redis_manager.close()
 
@@ -256,23 +333,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Authentication Middleware (Phase 10 - Pocket-ID Integration)
+# Authentication Middleware (Phase 10 - OIDC Session-Based)
 # Note: Middleware is applied in reverse order, so CORS runs first, then Auth
 #
 # This middleware:
-# - Parses Pocket-ID session cookies (JWT)
-# - Extracts user info and computes role from groups
+# - Reads session ID from cookie
+# - Validates session against Redis session store
+# - Computes role from session data
 # - Injects UserContext into request.state.user
 # - Returns 401 for unauthenticated requests (except bypass paths)
 # - Returns 403 for non-CRT members
 #
-# The middleware checks DASH_AUTH_ENABLED env var automatically.
-# To disable auth for development, set DASH_AUTH_ENABLED=false in .env
+# The middleware checks DASH_OIDC_ENABLED env var automatically.
+# To disable auth for development, set DASH_OIDC_ENABLED=false in .env
 # WARNING: Never disable authentication in production!
 app.add_middleware(
     AuthMiddleware,
-    cookie_name="pocket_id_session",
-    required_groups=["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
     bypass_paths=[
         "/health",
         "/health/ready",
@@ -280,6 +356,9 @@ app.add_middleware(
         "/docs",
         "/redoc",
         "/openapi.json",
+        "/auth/login",
+        "/auth/callback",
+        "/auth/logout",
     ],
 )
 
@@ -299,6 +378,11 @@ app.include_router(notes_router)
 app.include_router(wiki_router)
 app.include_router(archives_router)
 app.include_router(admin_router)
+
+# Auth routes (OIDC flow - no /api prefix)
+app.include_router(auth_router)
+# Auth API routes (/api/auth/me, etc.)
+app.include_router(auth_api_router)
 
 
 # =============================================================================

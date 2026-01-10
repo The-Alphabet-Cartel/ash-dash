@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Requirements
 # ============================================================================
-# FILE VERSION: v5.0-9-9.4-1
-# LAST MODIFIED: 2026-01-09
+# FILE VERSION: v5.0-10-10.4-1
+# LAST MODIFIED: 2026-01-10
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -34,7 +34,7 @@ python-dotenv>=1.0.0,<2.0.0
 # HTTP and Networking
 # =============================================================================
 
-# HTTPX - Async HTTP client (for health checks and webhooks)
+# HTTPX - Async HTTP client (for health checks, webhooks, and OIDC)
 httpx>=0.26.0,<1.0.0
 
 # AIOHTTP - Async HTTP client (for Discord alerting)
@@ -76,6 +76,13 @@ cryptography>=41.0.0,<43.0.0
 
 # Python-dateutil - Flexible datetime parsing
 python-dateutil>=2.8.0,<3.0.0
+
+# =============================================================================
+# OIDC Authentication (Phase 10)
+# =============================================================================
+
+# Python-Jose - JWT token handling for OIDC
+python-jose[cryptography]>=3.3.0,<4.0.0
 
 # =============================================================================
 # Documentation Wiki (Phase 7)

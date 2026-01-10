@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Services Package - Background services and workers
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.1.5-1
+FILE VERSION: v5.0-10-10.4-1
 LAST MODIFIED: 2026-01-10
 PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
@@ -33,6 +33,13 @@ from src.services.user_sync_service import (
     create_user_sync_service,
 )
 
+from src.services.oidc_service import (
+    OIDCService,
+    create_oidc_service,
+    OIDCTokenError,
+    OIDCAuthError,
+)
+
 __all__ = [
     "__version__",
     # Session sync service
@@ -41,4 +48,9 @@ __all__ = [
     # User sync service (Phase 10)
     "UserSyncService",
     "create_user_sync_service",
+    # OIDC service (Phase 10)
+    "OIDCService",
+    "create_oidc_service",
+    "OIDCTokenError",
+    "OIDCAuthError",
 ]

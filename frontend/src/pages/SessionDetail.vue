@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Session Detail Page - Comprehensive session view with analysis and history
 ============================================================================
-FILE VERSION: v5.0-9-9.6-2
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-10-10.3-9
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -43,7 +43,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           @archived="handleArchived"
         />
 
-        <!-- Close Session Button -->
+        <!-- Close Session Button (any CRT member) -->
         <button
           v-if="session.status === 'active'"
           @click="handleCloseSession"
@@ -54,9 +54,9 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           {{ isClosing ? 'Closing...' : 'Close Session' }}
         </button>
 
-        <!-- Reopen Session Button (Admin) - ONLY for closed, never for archived -->
+        <!-- Reopen Session Button (Lead+ only) - ONLY for closed, never for archived -->
         <button
-          v-else-if="session.status === 'closed'"
+          v-else-if="session.status === 'closed' && authStore.isLead"
           @click="handleReopenSession"
           :disabled="isReopening"
           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 border border-purple-600 dark:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -181,7 +181,8 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
             Close Session?
           </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            This will mark the session as closed and lock all notes. This action can be undone by an administrator.
+            This will mark the session as closed and lock all notes. 
+            {{ authStore.isLead ? 'You can reopen it later if needed.' : 'An administrator can reopen it later if needed.' }}
           </p>
           
           <!-- Optional Summary -->
@@ -219,6 +220,21 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 </template>
 
 <script setup>
+/**
+ * Session Detail Page
+ * 
+ * Displays comprehensive session information including:
+ * - User info and crisis analysis
+ * - Session history for the Discord user
+ * - CRT notes panel
+ * - Session actions (close, reopen, archive)
+ * 
+ * Role-based permissions (Phase 10):
+ * - Close session: Any CRT member
+ * - Reopen session: Lead or Admin only
+ * - Archive session: Any CRT member
+ */
+
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { 
@@ -238,20 +254,30 @@ import {
   NotesPanel 
 } from '@/components/sessions'
 import { ArchiveButton } from '@/components/archives'
-import { useSessionsStore } from '@/stores'
+import { useSessionsStore, useAuthStore } from '@/stores'
 
-// Router and Store
+// =============================================================================
+// Composables
+// =============================================================================
+
 const route = useRoute()
 const router = useRouter()
 const sessionsStore = useSessionsStore()
+const authStore = useAuthStore()
 
+// =============================================================================
 // Local State
+// =============================================================================
+
 const showCloseModal = ref(false)
 const closingSummary = ref('')
 const isClosing = ref(false)
 const isReopening = ref(false)
 
-// Computed from Store
+// =============================================================================
+// Computed Properties
+// =============================================================================
+
 const session = computed(() => sessionsStore.currentSession)
 const userHistory = computed(() => sessionsStore.userHistory)
 const isLoading = computed(() => sessionsStore.isLoadingDetail)
@@ -308,7 +334,7 @@ async function confirmCloseSession() {
 }
 
 /**
- * Reopen a closed session
+ * Reopen a closed session (Lead+ only)
  */
 async function handleReopenSession() {
   isReopening.value = true
@@ -329,7 +355,7 @@ function viewHistoricalSession(historicalSessionId) {
 }
 
 /**
- * View all history for user (could navigate to filtered sessions page)
+ * View all history for user (navigate to filtered sessions page)
  */
 function viewAllHistory(discordUserId) {
   router.push({ 

@@ -13,9 +13,9 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-9-9.5-1
- * LAST MODIFIED: 2026-01-08
- * PHASE: Phase 9 - Archive System Implementation
+ * FILE VERSION: v5.0-10-10.4-1
+ * LAST MODIFIED: 2026-01-10
+ * PHASE: Phase 10 - Authentication & Authorization
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -33,8 +33,30 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Include cookies for Pocket-ID auth
+  withCredentials: true, // Include cookies for OIDC session auth
 })
+
+// =============================================================================
+// Auth Helper - Redirect to login
+// =============================================================================
+
+/**
+ * Redirect to OIDC login flow.
+ * Preserves the current path so user returns to where they were.
+ */
+const redirectToLogin = () => {
+  // Get current path for redirect after login
+  const currentPath = window.location.pathname + window.location.search
+  
+  // Don't redirect if already on auth pages
+  if (currentPath.startsWith('/auth/') || currentPath.startsWith('/unauthorized')) {
+    return
+  }
+  
+  // Redirect to login with return path
+  const loginUrl = `/auth/login?redirect=${encodeURIComponent(currentPath)}`
+  window.location.href = loginUrl
+}
 
 // =============================================================================
 // Request Interceptor
@@ -63,12 +85,14 @@ api.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // Unauthorized - redirect to login (Phase 4)
-          console.warn('Unauthorized - authentication required')
-          // window.location.href = '/auth/login'
+          // Unauthorized - session expired or missing
+          // Redirect to OIDC login flow
+          console.warn('Unauthorized - redirecting to login')
+          redirectToLogin()
           break
         case 403:
           console.warn('Forbidden - insufficient permissions')
+          // Could redirect to /unauthorized page here
           break
         case 404:
           console.warn('Resource not found')
@@ -513,6 +537,88 @@ export const archivesApi = {
    * @returns {Promise<{session_id, is_archived, archive?}>}
    */
   checkSession: (sessionId) => api.get(`/archives/session/${sessionId}/check`),
+}
+
+// =============================================================================
+// Auth API (Phase 10)
+// =============================================================================
+
+export const authApi = {
+  /**
+   * Get current authenticated user
+   * @returns {Promise<{id, pocket_id, email, name, role, groups, is_admin, is_lead}>}
+   */
+  getCurrentUser: () => api.get('/auth/me'),
+
+  /**
+   * Check authentication status without triggering redirect
+   * @returns {Promise<{authenticated, user?}>}
+   */
+  getStatus: () => api.get('/auth/status'),
+
+  /**
+   * Redirect to logout endpoint
+   * This clears the session and redirects to PocketID logout
+   */
+  logout: () => {
+    // Direct navigation to logout endpoint (not AJAX)
+    window.location.href = '/auth/logout'
+  },
+
+  /**
+   * Redirect to login endpoint
+   * @param {string} redirect - Path to redirect to after login (default: current path)
+   */
+  login: (redirect = null) => {
+    const path = redirect || window.location.pathname + window.location.search
+    window.location.href = `/auth/login?redirect=${encodeURIComponent(path)}`
+  },
+}
+
+// =============================================================================
+// Admin API (Phase 10)
+// =============================================================================
+
+export const adminApi = {
+  /**
+   * Get all CRT team members
+   * @returns {Promise<{users, total}>}
+   */
+  getUsers: () => api.get('/admin/users'),
+
+  /**
+   * Get audit logs with filtering and pagination
+   * @param {Object} params - Query parameters
+   * @param {string} params.action - Filter by action type
+   * @param {string} params.entity_type - Filter by entity type
+   * @param {string} params.user_id - Filter by user ID
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.page_size - Items per page (default: 50)
+   * @returns {Promise<{logs, total, page, page_size, total_pages}>}
+   */
+  getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
+
+  /**
+   * Get cleanup status for archives
+   * @returns {Promise<CleanupStatusResponse>}
+   */
+  getCleanupStatus: () => api.get('/admin/archives/cleanup/status'),
+
+  /**
+   * Execute archive cleanup
+   * @param {boolean} dryRun - If true, only report what would be deleted
+   * @returns {Promise<CleanupExecuteResponse>}
+   */
+  executeCleanup: (dryRun = true) => 
+    api.post('/admin/archives/cleanup/execute', null, { params: { dry_run: dryRun } }),
+
+  /**
+   * Get archives expiring soon
+   * @param {number} days - Days until expiration (default: 30)
+   * @returns {Promise<Array<ExpiringArchive>>}
+   */
+  getExpiringArchives: (days = 30) => 
+    api.get('/admin/archives/expiring', { params: { days } }),
 }
 
 // =============================================================================

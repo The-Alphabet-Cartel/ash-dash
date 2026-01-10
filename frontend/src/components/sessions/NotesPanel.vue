@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 NotesPanel - Full session notes editor with TipTap integration
 ============================================================================
-FILE VERSION: v5.0-6-6.7-4
-LAST MODIFIED: 2026-01-08
-PHASE: Phase 6 - Notes System
+FILE VERSION: v5.0-10-10.3-9
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -91,12 +91,14 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
             <div 
               v-for="note in previousNotes" 
               :key="note.id"
-              @click="viewNote(note)"
-              class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
+              class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
             >
               <!-- Note Header -->
               <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
+                <div 
+                  class="flex items-center gap-2 cursor-pointer flex-1"
+                  @click="viewNote(note)"
+                >
                   <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                     <span class="text-xs font-medium text-purple-600 dark:text-purple-400">
                       {{ getInitials(getAuthorName(note)) }}
@@ -109,7 +111,29 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
                     v{{ note.version }}
                   </span>
                 </div>
+                
+                <!-- Note Actions -->
                 <div class="flex items-center gap-2">
+                  <!-- Edit Button (own notes or admin) -->
+                  <button
+                    v-if="canEditNote(note) && !isSessionLocked"
+                    @click.stop="editNote(note)"
+                    class="p-1 rounded text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                    title="Edit note"
+                  >
+                    <Pencil class="w-3.5 h-3.5" />
+                  </button>
+                  
+                  <!-- Delete Button (admin only) -->
+                  <button
+                    v-if="authStore.isAdmin && !isSessionLocked"
+                    @click.stop="confirmDeleteNote(note)"
+                    class="p-1 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    title="Delete note"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </button>
+                  
                   <Lock v-if="note.is_locked" class="w-3 h-3 text-gray-400" />
                   <span class="text-xs text-gray-500 dark:text-gray-400">
                     {{ formatDate(note.created_at) }}
@@ -117,8 +141,11 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
                 </div>
               </div>
 
-              <!-- Note Content Preview -->
-              <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              <!-- Note Content Preview (clickable) -->
+              <p 
+                class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap cursor-pointer"
+                @click="viewNote(note)"
+              >
                 {{ note.content_preview }}
               </p>
             </div>
@@ -206,6 +233,53 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         </div>
       </div>
     </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <Teleport to="body">
+      <div 
+        v-if="noteToDelete" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        @click.self="noteToDelete = null"
+      >
+        <div class="w-full max-w-md p-6 rounded-xl bg-white dark:bg-gray-800 shadow-xl">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <Trash2 class="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Delete Note?
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                This action cannot be undone.
+              </p>
+            </div>
+          </div>
+          
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Are you sure you want to permanently delete this note by 
+            <strong>{{ getAuthorName(noteToDelete) }}</strong>?
+          </p>
+          
+          <div class="flex justify-end gap-3">
+            <button 
+              @click="noteToDelete = null"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="deleteNote"
+              :disabled="deleting"
+              class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Loader2 v-if="deleting" class="w-4 h-4 animate-spin" />
+              {{ deleting ? 'Deleting...' : 'Delete Note' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -215,6 +289,12 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
  * 
  * Full session notes management panel with TipTap editor integration.
  * Features auto-save, note versioning, and lock state handling.
+ * 
+ * Role-based permissions (Phase 10):
+ * - Create note: Any CRT member
+ * - Edit own note: Any CRT member
+ * - Edit other's note: Admin only
+ * - Delete note: Admin only
  */
 import { ref, computed, watch, onMounted } from 'vue'
 import { 
@@ -225,10 +305,13 @@ import {
   History,
   Loader2,
   AlertCircle,
-  X
+  X,
+  Pencil,
+  Trash2,
 } from 'lucide-vue-next'
 import { notesApi } from '@/services/api'
 import { NotesEditor } from '@/components/notes'
+import { useAuthStore } from '@/stores'
 
 // =============================================================================
 // Props
@@ -252,6 +335,12 @@ const props = defineProps({
 const emit = defineEmits(['notes-updated'])
 
 // =============================================================================
+// Composables
+// =============================================================================
+
+const authStore = useAuthStore()
+
+// =============================================================================
 // State
 // =============================================================================
 
@@ -269,6 +358,10 @@ const currentNoteId = ref(null)
 const currentNoteContent = ref('')
 const originalContent = ref('')
 const viewingExistingNote = ref(false)
+
+// Delete confirmation
+const noteToDelete = ref(null)
+const deleting = ref(false)
 
 // =============================================================================
 // Computed
@@ -292,6 +385,9 @@ const isNoteReadonly = computed(() => {
   if (currentNoteId.value) {
     const note = notes.value.find(n => n.id === currentNoteId.value)
     if (note?.is_locked) return true
+    
+    // Read-only if viewing someone else's note and not admin
+    if (viewingExistingNote.value && !canEditNote(note)) return true
   }
   
   return false
@@ -314,6 +410,20 @@ const loading = computed(() => props.loading || loadingNotes.value)
 // =============================================================================
 // Methods
 // =============================================================================
+
+/**
+ * Check if current user can edit a note.
+ * Users can edit their own notes; admins can edit any note.
+ */
+function canEditNote(note) {
+  if (!note) return false
+  
+  // Admin can edit any note
+  if (authStore.isAdmin) return true
+  
+  // Users can edit their own notes
+  return note.author_id === authStore.userId
+}
 
 async function loadNotes() {
   if (!props.session?.id) return
@@ -359,7 +469,7 @@ async function viewNote(note) {
     const response = await notesApi.get(note.id)
     const fullNote = response.data
     
-    // Load into editor
+    // Load into editor (read-only mode)
     showEditor.value = true
     currentNoteId.value = fullNote.id
     currentNoteContent.value = fullNote.content_html || fullNote.content || ''
@@ -368,6 +478,49 @@ async function viewNote(note) {
   } catch (err) {
     console.error('Failed to load note:', err)
     error.value = 'Failed to load note. Please try again.'
+  }
+}
+
+async function editNote(note) {
+  if (!canEditNote(note)) return
+  
+  // Fetch the full note content for editing
+  try {
+    const response = await notesApi.get(note.id)
+    const fullNote = response.data
+    
+    // Load into editor (edit mode)
+    showEditor.value = true
+    currentNoteId.value = fullNote.id
+    currentNoteContent.value = fullNote.content_html || fullNote.content || ''
+    originalContent.value = currentNoteContent.value
+    viewingExistingNote.value = false // Not just viewing, actually editing
+  } catch (err) {
+    console.error('Failed to load note for editing:', err)
+    error.value = 'Failed to load note. Please try again.'
+  }
+}
+
+function confirmDeleteNote(note) {
+  noteToDelete.value = note
+}
+
+async function deleteNote() {
+  if (!noteToDelete.value || !authStore.isAdmin) return
+  
+  deleting.value = true
+  
+  try {
+    await notesApi.delete(noteToDelete.value.id)
+    noteToDelete.value = null
+    
+    // Reload notes to reflect deletion
+    await loadNotes()
+  } catch (err) {
+    console.error('Failed to delete note:', err)
+    error.value = 'Failed to delete note. Please try again.'
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -424,8 +577,7 @@ async function saveNote() {
 }
 
 function getAuthorName(note) {
-  // If author_name exists, use it; otherwise show "CRT Member" as placeholder
-  // until authentication is implemented in Phase 8
+  // If author_name exists, use it
   return note.author_name || 'CRT Member'
 }
 

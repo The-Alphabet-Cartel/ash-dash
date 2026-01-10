@@ -11,26 +11,37 @@ MISSION - NEVER TO BE VIOLATED:
     Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
 
 ============================================================================
-Session Managers Package - Crisis session data management
+Session Managers Package - Authentication Session Management
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-1-1.1-1
-LAST MODIFIED: 2026-01-06
-PHASE: Phase 1 - Foundation & Infrastructure (Placeholder for Phase 5)
+FILE VERSION: v5.0-10-10.4-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
-PHASE 5 DELIVERABLES:
-- SessionManager: CRUD operations for crisis sessions
-- Session state management (active/closed/archived)
-- User history aggregation
+COMPONENTS:
+- SessionManager: OIDC authentication session storage in Redis
+- UserSession: Session data model with tokens and user info
 
-This package will be implemented in Phase 5: Session Management
+NOTE: This package handles OIDC authentication sessions, not crisis
+sessions from Discord. Crisis session management is in the data layer.
 """
 
-__version__ = "v5.0-1-1.1-1"
+__version__ = "v5.0-10-10.4-1"
 
-# Phase 5 imports will be added here:
-# from .session_manager import SessionManager, create_session_manager
+from src.managers.session.session_manager import (
+    SessionManager,
+    UserSession,
+    create_session_manager,
+    SessionError,
+    SessionNotFoundError,
+)
 
-__all__ = []
+__all__ = [
+    "SessionManager",
+    "UserSession",
+    "create_session_manager",
+    "SessionError",
+    "SessionNotFoundError",
+]

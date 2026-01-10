@@ -21,6 +21,8 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
 ENDPOINTS:
+    GET  /api/admin/users                     - List CRT team members (Lead+)
+    GET  /api/admin/audit-logs                - List audit logs (Lead+)
     GET  /api/admin/archives/cleanup/status   - Get cleanup status (Lead+)
     POST /api/admin/archives/cleanup/execute  - Execute archive cleanup (Admin)
     GET  /api/admin/archives/expiring         - Get archives expiring soon (Lead+)
@@ -41,6 +43,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.managers.database import DatabaseManager
 from src.repositories.archive_repository import create_archive_repository
 from src.repositories.audit_log_repository import create_audit_log_repository
+from src.repositories.user_repository import create_user_repository
 
 # Phase 10: Import auth dependencies
 from src.api.dependencies.auth import (
@@ -50,7 +53,7 @@ from src.api.dependencies.auth import (
 from src.api.middleware.auth_middleware import UserContext
 
 
-__version__ = "v5.0-10-10.2.9-1"
+__version__ = "v5.0-10-10.3-1"
 
 
 # =============================================================================
@@ -100,6 +103,46 @@ class ExpiringArchiveResponse(BaseModel):
     retention_until: Optional[datetime]
     days_remaining: Optional[int]
     size_bytes: int
+
+
+class CRTUserResponse(BaseModel):
+    """Response model for CRT user."""
+    id: str
+    email: str
+    display_name: Optional[str]
+    role: Optional[str]
+    is_active: bool
+    last_login: Optional[datetime] = None
+    groups: List[str] = []
+
+
+class CRTUsersListResponse(BaseModel):
+    """Response model for CRT users list."""
+    users: List[CRTUserResponse]
+    total: int
+
+
+class AuditLogResponse(BaseModel):
+    """Response model for audit log entry."""
+    id: str
+    action: str
+    user_id: Optional[str] = None
+    user_name: Optional[str] = None
+    entity_type: Optional[str] = None
+    entity_id: Optional[str] = None
+    old_values: Optional[Dict[str, Any]] = None
+    new_values: Optional[Dict[str, Any]] = None
+    ip_address: Optional[str] = None
+    created_at: datetime
+
+
+class AuditLogsListResponse(BaseModel):
+    """Response model for audit logs list."""
+    logs: List[AuditLogResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
 
 
 # =============================================================================
@@ -192,6 +235,156 @@ async def get_archive_manager(request: Request):
     
     request.app.state.archive_manager = archive_manager
     return archive_manager
+
+
+# =============================================================================
+# Routes - Users
+# =============================================================================
+
+@router.get(
+    "/users",
+    response_model=CRTUsersListResponse,
+    summary="List CRT users",
+    description="Get all CRT team members. Requires Lead or Admin role.",
+)
+async def list_users(
+    request: Request,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    List all CRT team members.
+    
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
+    
+    Returns:
+        - List of CRT users with role and status
+    """
+    logging_manager = get_logging_manager(request)
+    db_manager = get_db_manager(request)
+    
+    user_repo = create_user_repository(db_manager, logging_manager)
+    
+    # Get all active users (CRT members)
+    users = await user_repo.get_active_users(db, skip=0, limit=1000)
+    
+    return CRTUsersListResponse(
+        users=[
+            CRTUserResponse(
+                id=str(u.id),
+                email=u.email,
+                display_name=u.display_name,
+                role=u.role,
+                is_active=u.is_active,
+                last_login=u.last_login,
+                groups=u.groups or [],
+            )
+            for u in users
+        ],
+        total=len(users),
+    )
+
+
+# =============================================================================
+# Routes - Audit Logs
+# =============================================================================
+
+@router.get(
+    "/audit-logs",
+    response_model=AuditLogsListResponse,
+    summary="List audit logs",
+    description="Get audit logs with filtering and pagination. Requires Lead or Admin role.",
+)
+async def list_audit_logs(
+    request: Request,
+    user: UserContext = Depends(require_lead),  # Phase 10: Lead+ only
+    action: Optional[str] = Query(None, description="Filter by action type"),
+    entity_type: Optional[str] = Query(None, description="Filter by entity type"),
+    user_id: Optional[str] = Query(None, description="Filter by user ID"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(50, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    List audit logs with filtering and pagination.
+    
+    Authorization (Phase 10):
+        - Requires Lead or Admin role
+    
+    Returns:
+        - Paginated list of audit log entries
+    """
+    from math import ceil
+    from uuid import UUID
+    from sqlalchemy import select, func, and_
+    from src.models.audit_log import AuditLog
+    from src.models.user import User
+    
+    logging_manager = get_logging_manager(request)
+    db_manager = get_db_manager(request)
+    
+    # Build query with filters
+    conditions = []
+    if action:
+        conditions.append(AuditLog.action == action)
+    if entity_type:
+        conditions.append(AuditLog.entity_type == entity_type)
+    if user_id:
+        try:
+            conditions.append(AuditLog.user_id == UUID(user_id))
+        except ValueError:
+            pass  # Invalid UUID, skip filter
+    
+    # Count total
+    count_query = select(func.count(AuditLog.id))
+    if conditions:
+        count_query = count_query.where(and_(*conditions))
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
+    # Calculate pagination
+    total_pages = ceil(total / page_size) if total > 0 else 1
+    skip = (page - 1) * page_size
+    
+    # Get logs with user join for display name
+    query = (
+        select(AuditLog, User.display_name.label("user_name"))
+        .outerjoin(User, AuditLog.user_id == User.id)
+    )
+    if conditions:
+        query = query.where(and_(*conditions))
+    query = (
+        query
+        .order_by(AuditLog.created_at.desc())
+        .offset(skip)
+        .limit(page_size)
+    )
+    
+    result = await db.execute(query)
+    rows = result.all()
+    
+    return AuditLogsListResponse(
+        logs=[
+            AuditLogResponse(
+                id=str(row.AuditLog.id),
+                action=row.AuditLog.action,
+                user_id=str(row.AuditLog.user_id) if row.AuditLog.user_id else None,
+                user_name=row.user_name,
+                entity_type=row.AuditLog.entity_type,
+                entity_id=row.AuditLog.entity_id,
+                old_values=row.AuditLog.old_values,
+                new_values=row.AuditLog.new_values,
+                ip_address=row.AuditLog.ip_address,
+                created_at=row.AuditLog.created_at,
+            )
+            for row in rows
+        ],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
 
 # =============================================================================

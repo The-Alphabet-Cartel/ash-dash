@@ -17,6 +17,7 @@
     "axios": "^1.6.0",
     "lucide-vue-next": "^0.300.0",
     "chart.js": "^4.4.0",
+    "date-fns": "^3.3.0",
     "@tiptap/vue-3": "^2.1.0",
     "@tiptap/starter-kit": "^2.1.0",
     "@tiptap/extension-task-list": "^2.1.0",
