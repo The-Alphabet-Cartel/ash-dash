@@ -1,7 +1,7 @@
 # ============================================================================
 # Ash-Dash v5.0 Requirements
 # ============================================================================
-# FILE VERSION: v5.0-9-9.2-1
+# FILE VERSION: v5.0-9-9.4-1
 # LAST MODIFIED: 2026-01-09
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
@@ -73,6 +73,9 @@ minio>=7.2.0,<8.0.0
 
 # Cryptography - AES-256-GCM encryption for session archives
 cryptography>=41.0.0,<43.0.0
+
+# Python-dateutil - Flexible datetime parsing
+python-dateutil>=2.8.0,<3.0.0
 
 # =============================================================================
 # Documentation Wiki (Phase 7)

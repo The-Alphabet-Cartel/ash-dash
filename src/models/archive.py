@@ -13,22 +13,31 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Archive Model - Long-term encrypted storage references in MinIO
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-2-2.3-3
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 2 - Data Layer
+FILE VERSION: v5.0-9-9.4-1
+LAST MODIFIED: 2026-01-09
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant (Rule #14 - SQLAlchemy 2.0 Standards)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
 NOTE: Column named 'extra_data' instead of 'metadata' because 'metadata'
       is a reserved SQLAlchemy attribute on Base class (Rule #14).
+
+PHASE 9 ADDITIONS:
+- Added dedicated columns for queryable fields (performance optimization)
+- discord_user_id, discord_user_name: The Discord user whose session was archived
+- severity: Crisis severity level for filtering
+- retention_tier: "standard" (1 year) or "permanent" (7 years)
+- notes_count: Number of notes included in archive
+- archived_by_name: Display name of CRT member who archived
+- session_started_at, session_ended_at: Original session timestamps
 """
 
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Dict, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, Index, LargeBinary, String
+from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, Index, Integer, LargeBinary, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -38,7 +47,7 @@ if TYPE_CHECKING:
     from src.models.session import Session
     from src.models.user import User
 
-__version__ = "v5.0-2-2.3-3"
+__version__ = "v5.0-9-9.4-1"
 
 # Default MinIO bucket
 DEFAULT_BUCKET = "ash-archives"
@@ -46,21 +55,34 @@ DEFAULT_BUCKET = "ash-archives"
 # SHA-256 checksum length
 CHECKSUM_LENGTH = 64
 
+# Valid retention tiers
+RETENTION_TIERS = ("standard", "permanent")
+
 
 class Archive(Base):
     """
     Long-term encrypted storage reference for archived sessions.
+    
+    Contains both storage metadata (where the encrypted blob is stored)
+    and queryable session metadata for efficient filtering/searching.
     """
 
     __tablename__ = "archives"
 
-    # Primary key
+    # =========================================================================
+    # Primary Key
+    # =========================================================================
+    
     id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         primary_key=True,
         default=uuid4,
     )
 
+    # =========================================================================
+    # Session Reference
+    # =========================================================================
+    
     # Foreign key to session (unique - one archive per session)
     session_id: Mapped[str] = mapped_column(
         String(50),
@@ -69,7 +91,10 @@ class Archive(Base):
         index=True,
     )
 
-    # Storage location
+    # =========================================================================
+    # Storage Location (MinIO)
+    # =========================================================================
+    
     storage_key: Mapped[str] = mapped_column(String(500))
 
     storage_bucket: Mapped[str] = mapped_column(
@@ -77,18 +102,27 @@ class Archive(Base):
         default=DEFAULT_BUCKET,
     )
 
-    # Encryption
+    # =========================================================================
+    # Encryption & Integrity
+    # =========================================================================
+    
+    # Legacy field - kept for backward compatibility but not used with new
+    # AES-256-GCM encryption (salt/IV are embedded in the encrypted blob)
     encryption_iv: Mapped[Optional[bytes]] = mapped_column(
         LargeBinary,
         nullable=True,
     )
 
-    # Integrity
+    # SHA-256 checksum of the encrypted blob
     checksum: Mapped[str] = mapped_column(String(64))
 
+    # Size of encrypted blob in bytes
     size_bytes: Mapped[int] = mapped_column(BigInteger)
 
-    # Timestamps
+    # =========================================================================
+    # Archive Timestamps
+    # =========================================================================
+    
     archived_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -102,12 +136,74 @@ class Archive(Base):
         nullable=True,
     )
 
+    # =========================================================================
+    # Retention Management
+    # =========================================================================
+    
     retention_until: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         index=True,
         nullable=True,
     )
+    
+    # Retention tier: "standard" (1 year) or "permanent" (7 years)
+    retention_tier: Mapped[str] = mapped_column(
+        String(20),
+        default="standard",
+        index=True,
+    )
 
+    # =========================================================================
+    # Queryable Session Metadata (Phase 9)
+    # =========================================================================
+    # These columns enable efficient filtering without decrypting archives
+    
+    # Discord user whose session was archived
+    discord_user_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        nullable=True,
+        index=True,
+    )
+    
+    discord_user_name: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+    
+    # Crisis severity level
+    severity: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        nullable=True,
+        index=True,
+    )
+    
+    # Number of notes included in archive
+    notes_count: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+    )
+    
+    # Display name of CRT member who archived (denormalized for display)
+    archived_by_name: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+    
+    # Original session timestamps
+    session_started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    
+    session_ended_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    # =========================================================================
+    # Flexible Storage (for future extensibility)
+    # =========================================================================
+    
     # Additional data (named 'extra_data' to avoid SQLAlchemy reserved 'metadata')
     extra_data: Mapped[Optional[dict]] = mapped_column(
         JSONB,
@@ -115,7 +211,10 @@ class Archive(Base):
         nullable=True,
     )
 
+    # =========================================================================
     # Relationships
+    # =========================================================================
+    
     session: Mapped["Session"] = relationship(
         back_populates="archive",
     )
@@ -125,15 +224,40 @@ class Archive(Base):
         foreign_keys=[archived_by],
     )
 
+    # =========================================================================
+    # Table Configuration
+    # =========================================================================
+    
     __table_args__ = (
+        # Checksum validation
         CheckConstraint(
             f"LENGTH(checksum) = {CHECKSUM_LENGTH}",
             name="ck_archives_valid_checksum",
         ),
+        # Retention tier validation
+        CheckConstraint(
+            "retention_tier IN ('standard', 'permanent')",
+            name="ck_archives_valid_retention_tier",
+        ),
+        # Indexes for common queries
         Index("ix_archives_session", "session_id"),
         Index("ix_archives_date", "archived_at"),
-        {"comment": "Encrypted session archives in MinIO"},
+        Index("ix_archives_discord_user", "discord_user_id"),
+        Index("ix_archives_severity", "severity"),
+        Index("ix_archives_retention", "retention_tier", "retention_until"),
+        # Composite index for common filter combinations
+        Index(
+            "ix_archives_filter_combo",
+            "severity",
+            "retention_tier",
+            "archived_at",
+        ),
+        {"comment": "Encrypted session archives in MinIO with queryable metadata"},
     )
+
+    # =========================================================================
+    # Properties
+    # =========================================================================
 
     @property
     def storage_uri(self) -> str:
@@ -154,8 +278,25 @@ class Archive(Base):
 
     @property
     def is_encrypted(self) -> bool:
-        """Check if archive has encryption IV."""
+        """Check if archive has encryption IV (legacy check)."""
         return self.encryption_iv is not None
+    
+    @property
+    def is_permanent(self) -> bool:
+        """Check if archive has permanent retention."""
+        return self.retention_tier == "permanent"
+    
+    @property
+    def days_until_expiry(self) -> Optional[int]:
+        """Get days until retention expires, or None if permanent/no date."""
+        if not self.retention_until:
+            return None
+        delta = self.retention_until - datetime.now(timezone.utc)
+        return max(0, delta.days)
+
+    # =========================================================================
+    # Methods
+    # =========================================================================
 
     def verify_checksum(self, calculated_checksum: str) -> bool:
         """Verify archive integrity."""
@@ -165,10 +306,16 @@ class Archive(Base):
         """Extend retention period by specified days."""
         base = self.retention_until or datetime.now(timezone.utc)
         self.retention_until = base + timedelta(days=days)
+    
+    def set_permanent(self) -> None:
+        """Set archive to permanent retention."""
+        self.retention_tier = "permanent"
+        # Set retention_until far in the future (but still have a date for queries)
+        self.retention_until = datetime.now(timezone.utc) + timedelta(days=2555)
 
     def __repr__(self) -> str:
         size = f"{self.size_mb:.2f}MB" if self.size_bytes else "unknown"
-        return f"<Archive(id={self.id}, session='{self.session_id}', size={size})>"
+        return f"<Archive(id={self.id}, session='{self.session_id}', size={size}, tier={self.retention_tier})>"
 
 
-__all__ = ["Archive", "DEFAULT_BUCKET", "CHECKSUM_LENGTH"]
+__all__ = ["Archive", "DEFAULT_BUCKET", "CHECKSUM_LENGTH", "RETENTION_TIERS"]
