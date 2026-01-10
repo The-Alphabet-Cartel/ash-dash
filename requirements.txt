@@ -1,7 +1,7 @@
 # ============================================================================
 # Ash-Dash v5.0 Requirements
 # ============================================================================
-# FILE VERSION: v5.0-7-7.8-2
+# FILE VERSION: v5.0-8-8.1-1
 # LAST MODIFIED: 2026-01-09
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
@@ -59,6 +59,13 @@ alembic>=1.13.0,<2.0.0
 
 # Redis - Async Redis client
 redis>=5.0.0,<6.0.0
+
+# =============================================================================
+# Archive Storage (Phase 8)
+# =============================================================================
+
+# MinIO - S3-compatible object storage client for session archives
+minio>=7.2.0,<8.0.0
 
 # =============================================================================
 # Documentation Wiki (Phase 7)

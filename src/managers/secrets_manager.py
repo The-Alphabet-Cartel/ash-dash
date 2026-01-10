@@ -1,21 +1,24 @@
 """
-Ash-Dash: Crisis Detection Dashboard for The Alphabet Cartel Discord Community
-CORE PRINCIPLE:
-******************  CORE SYSTEM VISION (Never to be violated):  ****************
-Ash-Dash is a CRISIS DETECTION DASHBOARD that:
-1. **PRIMARY**:
-2. **SECONDARY**:
-3. **TERTIARY**:
-4. **PURPOSE**:
-********************************************************************************
+============================================================================
+Ash-DASH: Discord Crisis Detection Dashboard
+The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
+============================================================================
+
+MISSION - NEVER TO BE VIOLATED:
+    Reveal   → Surface crisis alerts and user escalation patterns in real-time
+    Enable   → Equip Crisis Response Teams with tools for swift intervention
+    Clarify  → Translate detection data into actionable intelligence
+    Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
+
+============================================================================
 Secrets Manager for Ash-Dash Service
----
-FILE VERSION: v5.0
-LAST MODIFIED: 2026-01-03
-PHASE: Phase 1
+----------------------------------------------------------------------------
+FILE VERSION: v5.0-8-8.1-1
+LAST MODIFIED: 2026-01-09
+PHASE: Phase 8 - Archive Infrastructure
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
-Community: The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org
+============================================================================
 
 RESPONSIBILITIES:
 - Read secrets from Docker Secrets (/run/secrets/)
@@ -34,6 +37,9 @@ SUPPORTED SECRETS:
 - discord_bot_token: Discord bot token
 - webhook_token: Webhook signing secret
 - redis_token: Redis password for secure connections
+- postgres_token: PostgreSQL password
+- minio_access_key: MinIO access key (username)
+- minio_secret_key: MinIO secret key (password)
 """
 
 import logging
@@ -42,7 +48,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 # Module version
-__version__ = "v5.0-3-5.5-2"
+__version__ = "v5.0-8-8.1-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -63,6 +69,8 @@ KNOWN_SECRETS = {
     "discord_alert_token": "Discord webhook URL for system alerts",
     "discord_bot_token": "Discord bot token",
     "huggingface_token": "HuggingFace API token for authenticated model downloads",
+    "minio_access_key": "MinIO access key (username) for archive storage",
+    "minio_secret_key": "MinIO secret key (password) for archive storage",
     "postgres_token": "PostgreSQL password for secure connections",
     "redis_token": "Redis password for secure connections",
     "webhook_token": "Webhook signing secret",
@@ -89,9 +97,9 @@ class SecretsManager:
 
     Example:
         >>> secrets = SecretsManager()
-        >>> hf_token = secrets.get("huggingface")
-        >>> if hf_token:
-        ...     print("HuggingFace token loaded")
+        >>> minio_key = secrets.get_minio_access_key()
+        >>> if minio_key:
+        ...     print("MinIO credentials loaded")
     """
 
     def __init__(
@@ -148,13 +156,13 @@ class SecretsManager:
 
         Lookup order:
         1. Cache (if previously loaded)
-        2. Docker Secrets (/run/secrets/<name>)
-        3. Local secrets file (./secrets/<name>)
+        2. Docker Secrets (/run/secrets/<n>)
+        3. Local secrets file (./secrets/<n>)
         4. Environment variable (uppercase, prefixed)
         5. Default value
 
         Args:
-            secret_name: Name of the secret (e.g., "huggingface")
+            secret_name: Name of the secret (e.g., "minio_access_key")
             default: Default value if secret not found
             required: If True, raise error when secret not found
 
@@ -225,8 +233,8 @@ class SecretsManager:
         Convert secret name to environment variable name.
 
         Examples:
-            huggingface -> NLP_SECRET_HUGGINGFACE
-            discord_token -> NLP_SECRET_DISCORD_TOKEN
+            minio_access_key -> DASH_SECRET_MINIO_ACCESS_KEY
+            postgres_token -> DASH_SECRET_POSTGRES_TOKEN
 
         Args:
             secret_name: Secret name
@@ -234,7 +242,11 @@ class SecretsManager:
         Returns:
             Environment variable name
         """
-        return f"NLP_SECRET_{secret_name.upper()}"
+        return f"DASH_SECRET_{secret_name.upper()}"
+
+    # =========================================================================
+    # Convenience Methods - Service Credentials
+    # =========================================================================
 
     def get_claude_api_token(self) -> Optional[str]:
         """
@@ -304,7 +316,7 @@ class SecretsManager:
             HuggingFace token or None
         """
         # Try our secrets system first
-        token = self.get("huggingface")
+        token = self.get("huggingface_token")
 
         # Fallback to standard HuggingFace env vars
         if token is None:
@@ -371,6 +383,66 @@ class SecretsManager:
 
         return token
 
+    # =========================================================================
+    # MinIO Archive Storage Credentials (Phase 8)
+    # =========================================================================
+
+    def get_minio_access_key(self) -> Optional[str]:
+        """
+        Get MinIO access key (username).
+
+        Also checks MINIO_ACCESS_KEY environment variable as fallback.
+
+        Returns:
+            MinIO access key or None
+        """
+        # Try our secrets system first
+        key = self.get("minio_access_key")
+
+        # Fallback to standard MinIO env var
+        if key is None:
+            key = os.environ.get("MINIO_ACCESS_KEY")
+        if key is None:
+            key = os.environ.get("MINIO_ROOT_USER")
+
+        return key
+
+    def get_minio_secret_key(self) -> Optional[str]:
+        """
+        Get MinIO secret key (password).
+
+        Also checks MINIO_SECRET_KEY environment variable as fallback.
+
+        Returns:
+            MinIO secret key or None
+        """
+        # Try our secrets system first
+        key = self.get("minio_secret_key")
+
+        # Fallback to standard MinIO env vars
+        if key is None:
+            key = os.environ.get("MINIO_SECRET_KEY")
+        if key is None:
+            key = os.environ.get("MINIO_ROOT_PASSWORD")
+
+        return key
+
+    def has_minio_credentials(self) -> bool:
+        """
+        Check if MinIO credentials are available.
+
+        Returns:
+            True if both access key and secret key are available
+        """
+        return (
+            self.has_secret("minio_access_key") and 
+            self.has_secret("minio_secret_key")
+        )
+
+    # =========================================================================
+    # Utility Methods
+    # =========================================================================
+
     def has_secret(self, secret_name: str) -> bool:
         """
         Check if a secret exists (without loading it).
@@ -393,9 +465,15 @@ class SecretsManager:
         if os.environ.get(self._get_env_var_name(secret_name)):
             return True
 
-        # Check HuggingFace-specific env vars
-        if secret_name == "huggingface":
+        # Check service-specific env vars
+        if secret_name == "huggingface_token":
             if os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN"):
+                return True
+        if secret_name == "minio_access_key":
+            if os.environ.get("MINIO_ACCESS_KEY") or os.environ.get("MINIO_ROOT_USER"):
+                return True
+        if secret_name == "minio_secret_key":
+            if os.environ.get("MINIO_SECRET_KEY") or os.environ.get("MINIO_ROOT_PASSWORD"):
                 return True
 
         return False
@@ -475,7 +553,7 @@ def create_secrets_manager(
     """
     Factory function to create a SecretsManager instance.
 
-    Following Clean Architecture v5.1 Rule #1: Factory Functions.
+    Following Clean Architecture v5.2 Rule #1: Factory Functions.
 
     Args:
         docker_path: Custom Docker secrets path
@@ -486,7 +564,7 @@ def create_secrets_manager(
 
     Example:
         >>> secrets = create_secrets_manager()
-        >>> token = secrets.get_huggingface_token()
+        >>> minio_key = secrets.get_minio_access_key()
     """
     return SecretsManager(
         docker_path=docker_path,

@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Configuration Manager - JSON + Environment Variable Configuration System
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-1-1.2-1
-LAST MODIFIED: 2026-01-06
-PHASE: Phase 1 - Foundation & Infrastructure
+FILE VERSION: v5.0-8-8.1-1
+LAST MODIFIED: 2026-01-09
+PHASE: Phase 8 - Archive Infrastructure
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -35,7 +35,7 @@ from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
 
 # Module version
-__version__ = "v5.0-2-2.2-1"
+__version__ = "v5.0-8-8.1-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class ConfigManager:
     """
     Configuration Manager for Ash-Dash Dashboard.
 
-    Implements Clean Architecture v5.1 principles:
+    Implements Clean Architecture v5.2 principles:
     - Factory function pattern (create_config_manager)
     - JSON configuration with environment variable overrides
     - Resilient validation with safe fallbacks
@@ -455,6 +455,16 @@ class ConfigManager:
                     "max_overflow": 10,
                 }
             },
+            "minio": {
+                "defaults": {
+                    "endpoint": "10.20.30.202",
+                    "port": 30884,
+                    "secure": False,
+                    "bucket_archives": "ash-archives",
+                    "bucket_documents": "ash-documents",
+                    "bucket_exports": "ash-exports",
+                }
+            },
             "polling": {
                 "defaults": {
                     "dashboard_interval_seconds": 30,
@@ -525,6 +535,14 @@ class ConfigManager:
         """Get polling configuration."""
         return self.get_section("polling")
 
+    def get_minio_config(self) -> Dict[str, Any]:
+        """Get MinIO archive storage configuration."""
+        return self.get_section("minio")
+
+    def get_alerting_config(self) -> Dict[str, Any]:
+        """Get alerting configuration."""
+        return self.get_section("alerting")
+
     # =========================================================================
     # Utility Methods
     # =========================================================================
@@ -567,7 +585,7 @@ class ConfigManager:
 
 
 # =============================================================================
-# FACTORY FUNCTION - Clean Architecture v5.1 Compliance (Rule #1)
+# FACTORY FUNCTION - Clean Architecture v5.2 Compliance (Rule #1)
 # =============================================================================
 
 
@@ -576,7 +594,7 @@ def create_config_manager(
     environment: Optional[str] = None,
 ) -> ConfigManager:
     """
-    Factory function for ConfigManager (Clean Architecture v5.1 Pattern).
+    Factory function for ConfigManager (Clean Architecture v5.2 Pattern).
 
     This is the ONLY way to create a ConfigManager instance.
     Direct instantiation should be avoided in production code.

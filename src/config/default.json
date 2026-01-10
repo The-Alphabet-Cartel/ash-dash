@@ -1,7 +1,7 @@
 {
   "_metadata": {
-    "file_version": "v5.0-2-2.2-1",
-    "last_modified": "2026-01-07",
+    "file_version": "v5.0-8-8.1-1",
+    "last_modified": "2026-01-09",
     "clean_architecture": "Compliant",
     "description": "Ash-Dash v5.0 Default Configuration",
     "repository": "https://github.com/the-alphabet-cartel/ash-dash",
@@ -179,6 +179,51 @@
         "type": "integer",
         "range": [0, 50],
         "required": false
+      }
+    }
+  },
+
+  "minio": {
+    "description": "MinIO S3-compatible storage for session archives (Syn VM)",
+    "endpoint": "${DASH_MINIO_ENDPOINT}",
+    "port": "${DASH_MINIO_PORT}",
+    "secure": "${DASH_MINIO_SECURE}",
+    "bucket_archives": "${DASH_MINIO_BUCKET_ARCHIVES}",
+    "bucket_documents": "${DASH_MINIO_BUCKET_DOCUMENTS}",
+    "bucket_exports": "${DASH_MINIO_BUCKET_EXPORTS}",
+    "defaults": {
+      "endpoint": "10.20.30.202",
+      "port": 30884,
+      "secure": false,
+      "bucket_archives": "ash-archives",
+      "bucket_documents": "ash-documents",
+      "bucket_exports": "ash-exports"
+    },
+    "validation": {
+      "endpoint": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1, 65535],
+        "required": true
+      },
+      "secure": {
+        "type": "boolean",
+        "required": false
+      },
+      "bucket_archives": {
+        "type": "string",
+        "required": true
+      },
+      "bucket_documents": {
+        "type": "string",
+        "required": true
+      },
+      "bucket_exports": {
+        "type": "string",
+        "required": true
       }
     }
   },
