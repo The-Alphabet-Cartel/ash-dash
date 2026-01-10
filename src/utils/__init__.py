@@ -13,26 +13,58 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Utilities Package - Shared utility functions and helpers
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-1-1.1-1
-LAST MODIFIED: 2026-01-06
-PHASE: Phase 1 - Foundation & Infrastructure (Placeholder for future phases)
+FILE VERSION: v5.0-9-9.2-1
+LAST MODIFIED: 2026-01-09
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 
+AVAILABLE UTILITIES:
+- encryption.py: AES-256-GCM encryption/decryption for archives (Phase 9)
+
 PLANNED UTILITIES:
-- encryption.py: AES-256 encryption/decryption for archives (Phase 9)
-- pdf_generator.py: WeasyPrint PDF generation for wiki export (Phase 7)
 - validators.py: Common validation functions
 - formatters.py: Data formatting helpers
 """
 
-__version__ = "v5.0-1-1.1-1"
+__version__ = "v5.0-9-9.2-1"
 
-# Utilities will be imported as created:
-# from .encryption import encrypt_data, decrypt_data
-# from .pdf_generator import generate_pdf
-# from .validators import validate_email, validate_uuid
-# from .formatters import format_datetime, format_severity
+# =============================================================================
+# Encryption Utilities (Phase 9)
+# =============================================================================
 
-__all__ = []
+from .encryption import (
+    # Classes
+    ArchiveEncryption,
+    # Factory functions
+    create_archive_encryption,
+    create_archive_encryption_from_key,
+    # Exceptions
+    EncryptionError,
+    DecryptionError,
+    InvalidKeyError,
+    # Constants
+    SALT_LENGTH,
+    IV_LENGTH,
+    KEY_LENGTH,
+    PBKDF2_ITERATIONS,
+)
+
+# =============================================================================
+# Module Exports
+# =============================================================================
+
+__all__ = [
+    # Encryption
+    "ArchiveEncryption",
+    "create_archive_encryption",
+    "create_archive_encryption_from_key",
+    "EncryptionError",
+    "DecryptionError",
+    "InvalidKeyError",
+    "SALT_LENGTH",
+    "IV_LENGTH",
+    "KEY_LENGTH",
+    "PBKDF2_ITERATIONS",
+]

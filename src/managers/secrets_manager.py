@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Secrets Manager for Ash-Dash Service
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-8-8.1-1
+FILE VERSION: v5.0-9-9.1-1
 LAST MODIFIED: 2026-01-09
-PHASE: Phase 8 - Archive Infrastructure
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -24,6 +24,7 @@ RESPONSIBILITIES:
 - Read secrets from Docker Secrets (/run/secrets/)
 - Fallback to local secrets directory for development
 - Provide secure access to sensitive credentials
+- Support both text and binary secrets (encryption keys)
 - Never log or expose secret values
 
 DOCKER SECRETS LOCATIONS:
@@ -31,15 +32,16 @@ DOCKER SECRETS LOCATIONS:
 - Development (Local): ./secrets/<secret_name>
 
 SUPPORTED SECRETS:
+- archive_master_key: AES-256 encryption key for session archives (BINARY)
 - claude_api_token: Claude API key for Claude AI access
-- huggingface_token: HuggingFace API token for model downloads
 - discord_alert_token: Discord webhook URL for system alerts
 - discord_bot_token: Discord bot token
-- webhook_token: Webhook signing secret
-- redis_token: Redis password for secure connections
-- postgres_token: PostgreSQL password
+- huggingface_token: HuggingFace API token for model downloads
 - minio_access_key: MinIO access key (username)
 - minio_secret_key: MinIO secret key (password)
+- postgres_token: PostgreSQL password
+- redis_token: Redis password for secure connections
+- webhook_token: Webhook signing secret
 """
 
 import logging
@@ -48,7 +50,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 # Module version
-__version__ = "v5.0-8-8.1-1"
+__version__ = "v5.0-9-9.1-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -65,6 +67,7 @@ LOCAL_SECRETS_PATH = Path("secrets")
 
 # Known secret names and their descriptions
 KNOWN_SECRETS = {
+    "archive_master_key": "AES-256 encryption key for session archives (binary)",
     "claude_api_token": "Claude API key for Claude AI access",
     "discord_alert_token": "Discord webhook URL for system alerts",
     "discord_bot_token": "Discord bot token",
@@ -74,6 +77,11 @@ KNOWN_SECRETS = {
     "postgres_token": "PostgreSQL password for secure connections",
     "redis_token": "Redis password for secure connections",
     "webhook_token": "Webhook signing secret",
+}
+
+# Secrets that are binary (not text)
+BINARY_SECRETS = {
+    "archive_master_key",
 }
 
 # =============================================================================
@@ -243,6 +251,80 @@ class SecretsManager:
             Environment variable name
         """
         return f"DASH_SECRET_{secret_name.upper()}"
+
+    def get_bytes(
+        self,
+        secret_name: str,
+        required: bool = False,
+    ) -> Optional[bytes]:
+        """
+        Get a binary secret value (e.g., encryption keys).
+
+        Unlike get(), this reads the file in binary mode and returns
+        raw bytes without string conversion or stripping.
+
+        Lookup order:
+        1. Cache (if previously loaded)
+        2. Docker Secrets (/run/secrets/<n>)
+        3. Local secrets file (./secrets/<n>)
+
+        Note: Environment variable fallback is not supported for binary
+        secrets as env vars are text-based.
+
+        Args:
+            secret_name: Name of the secret (e.g., "archive_master_key")
+            required: If True, raise error when secret not found
+
+        Returns:
+            Secret value as bytes or None
+
+        Raises:
+            SecretNotFoundError: If required=True and secret not found
+        """
+        # Check cache (stored as bytes for binary secrets)
+        cache_key = f"_bytes_{secret_name}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
+        value = None
+        source = None
+
+        # 1. Try Docker Secrets path
+        docker_secret_path = self.docker_path / secret_name
+        if docker_secret_path.exists() and docker_secret_path.is_file():
+            try:
+                value = docker_secret_path.read_bytes()
+                source = "docker_secrets"
+            except Exception as e:
+                logger.warning(f"Failed to read Docker secret '{secret_name}': {e}")
+
+        # 2. Try local secrets path
+        if value is None:
+            local_secret_path = self.local_path / secret_name
+            if local_secret_path.exists() and local_secret_path.is_file():
+                try:
+                    value = local_secret_path.read_bytes()
+                    source = "local_file"
+                except Exception as e:
+                    logger.warning(f"Failed to read local secret '{secret_name}': {e}")
+
+        # Handle required secrets
+        if value is None and required:
+            raise SecretNotFoundError(
+                f"Required binary secret '{secret_name}' not found. "
+                f"Checked: Docker Secrets, local file."
+            )
+
+        # Cache the value
+        self._cache[cache_key] = value
+
+        # Log (without revealing the value)
+        if value is not None and source:
+            logger.debug(f"Binary secret '{secret_name}' loaded from {source} ({len(value)} bytes)")
+        elif value is None:
+            logger.debug(f"Binary secret '{secret_name}' not found")
+
+        return value
 
     # =========================================================================
     # Convenience Methods - Service Credentials
@@ -438,6 +520,65 @@ class SecretsManager:
             self.has_secret("minio_access_key") and 
             self.has_secret("minio_secret_key")
         )
+
+    # =========================================================================
+    # Archive Encryption Key (Phase 9)
+    # =========================================================================
+
+    def get_archive_master_key(self) -> Optional[bytes]:
+        """
+        Get the archive master encryption key.
+
+        This is a 32-byte (256-bit) binary key used for AES-256-GCM
+        encryption of session archives before storage in MinIO.
+
+        The key is:
+        - Raw binary format (not base64 encoded)
+        - Exactly 32 bytes for AES-256
+        - Used with PBKDF2 to derive unique per-archive keys
+
+        Returns:
+            32-byte encryption key or None if not configured
+
+        Raises:
+            ValueError: If key exists but is not 32 bytes
+
+        Example:
+            >>> key = secrets.get_archive_master_key()
+            >>> if key:
+            ...     encryption = ArchiveEncryption(key)
+        """
+        key = self.get_bytes("archive_master_key")
+
+        if key is not None and len(key) < 32:
+            logger.error(
+                f"Archive master key is {len(key)} bytes, "
+                f"expected at least 32 bytes for AES-256"
+            )
+            raise ValueError(
+                f"Archive master key must be at least 32 bytes, got {len(key)}. "
+                f"Regenerate with: openssl rand 32 > secrets/archive_master_key"
+            )
+
+        return key
+
+    def has_archive_master_key(self) -> bool:
+        """
+        Check if archive master key is available and valid.
+
+        Returns:
+            True if key exists and is at least 32 bytes
+        """
+        # Check if file exists first (without loading)
+        if not self.has_secret("archive_master_key"):
+            return False
+
+        # Verify it's valid (at least 32 bytes)
+        try:
+            key = self.get_archive_master_key()
+            return key is not None and len(key) >= 32
+        except ValueError:
+            return False
 
     # =========================================================================
     # Utility Methods
