@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Archive Managers Package - Encrypted long-term session storage
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.4-1
+FILE VERSION: v5.0-9-9.6-1
 LAST MODIFIED: 2026-01-09
-PHASE: Phase 9 - Archive System Implementation (Step 9.4)
+PHASE: Phase 9 - Archive System Implementation (Step 9.6)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -69,7 +69,7 @@ USAGE:
     package = await archive_mgr.retrieve_archive(archive_id)
 """
 
-__version__ = "v5.0-9-9.4-1"
+__version__ = "v5.0-9-9.6-1"
 
 # MinIO Storage Manager
 from src.managers.archive.minio_manager import (

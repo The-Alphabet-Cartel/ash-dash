@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Session Detail Page - Comprehensive session view with analysis and history
 ============================================================================
-FILE VERSION: v5.0-6-6.6-1
+FILE VERSION: v5.0-9-9.6-2
 LAST MODIFIED: 2026-01-07
-PHASE: Phase 6 - Notes System
+PHASE: Phase 9 - Archive System Implementation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -26,6 +26,23 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 
       <!-- Session Actions -->
       <div v-if="session" class="flex items-center gap-2">
+        <!-- Archived Badge (for archived sessions) -->
+        <span
+          v-if="session.status === 'archived'"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 rounded-lg"
+        >
+          <Archive class="w-4 h-4" />
+          Archived
+        </span>
+
+        <!-- Archive Button (for closed sessions only - not archived) -->
+        <ArchiveButton
+          v-if="session.status === 'closed'"
+          :session-id="session.id"
+          :session-status="session.status"
+          @archived="handleArchived"
+        />
+
         <!-- Close Session Button -->
         <button
           v-if="session.status === 'active'"
@@ -37,7 +54,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           {{ isClosing ? 'Closing...' : 'Close Session' }}
         </button>
 
-        <!-- Reopen Session Button (Admin) -->
+        <!-- Reopen Session Button (Admin) - ONLY for closed, never for archived -->
         <button
           v-else-if="session.status === 'closed'"
           @click="handleReopenSession"
@@ -208,7 +225,8 @@ import {
   ArrowLeft, 
   AlertCircle, 
   XCircle, 
-  RotateCcw 
+  RotateCcw,
+  Archive
 } from 'lucide-vue-next'
 import { MainLayout } from '@/components/layout'
 import { 
@@ -219,6 +237,7 @@ import {
   UserHistoryPanel, 
   NotesPanel 
 } from '@/components/sessions'
+import { ArchiveButton } from '@/components/archives'
 import { useSessionsStore } from '@/stores'
 
 // Router and Store
@@ -325,6 +344,17 @@ function viewAllHistory(discordUserId) {
 function formatScore(score) {
   if (score === null || score === undefined) return '—'
   return score.toFixed(2)
+}
+
+/**
+ * Handle successful archive
+ */
+function handleArchived(archiveResult) {
+  // Update session status to archived
+  if (sessionsStore.currentSession) {
+    sessionsStore.currentSession.status = 'archived'
+  }
+  console.log('Session archived:', archiveResult)
 }
 
 // =============================================================================

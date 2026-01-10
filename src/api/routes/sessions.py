@@ -14,9 +14,9 @@ MISSION - NEVER TO BE VIOLATED:
 Sessions API Routes - Crisis session endpoints with search, filtering, and
 state management for the dashboard.
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-5-5.1-1
+FILE VERSION: v5.0-9-9.6-1
 LAST MODIFIED: 2026-01-07
-PHASE: Phase 5 - Session Management
+PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -46,7 +46,7 @@ from src.repositories import (
     create_audit_log_repository,
 )
 
-__version__ = "v5.0-5-5.1-1"
+__version__ = "v5.0-9-9.6-1"
 
 # Create router
 router = APIRouter(prefix="/api/sessions", tags=["Sessions"])
@@ -769,7 +769,13 @@ async def reopen_session(
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
         
-        if session.status not in ("closed", "archived"):
+        if session.status == "archived":
+            raise HTTPException(
+                status_code=403,
+                detail="Cannot reopen archived sessions. Archived sessions are permanently sealed."
+            )
+        
+        if session.status != "closed":
             raise HTTPException(
                 status_code=400,
                 detail=f"Cannot reopen session with status: {session.status}"

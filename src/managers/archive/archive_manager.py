@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Archive Manager - Orchestrates session archiving with encryption
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-9-9.4-1
+FILE VERSION: v5.0-9-9.6-1
 LAST MODIFIED: 2026-01-09
 PHASE: Phase 9 - Archive System Implementation
 CLEAN ARCHITECTURE: Compliant (Rule #1 Factory, Rule #2 DI)
@@ -87,7 +87,7 @@ from src.utils.encryption import (
 )
 
 # Module version
-__version__ = "v5.0-9-9.4-1"
+__version__ = "v5.0-9-9.6-1"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -298,11 +298,9 @@ class ArchiveManager:
             storage_key = f"sessions/{session_id}/archive_{timestamp}.enc"
             
             # 6. Upload to MinIO
-            upload_result = await self._minio.upload_archive(
-                archive_id=f"{session_id}_{timestamp}",
-                data=io.BytesIO(encrypted),
-                size=len(encrypted),
-                content_type="application/octet-stream",
+            upload_success = await self._minio.upload_archive(
+                object_name=storage_key,
+                data=encrypted,
                 metadata={
                     "session_id": session_id,
                     "retention_tier": retention_tier,
@@ -312,7 +310,7 @@ class ArchiveManager:
                 },
             )
             
-            if not upload_result:
+            if not upload_success:
                 self._logger.error(f"Failed to upload archive to MinIO for session {session_id}")
                 return ArchiveResult(
                     success=False,
@@ -331,7 +329,7 @@ class ArchiveManager:
                 archive = await self._archive_repo.create_archive(
                     session=db_session,
                     session_id=session_id,
-                    storage_key=upload_result,  # MinIO returns the object path
+                    storage_key=storage_key,
                     checksum=checksum,
                     size_bytes=len(encrypted),
                     archived_by=archived_by_id,
@@ -354,14 +352,14 @@ class ArchiveManager:
                 await db_session.commit()
             
             self._logger.info(
-                f"✅ Archived session {session_id} → {upload_result} "
+                f"✅ Archived session {session_id} → {storage_key} "
                 f"({len(encrypted):,} bytes, {retention_tier} tier)"
             )
             
             return ArchiveResult(
                 success=True,
                 archive_id=archive.id,
-                storage_key=upload_result,
+                storage_key=storage_key,
                 size_bytes=len(encrypted),
                 checksum=checksum,
             )

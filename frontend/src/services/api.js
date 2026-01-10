@@ -13,9 +13,9 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-7-7.4-1
+ * FILE VERSION: v5.0-9-9.5-1
  * LAST MODIFIED: 2026-01-08
- * PHASE: Phase 7 - Documentation Wiki
+ * PHASE: Phase 9 - Archive System Implementation
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -426,6 +426,93 @@ export const wikiApi = {
    * @returns {Promise<{status, docs_path, document_count, pdf_available, categories, tags}>}
    */
   getStatus: () => api.get('/wiki/status'),
+}
+
+// =============================================================================
+// Archives API (Phase 9)
+// =============================================================================
+
+export const archivesApi = {
+  /**
+   * Archive a session
+   * @param {string} sessionId - Session ID to archive
+   * @param {Object} data - Archive options
+   * @param {string} data.retention_tier - 'standard' or 'permanent'
+   * @returns {Promise<ArchiveCreateResponse>}
+   */
+  archiveSession: (sessionId, data = {}) => 
+    api.post(`/archives/session/${sessionId}`, data),
+
+  /**
+   * List archives with filtering
+   * @param {Object} params - Query parameters
+   * @param {number} params.discord_user_id - Filter by Discord user ID
+   * @param {string} params.severity - Filter by severity
+   * @param {string} params.retention_tier - Filter by retention tier
+   * @param {number} params.skip - Records to skip
+   * @param {number} params.limit - Max records (default: 50)
+   * @returns {Promise<{archives, total, skip, limit}>}
+   */
+  list: (params = {}) => api.get('/archives', { params }),
+
+  /**
+   * Get archive storage statistics
+   * @returns {Promise<ArchiveStatistics>}
+   */
+  getStatistics: () => api.get('/archives/statistics'),
+
+  /**
+   * Get archives expiring soon
+   * @param {number} days - Days until expiration (default: 30)
+   * @returns {Promise<Array<ExpiringArchive>>}
+   */
+  getExpiring: (days = 30) => api.get('/archives/expiring', { params: { days } }),
+
+  /**
+   * Get archive metadata
+   * @param {string} archiveId - Archive UUID
+   * @returns {Promise<ArchiveMetadata>}
+   */
+  get: (archiveId) => api.get(`/archives/${archiveId}`),
+
+  /**
+   * Download and decrypt archive
+   * @param {string} archiveId - Archive UUID
+   * @returns {Promise<ArchivePackage>}
+   */
+  download: (archiveId) => api.get(`/archives/${archiveId}/download`),
+
+  /**
+   * Update retention tier
+   * @param {string} archiveId - Archive UUID
+   * @param {string} retentionTier - New tier ('standard' or 'permanent')
+   * @returns {Promise<ArchiveMetadata>}
+   */
+  updateRetention: (archiveId, retentionTier) => 
+    api.put(`/archives/${archiveId}/retention`, { retention_tier: retentionTier }),
+
+  /**
+   * Extend retention by days
+   * @param {string} archiveId - Archive UUID
+   * @param {number} days - Days to extend
+   * @returns {Promise<ArchiveMetadata>}
+   */
+  extendRetention: (archiveId, days) => 
+    api.post(`/archives/${archiveId}/extend`, { days }),
+
+  /**
+   * Delete an archive (admin only)
+   * @param {string} archiveId - Archive UUID
+   * @returns {Promise<void>}
+   */
+  delete: (archiveId) => api.delete(`/archives/${archiveId}`),
+
+  /**
+   * Check if session is archived
+   * @param {string} sessionId - Session ID
+   * @returns {Promise<{session_id, is_archived, archive?}>}
+   */
+  checkSession: (sessionId) => api.get(`/archives/session/${sessionId}/check`),
 }
 
 // =============================================================================

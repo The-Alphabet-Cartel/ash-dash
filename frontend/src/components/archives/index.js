@@ -4,7 +4,7 @@
  * The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
  * ============================================================================
  *
- * Stores Index - Export all Pinia stores
+ * Archives Components Index
  * ----------------------------------------------------------------------------
  * FILE VERSION: v5.0-9-9.5-1
  * LAST MODIFIED: 2026-01-09
@@ -13,14 +13,4 @@
  * ============================================================================
  */
 
-// Theme store (Phase 3)
-export { useThemeStore } from './theme'
-
-// Dashboard store (Phase 4)
-export { useDashboardStore } from './dashboard'
-
-// Sessions store (Phase 5)
-export { useSessionsStore } from './sessions'
-
-// Archives store (Phase 9)
-export { useArchivesStore } from './archives'
+export { default as ArchiveButton } from './ArchiveButton.vue'
