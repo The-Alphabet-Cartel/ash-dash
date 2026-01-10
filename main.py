@@ -65,12 +65,13 @@ from src.api.routes.dashboard import router as dashboard_router
 from src.api.routes.notes import router as notes_router
 from src.api.routes.wiki import router as wiki_router
 from src.api.routes.archives import router as archives_router
+from src.api.routes.admin import router as admin_router
 
 # =============================================================================
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-9-9.5-1"
+__version__ = "v5.0-9-9.9-1"
 
 # Frontend build directory
 FRONTEND_DIR = Path(__file__).parent / "frontend" / "dist"
@@ -275,6 +276,7 @@ app.include_router(dashboard_router)
 app.include_router(notes_router)
 app.include_router(wiki_router)
 app.include_router(archives_router)
+app.include_router(admin_router)
 
 
 # =============================================================================
