@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Archives Page - Browse and manage encrypted session archives
 ============================================================================
-FILE VERSION: v5.0-9-9.7-1
-LAST MODIFIED: 2026-01-09
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-11-11.2-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -155,44 +155,39 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     </div>
 
     <!-- Error Banner -->
-    <div 
-      v-if="error" 
-      class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-    >
-      <div class="flex items-center gap-3">
-        <AlertCircle class="w-5 h-5 text-red-500 flex-shrink-0" />
-        <p class="text-sm text-red-700 dark:text-red-300">{{ error }}</p>
-        <button 
-          @click="refresh" 
-          class="ml-auto text-sm font-medium text-red-600 dark:text-red-400 hover:underline"
-        >
-          Retry
-        </button>
-      </div>
-    </div>
+    <ErrorMessage
+      v-if="error"
+      class="mb-6"
+      title="Unable to load archives"
+      :message="error"
+      @retry="refresh"
+    />
 
     <!-- Archives Table -->
     <div class="card overflow-hidden">
       <!-- Loading State -->
-      <div v-if="isLoading && archives.length === 0" class="p-8 text-center">
-        <Loader2 class="w-8 h-8 mx-auto mb-3 text-purple-500 animate-spin" />
-        <p class="text-gray-500 dark:text-gray-400">Loading archives...</p>
-      </div>
+      <SkeletonList 
+        v-if="isLoading && archives.length === 0"
+        :rows="8"
+        show-indicator
+        show-action
+        class="p-4"
+      />
 
       <!-- Empty State -->
-      <div v-else-if="archives.length === 0" class="p-8 text-center">
-        <Archive class="w-12 h-12 mx-auto mb-3 text-gray-400" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No Archives Found</h3>
-        <p class="text-gray-500 dark:text-gray-400">
-          {{ hasActiveFilters 
-            ? 'No archives match your filters. Try adjusting your search criteria.' 
-            : 'Archived sessions will appear here. Close and archive sessions to preserve them.'
-          }}
-        </p>
-      </div>
+      <EmptyState
+        v-else-if="archives.length === 0 && !error"
+        :variant="hasActiveFilters ? 'filter' : 'archive'"
+        :title="hasActiveFilters ? 'No archives match your filters' : 'No archives yet'"
+        :message="hasActiveFilters 
+          ? 'Try adjusting your search criteria.' 
+          : 'Archived sessions will appear here. Close and archive sessions to preserve them.'"
+        :action-label="hasActiveFilters ? 'Clear filters' : null"
+        @action="clearAllFilters"
+      />
 
       <!-- Table -->
-      <table v-else class="w-full">
+      <table v-else-if="archives.length > 0" class="w-full">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
@@ -352,8 +347,7 @@ import {
   Search, 
   X, 
   RefreshCw, 
-  FilterX, 
-  AlertCircle,
+  FilterX,
   Loader2,
   HardDrive,
   Lock,
@@ -363,6 +357,7 @@ import {
   Download
 } from 'lucide-vue-next'
 import { MainLayout } from '@/components/layout'
+import { ErrorMessage, EmptyState, SkeletonList } from '@/components/common'
 import { SeverityBadge } from '@/components/sessions'
 import { useArchivesStore } from '@/stores'
 

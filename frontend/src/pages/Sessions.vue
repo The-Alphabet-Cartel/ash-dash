@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Sessions Page - Session list with search, filters, and pagination
 ============================================================================
-FILE VERSION: v5.0-5-5.4-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 5 - Session Management
+FILE VERSION: v5.0-11-11.2-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -123,24 +123,35 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     </div>
 
     <!-- Error Banner -->
-    <div 
-      v-if="sessionsStore.error" 
-      class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-    >
-      <div class="flex items-center gap-3">
-        <AlertCircle class="w-5 h-5 text-red-500 flex-shrink-0" />
-        <p class="text-sm text-red-700 dark:text-red-300">{{ sessionsStore.error }}</p>
-        <button 
-          @click="refresh" 
-          class="ml-auto text-sm font-medium text-red-600 dark:text-red-400 hover:underline"
-        >
-          Retry
-        </button>
-      </div>
-    </div>
+    <ErrorMessage
+      v-if="sessionsStore.error"
+      class="mb-6"
+      title="Unable to load sessions"
+      :message="sessionsStore.error"
+      @retry="refresh"
+    />
+
+    <!-- Loading State -->
+    <SkeletonList 
+      v-if="sessionsStore.isLoading && sessionsStore.sessions.length === 0"
+      :rows="10"
+      show-indicator
+      show-action
+    />
+
+    <!-- Empty State -->
+    <EmptyState
+      v-else-if="!sessionsStore.isLoading && sessionsStore.sessions.length === 0 && !sessionsStore.error"
+      :variant="sessionsStore.hasFilters ? 'filter' : 'default'"
+      :title="sessionsStore.hasFilters ? 'No sessions match your filters' : 'No sessions yet'"
+      :message="emptyMessage"
+      :action-label="sessionsStore.hasFilters ? 'Clear filters' : null"
+      @action="clearAllFilters"
+    />
 
     <!-- Sessions Table -->
     <SessionsTable
+      v-else
       :sessions="sessionsStore.sessions"
       :total="sessionsStore.total"
       :loading="sessionsStore.isLoading"
@@ -165,8 +176,9 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Search, X, RefreshCw, FilterX, AlertCircle } from 'lucide-vue-next'
+import { Search, X, RefreshCw, FilterX } from 'lucide-vue-next'
 import { MainLayout } from '@/components/layout'
+import { ErrorMessage, EmptyState, SkeletonList } from '@/components/common'
 import { SessionsTable, Pagination } from '@/components/sessions'
 import { useSessionsStore } from '@/stores'
 

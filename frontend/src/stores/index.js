@@ -6,9 +6,9 @@
  *
  * Stores Index - Export all Pinia stores
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-10-10.3-1
+ * FILE VERSION: v5.0-11-11.1-1
  * LAST MODIFIED: 2026-01-10
- * PHASE: Phase 10 - Authentication & Authorization
+ * PHASE: Phase 11 - Polish & Documentation
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
  */
@@ -27,3 +27,6 @@ export { useSessionsStore } from './sessions'
 
 // Archives store (Phase 9)
 export { useArchivesStore } from './archives'
+
+// UI store (Phase 11) - Sidebar state, layout preferences
+export { useUiStore } from './ui'

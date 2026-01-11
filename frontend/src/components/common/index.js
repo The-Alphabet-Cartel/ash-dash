@@ -4,36 +4,20 @@
  * The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
  * ============================================================================
  *
- * Services Index - Export all API services and utilities
+ * Common Components Index - Export all shared/common components
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-11-11.3-1
+ * FILE VERSION: v5.0-11-11.2-1
  * LAST MODIFIED: 2026-01-10
  * PHASE: Phase 11 - Polish & Documentation
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
  */
 
-// API Services
-export { 
-  default as api, 
-  healthApi, 
-  sessionsApi, 
-  usersApi, 
-  notesApi,
-  dashboardApi,
-  wikiApi,
-  archivesApi,
-  authApi,
-  adminApi,
-} from './api'
+// Loading states
+export { default as LoadingSpinner } from './LoadingSpinner.vue'
+export { default as SkeletonCard } from './SkeletonCard.vue'
+export { default as SkeletonList } from './SkeletonList.vue'
 
-// Caching utilities
-export {
-  cachedRequest,
-  clearCache,
-  clearCachePrefix,
-  getCacheStats,
-  preloadCache,
-  CacheTTL,
-  CacheKeys,
-} from './cache'
+// Feedback states
+export { default as ErrorMessage } from './ErrorMessage.vue'
+export { default as EmptyState } from './EmptyState.vue'

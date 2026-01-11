@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Dashboard Page - Main dashboard view with metrics, charts, and active sessions
 ============================================================================
-FILE VERSION: v5.0-4-4.7-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 4 - Dashboard & Metrics
+FILE VERSION: v5.0-11-11.2-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -70,22 +70,14 @@ FEATURES:
     </div>
 
     <!-- Error Banner -->
-    <div 
-      v-if="dashboard.hasError" 
-      class="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-    >
-      <div class="flex items-center gap-3">
-        <AlertCircle class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-        <div>
-          <p class="text-sm font-medium text-red-800 dark:text-red-200">
-            {{ dashboard.error }}
-          </p>
-          <p class="text-xs text-red-600 dark:text-red-400 mt-1">
-            Data may be outdated. Will retry automatically.
-          </p>
-        </div>
-      </div>
-    </div>
+    <ErrorMessage
+      v-if="dashboard.hasError"
+      class="mb-6"
+      title="Unable to load dashboard data"
+      :message="dashboard.error || 'Please check your connection and try again.'"
+      :details="dashboard.errorDetails"
+      @retry="handleRefresh"
+    />
 
     <!-- Metrics Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -172,6 +164,7 @@ FEATURES:
 <script setup>
 import { computed, onMounted, onUnmounted } from 'vue'
 import { MainLayout } from '@/components/layout'
+import { ErrorMessage } from '@/components/common'
 import { 
   MetricCard, 
   CrisisTrendsChart, 
@@ -186,7 +179,6 @@ import {
   TrendingUp, 
   Users,
   RefreshCw,
-  AlertCircle,
 } from 'lucide-vue-next'
 
 // =============================================================================

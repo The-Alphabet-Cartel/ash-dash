@@ -6,9 +6,9 @@
  *
  * TailwindCSS Configuration - Custom theme with severity colors
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-3-3.1-1
- * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 3 - Frontend Foundation
+ * FILE VERSION: v5.0-11-11.1-1
+ * LAST MODIFIED: 2026-01-10
+ * PHASE: Phase 11 - Polish & Documentation
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
  */
@@ -70,7 +70,13 @@ export default {
       // Custom spacing for layout
       spacing: {
         'sidebar': '256px',
+        'sidebar-collapsed': '64px',
         'header': '64px',
+      },
+      
+      // Transition durations
+      transitionDuration: {
+        'sidebar': '200ms',
       },
       
       // Custom border radius

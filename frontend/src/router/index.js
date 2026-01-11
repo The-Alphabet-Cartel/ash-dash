@@ -13,9 +13,9 @@
  * ============================================================================
  * Vue Router Configuration - OIDC Authentication and Route Guards
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-10-10.4-1
+ * FILE VERSION: v5.0-11-11.3-1
  * LAST MODIFIED: 2026-01-10
- * PHASE: Phase 10 - Authentication & Authorization
+ * PHASE: Phase 11 - Polish & Documentation
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -51,7 +51,7 @@ const routes = [
   {
     path: '/',
     name: 'dashboard',
-    component: () => import('@/pages/Dashboard.vue'),
+    component: () => import(/* webpackChunkName: "main" */ '@/pages/Dashboard.vue'),
     meta: { 
       title: 'Dashboard', 
       requiresAuth: true,
@@ -60,7 +60,7 @@ const routes = [
   {
     path: '/sessions',
     name: 'sessions',
-    component: () => import('@/pages/Sessions.vue'),
+    component: () => import(/* webpackChunkName: "main" */ '@/pages/Sessions.vue'),
     meta: { 
       title: 'Sessions', 
       requiresAuth: true,
@@ -69,7 +69,7 @@ const routes = [
   {
     path: '/sessions/:id',
     name: 'session-detail',
-    component: () => import('@/pages/SessionDetail.vue'),
+    component: () => import(/* webpackChunkName: "detail" */ '@/pages/SessionDetail.vue'),
     meta: { 
       title: 'Session Detail', 
       requiresAuth: true,
@@ -78,7 +78,7 @@ const routes = [
   {
     path: '/archives',
     name: 'archives',
-    component: () => import('@/pages/Archives.vue'),
+    component: () => import(/* webpackChunkName: "main" */ '@/pages/Archives.vue'),
     meta: { 
       title: 'Archives', 
       requiresAuth: true,
@@ -87,7 +87,7 @@ const routes = [
   {
     path: '/archives/:id',
     name: 'archive-detail',
-    component: () => import('@/pages/ArchiveDetail.vue'),
+    component: () => import(/* webpackChunkName: "detail" */ '@/pages/ArchiveDetail.vue'),
     meta: { 
       title: 'Archive Detail', 
       requiresAuth: true,
@@ -96,7 +96,7 @@ const routes = [
   {
     path: '/wiki',
     name: 'documentation',
-    component: () => import('@/pages/Documentation.vue'),
+    component: () => import(/* webpackChunkName: "wiki" */ '@/pages/Documentation.vue'),
     meta: { 
       title: 'Documentation', 
       requiresAuth: true,
@@ -108,7 +108,7 @@ const routes = [
   // -------------------------------------------------------------------------
   {
     path: '/admin',
-    component: () => import('@/pages/admin/AdminLayout.vue'),
+    component: () => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminLayout.vue'),
     meta: { 
       title: 'Administration',
       requiresAuth: true, 
@@ -123,7 +123,7 @@ const routes = [
       {
         path: 'users',
         name: 'admin-users',
-        component: () => import('@/pages/admin/Users.vue'),
+        component: () => import(/* webpackChunkName: "admin" */ '@/pages/admin/Users.vue'),
         meta: { 
           title: 'CRT Roster', 
           minRole: 'lead',
@@ -132,7 +132,7 @@ const routes = [
       {
         path: 'audit',
         name: 'admin-audit',
-        component: () => import('@/pages/admin/AuditLogs.vue'),
+        component: () => import(/* webpackChunkName: "admin" */ '@/pages/admin/AuditLogs.vue'),
         meta: { 
           title: 'Audit Logs', 
           minRole: 'lead',
@@ -141,7 +141,7 @@ const routes = [
       {
         path: 'health',
         name: 'admin-health',
-        component: () => import('@/pages/admin/SystemHealth.vue'),
+        component: () => import(/* webpackChunkName: "admin" */ '@/pages/admin/SystemHealth.vue'),
         meta: { 
           title: 'System Health', 
           minRole: 'admin',
@@ -156,7 +156,7 @@ const routes = [
   {
     path: '/unauthorized',
     name: 'unauthorized',
-    component: () => import('@/pages/Unauthorized.vue'),
+    component: () => import(/* webpackChunkName: "error" */ '@/pages/Unauthorized.vue'),
     meta: { 
       title: 'Unauthorized',
       requiresAuth: false,
@@ -165,7 +165,7 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: () => import('@/pages/NotFound.vue'),
+    component: () => import(/* webpackChunkName: "error" */ '@/pages/NotFound.vue'),
     meta: { 
       title: 'Not Found',
       requiresAuth: false,
