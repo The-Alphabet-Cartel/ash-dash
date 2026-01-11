@@ -78,15 +78,15 @@ Ash-Dash is part of the **Ash Crisis Detection Ecosystem**:
 │                     Ash Ecosystem                           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    │
-│   │   Ash-Bot   │───▶│   Ash-NLP   │    │  Ash-Dash   │    │
-│   │  (Discord)  │◀───│   (ML/AI)   │    │ (Dashboard) │    │
-│   └──────┬──────┘    └─────────────┘    └──────┬──────┘    │
-│          │                                      │           │
-│          │           ┌─────────────┐           │           │
-│          └──────────▶│    Redis    │◀──────────┘           │
-│                      │  (Shared)   │                       │
-│                      └─────────────┘                       │
+│   ┌─────────────┐    ┌─────────────┐    ┌──────────────┐    │
+│   │   Ash-Bot   │───>│   Ash-NLP   │    │  Ash-Dash    │    │
+│   │  (Discord)  │<───│   (ML/AI)   │    │ (Dashboard)  │    │
+│   └──────┬──────┘    └─────────────┘    └──────┬───────┘    │
+│          │                                     │            │
+│          │           ┌─────────────┐           │            │
+│          └──────────>│    Redis    │<──────────┘            │
+│                      │  (Shared)   │                        │
+│                      └─────────────┘                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -244,8 +244,6 @@ Ash-Dash includes a built-in documentation wiki accessible from the dashboard na
 1. Create a Markdown file in `docs/wiki/<category>/`
 2. Add YAML frontmatter with title, description, and tags
 3. Restart the container or wait for wiki cache refresh
-
-See [docs/standards/](docs/standards/) for templates and guidelines.
 
 ---
 
