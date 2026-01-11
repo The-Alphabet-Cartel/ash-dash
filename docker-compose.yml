@@ -83,7 +83,6 @@ services:
     # Environment variables
     environment:
       <<: *env
-      DASH_PORT: 30883
       # Database connection is built programmatically from:
       # - .env file (host, port, database, user)
       # - Docker secrets (password from postgres_token)
@@ -98,6 +97,7 @@ services:
       - ./logs:/app/logs
       # Testing (Development only - remove in production)
       - ./tests:/app/tests
+      - ./frontend/tests:/app/frontend/tests
 
     # Port mapping (Ash-Dash: 30883)
     ports:

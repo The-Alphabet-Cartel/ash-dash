@@ -79,14 +79,11 @@ export default defineConfig({
     // CSS code splitting
     cssCodeSplit: true,
     
-    // Minification settings
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,  // Remove console.log in production
-        drop_debugger: true, // Remove debugger statements
-      },
-    },
+    // Minification settings (using esbuild - faster than terser)
+    minify: 'esbuild',
+    
+    // Target modern browsers for better optimization
+    target: 'es2020',
     
     // Rollup optimization settings
     rollupOptions: {

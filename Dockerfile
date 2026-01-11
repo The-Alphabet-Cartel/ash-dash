@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Production Dockerfile (Multi-Stage Build)
 # ============================================================================
-# FILE VERSION: v5.0-7-7.8-3
-# LAST MODIFIED: 2026-01-09
+# FILE VERSION: v5.0-11-11.4-1
+# LAST MODIFIED: 2026-01-10
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -102,8 +102,12 @@ WORKDIR /app
 
 # Install runtime dependencies including WeasyPrint system libraries (Phase 7)
 # WeasyPrint requires: Pango, HarfBuzz, Cairo, GDK-PixBuf, Fontconfig
+# Node.js included for running frontend tests
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    # Node.js for frontend testing
+    nodejs \
+    npm \
     # WeasyPrint dependencies (Phase 7 - PDF generation)
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
@@ -134,6 +138,12 @@ COPY --chown=ashuser:ashgroup . .
 
 # Copy built frontend from frontend stage
 COPY --from=frontend --chown=ashuser:ashgroup /frontend/dist /app/frontend/dist
+
+# Copy frontend source for testing (npm install required before running tests)
+COPY --chown=ashuser:ashgroup frontend/package*.json /app/frontend/
+COPY --chown=ashuser:ashgroup frontend/vitest.config.js /app/frontend/
+COPY --chown=ashuser:ashgroup frontend/tests /app/frontend/tests
+COPY --chown=ashuser:ashgroup frontend/src /app/frontend/src
 
 # Switch to non-root user
 USER ashuser
