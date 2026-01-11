@@ -5,8 +5,8 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Documentation Page - Wiki and training materials with role-based access
 ============================================================================
-FILE VERSION: v5.0-11-11.11-1
-LAST MODIFIED: 2026-01-10
+FILE VERSION: v5.0-11-11.4-1
+LAST MODIFIED: 2026-01-11
 PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -372,7 +372,8 @@ import {
   HelpCircle,
   Home,
   Server,
-  Wrench
+  Wrench,
+  Rocket
 } from 'lucide-vue-next'
 
 // =============================================================================
@@ -420,6 +421,7 @@ const categoryIcons = {
   'help-circle': HelpCircle,
   'server': Server,
   'wrench': Wrench,
+  'rocket': Rocket,
 }
 
 function getCategoryIcon(iconName) {

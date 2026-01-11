@@ -13,8 +13,8 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki Manager - Documentation wiki management system
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-11-11.11-1
-LAST MODIFIED: 2026-01-10
+FILE VERSION: v5.0-11-11.4-1
+LAST MODIFIED: 2026-01-11
 PHASE: Phase 11 - Polish & Documentation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -106,6 +106,11 @@ CATEGORY_CONFIG: Dict[str, Dict[str, str]] = {
         "name": "Training",
         "icon": "graduation-cap",
         "description": "Onboarding and training materials",
+    },
+    "future": {
+        "name": "Future Enhancements",
+        "icon": "rocket",
+        "description": "Planned features and roadmaps for the Ash ecosystem",
     },
     "general": {
         "name": "General",

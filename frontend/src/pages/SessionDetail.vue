@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Session Detail Page - Comprehensive session view with analysis and history
 ============================================================================
-FILE VERSION: v5.0-11-11.3-6
-LAST MODIFIED: 2026-01-10
-PHASE: Phase 11 - Polish & Documentation (ARIA)
+FILE VERSION: v5.0-11-11.4-1
+LAST MODIFIED: 2026-01-11
+PHASE: Phase 11 - Session Claim Feature
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -42,6 +42,40 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           :session-status="session.status"
           @archived="handleArchived"
         />
+
+        <!-- Claim/Release Button (for active sessions) -->
+        <template v-if="session.status === 'active'">
+          <!-- Unassigned: Show Claim button -->
+          <button
+            v-if="!session.crt_user_id"
+            @click="handleClaimSession"
+            :disabled="isClaiming"
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <UserPlus class="w-4 h-4" aria-hidden="true" />
+            {{ isClaiming ? 'Claiming...' : 'Claim' }}
+          </button>
+
+          <!-- Claimed by me: Show Release button -->
+          <button
+            v-else-if="session.crt_user_id === authStore.userId"
+            @click="handleReleaseSession"
+            :disabled="isReleasing"
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-600 dark:text-amber-400 border border-amber-600 dark:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <UserMinus class="w-4 h-4" aria-hidden="true" />
+            {{ isReleasing ? 'Releasing...' : 'Release' }}
+          </button>
+
+          <!-- Claimed by someone else: Show assigned badge -->
+          <span
+            v-else
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 rounded-lg"
+          >
+            <User class="w-4 h-4" aria-hidden="true" />
+            Assigned to {{ session.crt_user?.name || 'CRT Member' }}
+          </span>
+        </template>
 
         <!-- Close Session Button (any CRT member) -->
         <button
@@ -246,7 +280,10 @@ import {
   AlertCircle, 
   XCircle, 
   RotateCcw,
-  Archive
+  Archive,
+  UserPlus,
+  UserMinus,
+  User
 } from 'lucide-vue-next'
 import { MainLayout } from '@/components/layout'
 import { 
@@ -277,6 +314,8 @@ const showCloseModal = ref(false)
 const closingSummary = ref('')
 const isClosing = ref(false)
 const isReopening = ref(false)
+const isClaiming = ref(false)
+const isReleasing = ref(false)
 
 // =============================================================================
 // Computed Properties
@@ -311,6 +350,34 @@ async function loadSession() {
     }
   } catch (err) {
     console.error('Failed to load session:', err)
+  }
+}
+
+/**
+ * Claim session (assign current user)
+ */
+async function handleClaimSession() {
+  isClaiming.value = true
+  try {
+    await sessionsStore.assignSession(sessionId.value, authStore.userId)
+  } catch (err) {
+    console.error('Failed to claim session:', err)
+  } finally {
+    isClaiming.value = false
+  }
+}
+
+/**
+ * Release session (unassign current user)
+ */
+async function handleReleaseSession() {
+  isReleasing.value = true
+  try {
+    await sessionsStore.unassignSession(sessionId.value)
+  } catch (err) {
+    console.error('Failed to release session:', err)
+  } finally {
+    isReleasing.value = false
   }
 }
 

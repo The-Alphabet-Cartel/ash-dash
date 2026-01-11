@@ -13,9 +13,9 @@
  * ============================================================================
  * Sessions Store - Pinia store for session list state management
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-5-5.4-1
- * LAST MODIFIED: 2026-01-07
- * PHASE: Phase 5 - Session Management
+ * FILE VERSION: v5.0-11-11.4-1
+ * LAST MODIFIED: 2026-01-11
+ * PHASE: Phase 11 - Session Claim Feature
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -287,6 +287,59 @@ export const useSessionsStore = defineStore('sessions', () => {
   }
   
   /**
+  * Assign current user to a session (claim)
+  * @param {string} sessionId - Session ID
+  * @param {string} userId - CRT user UUID to assign
+  */
+  async function assignSession(sessionId, userId) {
+    try {
+      const response = await sessionsApi.assign(sessionId, userId)
+      
+      // Update in list if present
+      const index = sessions.value.findIndex(s => s.id === sessionId)
+      if (index !== -1) {
+        sessions.value[index] = response.data
+      }
+      
+      // Update current session if it's the one we assigned
+      if (currentSession.value?.id === sessionId) {
+        currentSession.value = response.data
+      }
+      
+      return response.data
+    } catch (err) {
+      console.error('Failed to assign session:', err)
+      throw err
+    }
+  }
+  
+  /**
+   * Unassign current user from a session (release)
+   * @param {string} sessionId - Session ID
+   */
+  async function unassignSession(sessionId) {
+    try {
+      const response = await sessionsApi.unassign(sessionId)
+      
+      // Update in list if present
+      const index = sessions.value.findIndex(s => s.id === sessionId)
+      if (index !== -1) {
+        sessions.value[index] = response.data
+      }
+      
+      // Update current session if it's the one we unassigned
+      if (currentSession.value?.id === sessionId) {
+        currentSession.value = response.data
+      }
+      
+      return response.data
+    } catch (err) {
+      console.error('Failed to unassign session:', err)
+      throw err
+    }
+  }
+  
+  /**
    * Clear current session detail
    */
   function clearCurrentSession() {
@@ -331,6 +384,8 @@ export const useSessionsStore = defineStore('sessions', () => {
     fetchUserHistory,
     closeSession,
     reopenSession,
+    assignSession,
+    unassignSession,
     clearCurrentSession,
   }
 })
