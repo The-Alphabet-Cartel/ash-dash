@@ -13,8 +13,8 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Authentication Middleware - Session-Based Authorization
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.4-1
-LAST MODIFIED: 2026-01-10
+FILE VERSION: v5.0-11-11.4-2
+LAST MODIFIED: 2026-01-11
 PHASE: Phase 10 - Authentication & Authorization
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -57,6 +57,7 @@ USAGE:
             pass
 """
 
+import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
@@ -75,10 +76,67 @@ from src.models.enums import (
 )
 
 # Module version
-__version__ = "v5.0-10-10.4-1"
+__version__ = "v5.0-11-11.4-2"
 
 # Initialize logger
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# Token Refresh Lock Manager
+# =============================================================================
+
+class TokenRefreshLockManager:
+    """
+    Manages per-session locks for token refresh operations.
+    
+    Prevents race conditions where multiple concurrent requests
+    try to refresh the same session's tokens simultaneously.
+    With rotating refresh tokens, only the first refresh succeeds
+    and subsequent attempts fail because the token was invalidated.
+    
+    This manager ensures only one refresh happens per session at a time.
+    Other requests wait for the refresh to complete and then use the
+    newly refreshed session.
+    """
+    
+    def __init__(self):
+        """Initialize the lock manager."""
+        self._locks: Dict[str, asyncio.Lock] = {}
+        self._lock_guard = asyncio.Lock()  # Guards access to _locks dict
+    
+    async def get_lock(self, session_id: str) -> asyncio.Lock:
+        """
+        Get or create a lock for a specific session.
+        
+        Args:
+            session_id: The session ID to get a lock for
+            
+        Returns:
+            asyncio.Lock for this session
+        """
+        async with self._lock_guard:
+            if session_id not in self._locks:
+                self._locks[session_id] = asyncio.Lock()
+            return self._locks[session_id]
+    
+    async def cleanup_lock(self, session_id: str) -> None:
+        """
+        Remove a lock when no longer needed.
+        
+        Called after successful operations to prevent memory buildup.
+        Only removes if the lock is not currently held.
+        
+        Args:
+            session_id: The session ID to clean up
+        """
+        async with self._lock_guard:
+            lock = self._locks.get(session_id)
+            if lock and not lock.locked():
+                del self._locks[session_id]
+
+
+# Global lock manager instance
+_refresh_lock_manager = TokenRefreshLockManager()
 
 
 # =============================================================================
@@ -469,6 +527,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
     ) -> None:
         """
         Refresh tokens for a session that is near expiry.
+        
+        Uses a per-session mutex to prevent race conditions where
+        multiple concurrent requests try to refresh the same token.
+        With rotating refresh tokens, only the first refresh succeeds;
+        subsequent attempts fail because the old token is invalidated.
+        
+        This method:
+        1. Acquires a lock for this specific session
+        2. Re-checks if refresh is still needed (another request may have completed it)
+        3. Performs the refresh if still needed
+        4. Releases the lock
 
         Args:
             request: FastAPI request
@@ -476,22 +545,55 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """
         oidc_service = getattr(request.app.state, "oidc_service", None)
         session_manager = request.app.state.session_manager
+        oidc_config = getattr(request.app.state, "oidc_config", None)
 
         if not oidc_service or not session.refresh_token:
             return
 
+        # Get the lock for this session
+        lock = await _refresh_lock_manager.get_lock(session.session_id)
+        
         try:
-            # Refresh tokens
-            new_tokens = await oidc_service.refresh_tokens(session.refresh_token)
+            # Acquire lock - other requests for this session will wait here
+            async with lock:
+                # Re-fetch session to check if another request already refreshed
+                current_session = await session_manager.get_session(session.session_id)
+                
+                if current_session is None:
+                    # Session was invalidated while waiting
+                    logger.debug(f"Session {session.session_id[:8]}... invalidated during refresh wait")
+                    return
+                
+                # Check if refresh is still needed
+                # Another request may have refreshed while we were waiting for the lock
+                if oidc_config and not current_session.should_refresh_token(
+                    oidc_config.token_refresh_threshold
+                ):
+                    logger.debug(
+                        f"Token already refreshed by another request for {session.email}"
+                    )
+                    return
+                
+                # Still needs refresh - proceed
+                logger.debug(f"Refreshing tokens for {session.email}")
+                
+                # Refresh tokens
+                new_tokens = await oidc_service.refresh_tokens(
+                    current_session.refresh_token
+                )
 
-            # Update session
-            await session_manager.update_session(session.session_id, new_tokens)
+                # Update session with new tokens
+                await session_manager.update_session(session.session_id, new_tokens)
 
-            logger.debug(f"Tokens refreshed for {session.email}")
+                logger.info(f"✅ Tokens refreshed for {session.email}")
 
         except Exception as e:
             # Log but don't fail the request - session still valid until expiry
-            logger.warning(f"Token refresh failed for {session.user_id}: {e}")
+            logger.warning(f"⚠️ Token refresh failed for {session.session_id[:8]}...: {e}")
+        
+        finally:
+            # Clean up lock if no longer held (prevents memory buildup)
+            await _refresh_lock_manager.cleanup_lock(session.session_id)
 
     def _is_api_request(self, request: Request) -> bool:
         """
