@@ -1,82 +1,154 @@
-# Dockerfile for Ash Analytics Dashboard
-FROM node:18-alpine
+# ============================================================================
+# Ash-Dash v5.0 Production Dockerfile (Multi-Stage Build)
+# ============================================================================
+# FILE VERSION: v5.0-11-11.11-1
+# LAST MODIFIED: 2026-01-10
+# Repository: https://github.com/the-alphabet-cartel/ash-dash
+# Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
+# ============================================================================
+#
+# USAGE:
+#   # Build the image
+#   docker build -t ghcr.io/the-alphabet-cartel/ash-dash:latest .
+#
+#   # Run with docker-compose (recommended)
+#   docker-compose up -d
+#
+# MULTI-STAGE BUILD:
+#   Stage 1 (frontend): Build Vue.js frontend with Node.js
+#   Stage 2 (builder): Install Python dependencies
+#   Stage 3 (runtime): Minimal production image with built frontend
+#
+# DOCKER-FIRST PHILOSOPHY:
+#   - No Node.js required on host machine
+#   - Frontend built entirely inside Docker
+#   - FastAPI serves static files in production
+#
+# CLEAN ARCHITECTURE: Rule #12 - Environment Version Specificity
+#   All pip commands use python3.11 -m pip for version consistency
+#
+# ============================================================================
 
-# Install runtime dependencies
-RUN apk add --no-cache curl dumb-init openssl
+# =============================================================================
+# Stage 1: Frontend Builder - Build Vue.js application
+# =============================================================================
+FROM node:20-alpine AS frontend
 
-# Create non-root user
-RUN addgroup -g 1001 -S dashuser && \
-    adduser -S dashuser -u 1001
+WORKDIR /frontend
 
-# Set working directory
+# Copy package files first for layer caching
+COPY frontend/package*.json ./
+
+# Install dependencies (generates package-lock.json)
+RUN npm install --no-audit --no-fund
+
+# Copy frontend source
+COPY frontend/ ./
+
+# Build for production
+RUN npm run build
+
+
+# =============================================================================
+# Stage 2: Python Builder - Install Python dependencies
+# =============================================================================
+FROM python:3.11-slim AS builder
+
+# Set build-time environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /build
+
+# Install build dependencies (including WeasyPrint build deps)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libharfbuzz0b \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for layer caching
+COPY requirements.txt .
+
+# Install Python dependencies
+# Rule #12: Use python3.11 -m pip for version specificity
+RUN python3.11 -m pip install --upgrade pip && \
+    python3.11 -m pip install --no-cache-dir -r requirements.txt
+
+
+# =============================================================================
+# Stage 3: Runtime - Production image
+# =============================================================================
+FROM python:3.11-slim AS runtime
+
+# Set runtime environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    # Application defaults
+    DASH_HOST=0.0.0.0 \
+    DASH_PORT=30883 \
+    DASH_ENVIRONMENT=production \
+    DASH_LOG_LEVEL=INFO \
+    DASH_LOG_FORMAT=human \
+    TZ=America/Los_Angeles
+
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY dashboard/package*.json ./
-RUN npm install --only=production && npm cache clean --force
+# Install runtime dependencies including WeasyPrint system libraries (Phase 7)
+# WeasyPrint requires: Pango, HarfBuzz, Cairo, GDK-PixBuf, Fontconfig
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    # WeasyPrint dependencies (Phase 7 - PDF generation)
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libfontconfig1 \
+    libfreetype6 \
+    libgdk-pixbuf-2.0-0 \
+    libcairo2 \
+    # Font support for PDF generation
+    fonts-dejavu-core \
+    fonts-noto-color-emoji \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Copy application files
-COPY dashboard/server.js ./
-COPY public/ ./public/
+# Copy installed packages from builder stage
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Create necessary directories and set permissions
-RUN mkdir -p logs data cache certs && \
-    chown -R dashuser:dashuser /app
+# Create non-root user for security
+RUN groupadd -g 1001 ashgroup && \
+    useradd -m -u 1001 -g ashgroup ashuser && \
+    mkdir -p /app/logs /app/cache /app/frontend/dist && \
+    chown -R ashuser:ashgroup /app
 
-# Generate self-signed SSL certificate for development
-RUN openssl req -x509 -newkey rsa:2048 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes \
-    -subj '/C=US/ST=WA/L=Lacey/O=The Alphabet Cartel/CN=10.20.30.253' && \
-    chown dashuser:dashuser certs/*.pem
+# Copy application code
+COPY --chown=ashuser:ashgroup . .
+
+# Copy built frontend from frontend stage
+COPY --from=frontend --chown=ashuser:ashgroup /frontend/dist /app/frontend/dist
 
 # Switch to non-root user
-USER dashuser
+USER ashuser
 
-# Set environment variables
-ENV GLOBAL_DASH_API_PORT="8883"
+# Expose the application port
+EXPOSE 30883
 
-# SSL Configuration
-ENV DASH_ENABLE_SSL="true"
-ENV DASH_SSL_CERT_PATH="/app/certs/cert.pem"
-ENV DASH_SSL_KEY_PATH="/app/certs/key.pem"
+# Health check using curl
+# Interval: Check every 30 seconds
+# Timeout: Wait up to 10 seconds for response
+# Start-period: Give the app 120 seconds to start (for cold starts)
+# Retries: Fail after 3 consecutive failures
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost:30883/health || exit 1
 
-# Ash Bot API (Discord Bot with Crisis Detection)
-ENV GLOBAL_BOT_API_URL="http://10.20.30.253:8882"
-ENV DASH_BOT_API_TIMEOUT="5000"
-
-# Ash NLP Server API (Machine Learning Analysis)
-ENV GLOBAL_NLP_API_URL="http://10.20.30.253:8881"
-ENV DASH_NLP_API_TIMEOUT="10000"
-
-# Cache Settings
-ENV DASH_CACHE_TTL="300"
-
-# Real-time Updates
-ENV DASH_ENABLE_SOCKET_IO="true"
-ENV DASH_METRICS_UPDATE_INTERVAL="30000"
-
-# LOGGING & MONITORING
-ENV GLOBAL_LOG_LEVEL="info"
-ENV DASH_LOG_DIR="./logs"
-ENV DASH_LOG_FILE="ash-dash.log"
-
-# DOCKER SECRETS CONFIGURATION
-ENV GLOBAL_SESSION_TOKEN="/run/secrets/session_secret"
-
-# Enable Access
-ENV DASH_ENABLE_ACCESS_LOGS="true"
-
-# Rate Limits
-ENV DASH_RATE_LIMIT_WINDOW="900000"
-ENV DASH_RATE_LIMIT_MAX="100"
-ENV DASH_RATE_LIMIT_MESSAGE="Too many requests, please try again later"
-
-# Expose port
-EXPOSE 8883
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f -k https://localhost:8883/health || curl -f http://localhost:8883/health || exit 1
-
-# Start the application
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
+# Default command - run with uvicorn
+# Using python -m uvicorn for proper module resolution
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "30883"]

@@ -1,0 +1,127 @@
+# ============================================================================
+# Ash-Dash v5.0 Requirements
+# ============================================================================
+# FILE VERSION: v5.0-10-10.4-1
+# LAST MODIFIED: 2026-01-10
+# Repository: https://github.com/the-alphabet-cartel/ash-dash
+# Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
+# ============================================================================
+
+# =============================================================================
+# Core Framework
+# =============================================================================
+
+# FastAPI - Modern async web framework
+fastapi>=0.109.0,<1.0.0
+
+# Uvicorn - ASGI server with standard extras (websockets, httptools)
+uvicorn[standard]>=0.27.0,<1.0.0
+
+# Pydantic - Data validation using Python type hints
+pydantic>=2.5.0,<3.0.0
+
+# Pydantic Settings - Settings management with environment variables
+pydantic-settings>=2.1.0,<3.0.0
+
+# =============================================================================
+# Utilities
+# =============================================================================
+
+# Python-dotenv - Environment variable loading from .env files
+python-dotenv>=1.0.0,<2.0.0
+
+# =============================================================================
+# HTTP and Networking
+# =============================================================================
+
+# HTTPX - Async HTTP client (for health checks, webhooks, and OIDC)
+httpx>=0.26.0,<1.0.0
+
+# AIOHTTP - Async HTTP client (for Discord alerting)
+aiohttp>=3.9.0,<4.0.0
+
+# =============================================================================
+# Database (Phase 2)
+# =============================================================================
+
+# SQLAlchemy - SQL toolkit and ORM with async support
+sqlalchemy[asyncio]>=2.0.25,<3.0.0
+
+# Asyncpg - PostgreSQL async driver
+asyncpg>=0.29.0,<1.0.0
+
+# Alembic - Database migrations
+alembic>=1.13.0,<2.0.0
+
+# =============================================================================
+# Redis (Phase 2)
+# =============================================================================
+
+# Redis - Async Redis client
+redis>=5.0.0,<6.0.0
+
+# =============================================================================
+# Archive Storage (Phase 8)
+# =============================================================================
+
+# MinIO - S3-compatible object storage client for session archives
+minio>=7.2.0,<8.0.0
+
+# =============================================================================
+# Archive Encryption (Phase 9)
+# =============================================================================
+
+# Cryptography - AES-256-GCM encryption for session archives
+cryptography>=41.0.0,<43.0.0
+
+# Python-dateutil - Flexible datetime parsing
+python-dateutil>=2.8.0,<3.0.0
+
+# =============================================================================
+# OIDC Authentication (Phase 10)
+# =============================================================================
+
+# Python-Jose - JWT token handling for OIDC
+python-jose[cryptography]>=3.3.0,<4.0.0
+
+# =============================================================================
+# Documentation Wiki (Phase 7)
+# =============================================================================
+
+# PyYAML - YAML parser for frontmatter
+pyyaml>=6.0,<7.0.0
+
+# Markdown - Markdown to HTML conversion
+markdown>=3.5.0,<4.0.0
+
+# PyMdown Extensions - Additional markdown extensions
+pymdown-extensions>=10.0,<11.0.0
+
+# Pygments - Syntax highlighting for code blocks
+pygments>=2.17.0,<3.0.0
+
+# WeasyPrint - PDF generation from HTML
+weasyprint>=62.0
+
+# =============================================================================
+# Testing
+# =============================================================================
+
+# Pytest - Testing framework
+pytest>=7.4.0,<8.0.0
+
+# Pytest-asyncio - Async test support
+pytest-asyncio>=0.23.0,<1.0.0
+
+# Pytest-cov - Coverage reporting
+pytest-cov>=4.1.0,<5.0.0
+
+# =============================================================================
+# Development Tools (optional)
+# =============================================================================
+
+# Black - Code formatter
+# black>=24.1.0,<25.0.0
+
+# Ruff - Fast linter
+# ruff>=0.1.0,<1.0.0

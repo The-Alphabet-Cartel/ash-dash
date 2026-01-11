@@ -1,42 +1,153 @@
+# ============================================================================
+# Ash-Dash v5.0 Docker Ignore
+# ============================================================================
+# FILE VERSION: v5.0
+# LAST MODIFIED: 2025-01-02
+# Repository: https://github.com/the-alphabet-cartel/ash-dash
+# ============================================================================
+
+# =============================================================================
+# Secrets - CRITICAL: Never include in Docker image!
+# =============================================================================
+secrets/
+
+# =============================================================================
 # Git
+# =============================================================================
 .git
 .gitignore
 .gitattributes
+.github
+.gitkeep
 
-# Node
-node_modules
-npm-debug.log
-yarn-debug.log
-yarn-error.log
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Environment
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# =============================================================================
+# IDE and Editors
+# =============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+.zed/
+
+# =============================================================================
+# Testing
+# =============================================================================
+testing/
+tests/
+test_*.py
+*_test.py
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.coverage
+.hypothesis/
+
+# =============================================================================
+# Documentation
+# =============================================================================
+.editorconfig
+docs/
+*.md
+!README.md
+LICENSE
+CHANGELOG
+
+# =============================================================================
+# Local Development
+# =============================================================================
 .env
 .env.local
-.env.development
-.env.test
-.env.production
+.env.*.local
+*.local
+local/
+tmp/
+temp/
 
-# Logs
-logs
+# =============================================================================
+# Logs, Data, and Backups
+# =============================================================================
+backup/
+logs/
 *.log
+*.logs
+data/
+*.csv
+*.json.backup
 
-# Runtime data
-data
-cache
-
+# =============================================================================
 # Docker
-Dockerfile
-docker-compose.yml
+# =============================================================================
+Dockerfile*
+docker-compose*.yml
+.docker/
 .dockerignore
 
-# Documentation
-README.md
-*.md
+# =============================================================================
+# Models (download at runtime or use volumes)
+# =============================================================================
+models/
+*.pt
+*.bin
+*.safetensors
+*.onnx
+*.h5
 
-# IDE
-.vscode
-.idea
-
-# OS
+# =============================================================================
+# Misc
+# =============================================================================
 .DS_Store
 Thumbs.db
+*.bak
+*.backup
+*.tmp
+.cache/
+*.cache
+
+# =============================================================================
+# Phase Documentation (development only)
+# =============================================================================
+docs/v5.0/Phase*/

@@ -1,0 +1,64 @@
+"""
+============================================================================
+Ash-DASH: Discord Crisis Detection Dashboard
+The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
+============================================================================
+
+MISSION - NEVER TO BE VIOLATED:
+    Reveal   → Surface crisis alerts and user escalation patterns in real-time
+    Enable   → Equip Crisis Response Teams with tools for swift intervention
+    Clarify  → Translate detection data into actionable intelligence
+    Protect  → Safeguard our LGBTQIA+ community through vigilant oversight
+
+============================================================================
+API Routes Package - FastAPI route handlers
+----------------------------------------------------------------------------
+FILE VERSION: v5.0-10-10.3-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 10 - Authentication & Authorization
+CLEAN ARCHITECTURE: Compliant
+Repository: https://github.com/the-alphabet-cartel/ash-dash
+============================================================================
+"""
+
+__version__ = "v5.0-10-10.4-1"
+
+# Health check routes (Phase 1)
+from src.api.routes.health import router as health_router
+
+# Session routes (Phase 2)
+from src.api.routes.sessions import router as sessions_router
+
+# User routes (Phase 2)
+from src.api.routes.users import router as users_router
+
+# Dashboard routes (Phase 4)
+from src.api.routes.dashboard import router as dashboard_router
+
+# Notes routes (Phase 6)
+from src.api.routes.notes import router as notes_router
+
+# Wiki routes (Phase 7)
+from src.api.routes.wiki import router as wiki_router
+
+# Archive routes (Phase 9)
+from src.api.routes.archives import router as archives_router
+
+# Admin routes (Phase 9, updated Phase 10)
+from src.api.routes.admin import router as admin_router
+
+# Auth routes (Phase 10)
+from src.api.routes.auth import router as auth_router, api_router as auth_api_router
+
+__all__ = [
+    "health_router",
+    "sessions_router",
+    "users_router",
+    "dashboard_router",
+    "notes_router",
+    "wiki_router",
+    "archives_router",
+    "admin_router",
+    "auth_router",
+    "auth_api_router",
+]

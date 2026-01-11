@@ -1,0 +1,113 @@
+/**
+ * ============================================================================
+ * Ash-DASH: Discord Crisis Detection Dashboard
+ * The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
+ * ============================================================================
+ *
+ * Main Stylesheet - Tailwind CSS imports and global styles
+ * ----------------------------------------------------------------------------
+ * FILE VERSION: v5.0-11-11.3-2
+ * LAST MODIFIED: 2026-01-10
+ * PHASE: Phase 11 - Polish & Documentation
+ * Repository: https://github.com/the-alphabet-cartel/ash-dash
+ * ============================================================================
+ */
+
+/* Tailwind CSS Layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Default body styles */
+  body {
+    @apply antialiased;
+  }
+  
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-purple-500;
+  }
+  
+  /* Respect user preference for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Custom component classes */
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm;
+  }
+  
+  /* Button base */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  /* Primary button */
+  .btn-primary {
+    @apply btn bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 dark:focus:ring-offset-gray-900;
+  }
+  
+  /* Secondary button */
+  .btn-secondary {
+    @apply btn bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-gray-500;
+  }
+  
+  /* Ghost button */
+  .btn-ghost {
+    @apply btn bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:ring-gray-500;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400;
+  }
+  
+  /* Sidebar transition - smooth width and margin animations */
+  .sidebar-transition {
+    transition: width 200ms ease-in-out, transform 200ms ease-in-out;
+  }
+  
+  .content-transition {
+    transition: margin-left 200ms ease-in-out;
+  }
+  
+  /* Tooltip positioning utility */
+  .tooltip-right {
+    @apply absolute left-full ml-2 px-2 py-1 text-sm font-medium text-white bg-gray-900 dark:bg-gray-700 rounded-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-50;
+  }
+  
+  /* Skip link for accessibility */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-purple-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400;
+  }
+}

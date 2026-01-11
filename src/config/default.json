@@ -1,0 +1,295 @@
+{
+  "_metadata": {
+    "file_version": "v5.0-10-10.2-1",
+    "last_modified": "2026-01-10",
+    "clean_architecture": "Compliant",
+    "description": "Ash-Dash v5.0 Default Configuration",
+    "repository": "https://github.com/the-alphabet-cartel/ash-dash",
+    "community": "The Alphabet Cartel - https://discord.gg/alphabetcartel | https://alphabetcartel.org"
+  },
+
+  "server": {
+    "description": "Server configuration for FastAPI application",
+    "host": "${DASH_HOST}",
+    "port": "${DASH_PORT}",
+    "debug": "${DASH_DEBUG}",
+    "workers": "${DASH_WORKERS}",
+    "defaults": {
+      "host": "0.0.0.0",
+      "port": 30883,
+      "debug": false,
+      "workers": 1
+    },
+    "validation": {
+      "host": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1024, 65535],
+        "required": true
+      },
+      "debug": {
+        "type": "boolean",
+        "required": false
+      },
+      "workers": {
+        "type": "integer",
+        "range": [1, 8],
+        "required": false
+      }
+    }
+  },
+
+  "logging": {
+    "description": "Logging configuration for structured output",
+    "level": "${DASH_LOG_LEVEL}",
+    "format": "${DASH_LOG_FORMAT}",
+    "file": "${DASH_LOG_FILE}",
+    "console": "${DASH_LOG_CONSOLE}",
+    "defaults": {
+      "level": "INFO",
+      "format": "human",
+      "file": "/app/logs/ash-dash.log",
+      "console": true
+    },
+    "validation": {
+      "level": {
+        "type": "string",
+        "allowed_values": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        "required": true
+      },
+      "format": {
+        "type": "string",
+        "allowed_values": ["json", "human"],
+        "required": true
+      },
+      "file": {
+        "type": "string",
+        "required": true
+      },
+      "console": {
+        "type": "boolean",
+        "required": false
+      }
+    }
+  },
+
+  "auth": {
+    "description": "Authentication configuration for Pocket-ID integration (Phase 10)",
+    "enabled": "${DASH_AUTH_ENABLED}",
+    "cookie_name": "${DASH_AUTH_COOKIE_NAME}",
+    "pocket_id_issuer": "${DASH_POCKET_ID_ISSUER}",
+    "pocket_id_jwks_url": "${DASH_POCKET_ID_JWKS_URL}",
+    "required_groups": "${DASH_AUTH_REQUIRED_GROUPS}",
+    "group_role_map": "${DASH_AUTH_GROUP_ROLE_MAP}",
+    "bypass_paths": "${DASH_AUTH_BYPASS_PATHS}",
+    "defaults": {
+      "enabled": true,
+      "cookie_name": "pocket_id_session",
+      "pocket_id_issuer": "https://id.alphabetcartel.net",
+      "pocket_id_jwks_url": "https://id.alphabetcartel.net/.well-known/jwks.json",
+      "required_groups": ["cartel_crt", "cartel_crt_lead", "cartel_crt_admin"],
+      "group_role_map": {
+        "cartel_crt": "member",
+        "cartel_crt_lead": "lead",
+        "cartel_crt_admin": "admin"
+      },
+      "bypass_paths": [
+        "/health",
+        "/health/ready",
+        "/health/detailed",
+        "/docs",
+        "/redoc",
+        "/openapi.json"
+      ]
+    },
+    "validation": {
+      "enabled": {
+        "type": "boolean",
+        "required": false
+      },
+      "cookie_name": {
+        "type": "string",
+        "required": true
+      },
+      "pocket_id_issuer": {
+        "type": "string",
+        "required": false
+      },
+      "pocket_id_jwks_url": {
+        "type": "string",
+        "required": false
+      },
+      "required_groups": {
+        "type": "list",
+        "required": true
+      },
+      "group_role_map": {
+        "type": "dict",
+        "required": true
+      },
+      "bypass_paths": {
+        "type": "list",
+        "required": false
+      }
+    }
+  },
+
+  "redis": {
+    "description": "Redis connection for reading Ash-Bot data",
+    "host": "${REDIS_HOST}",
+    "port": "${REDIS_PORT}",
+    "db": "${REDIS_DB}",
+    "defaults": {
+      "host": "ash-redis",
+      "port": 6379,
+      "db": 0
+    },
+    "validation": {
+      "host": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1, 65535],
+        "required": true
+      },
+      "db": {
+        "type": "integer",
+        "range": [0, 15],
+        "required": true
+      }
+    }
+  },
+
+  "database": {
+    "description": "PostgreSQL database configuration",
+    "host": "${DATABASE_HOST}",
+    "port": "${DATABASE_PORT}",
+    "database": "${DATABASE_NAME}",
+    "user": "${DATABASE_USER}",
+    "pool_size": "${DATABASE_POOL_SIZE}",
+    "max_overflow": "${DATABASE_MAX_OVERFLOW}",
+    "defaults": {
+      "host": "ash-dash-db",
+      "port": 5432,
+      "database": "ashdash",
+      "user": "ash",
+      "pool_size": 5,
+      "max_overflow": 10
+    },
+    "validation": {
+      "host": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1, 65535],
+        "required": true
+      },
+      "database": {
+        "type": "string",
+        "required": true
+      },
+      "user": {
+        "type": "string",
+        "required": true
+      },
+      "pool_size": {
+        "type": "integer",
+        "range": [1, 20],
+        "required": false
+      },
+      "max_overflow": {
+        "type": "integer",
+        "range": [0, 50],
+        "required": false
+      }
+    }
+  },
+
+  "minio": {
+    "description": "MinIO S3-compatible storage for session archives (Syn VM)",
+    "endpoint": "${DASH_MINIO_ENDPOINT}",
+    "port": "${DASH_MINIO_PORT}",
+    "secure": "${DASH_MINIO_SECURE}",
+    "bucket_archives": "${DASH_MINIO_BUCKET_ARCHIVES}",
+    "bucket_documents": "${DASH_MINIO_BUCKET_DOCUMENTS}",
+    "bucket_exports": "${DASH_MINIO_BUCKET_EXPORTS}",
+    "defaults": {
+      "endpoint": "10.20.30.202",
+      "port": 30884,
+      "secure": false,
+      "bucket_archives": "ash-archives",
+      "bucket_documents": "ash-documents",
+      "bucket_exports": "ash-exports"
+    },
+    "validation": {
+      "endpoint": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "range": [1, 65535],
+        "required": true
+      },
+      "secure": {
+        "type": "boolean",
+        "required": false
+      },
+      "bucket_archives": {
+        "type": "string",
+        "required": true
+      },
+      "bucket_documents": {
+        "type": "string",
+        "required": true
+      },
+      "bucket_exports": {
+        "type": "string",
+        "required": true
+      }
+    }
+  },
+
+  "polling": {
+    "description": "Polling intervals for data refresh",
+    "dashboard_interval_seconds": "${DASH_POLL_DASHBOARD}",
+    "sessions_interval_seconds": "${DASH_POLL_SESSIONS}",
+    "defaults": {
+      "dashboard_interval_seconds": 30,
+      "sessions_interval_seconds": 10
+    },
+    "validation": {
+      "dashboard_interval_seconds": {
+        "type": "integer",
+        "range": [5, 300],
+        "required": false
+      },
+      "sessions_interval_seconds": {
+        "type": "integer",
+        "range": [5, 60],
+        "required": false
+      }
+    }
+  },
+
+  "alerting": {
+    "description": "Discord webhook alerting configuration",
+    "enabled": "${DASH_ALERTING_ENABLED}",
+    "defaults": {
+      "enabled": true
+    },
+    "validation": {
+      "enabled": {
+        "type": "boolean",
+        "required": false
+      }
+    }
+  }
+}
