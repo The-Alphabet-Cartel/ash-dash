@@ -97,6 +97,7 @@ Ash-Dash is part of the **Ash Crisis Detection Ecosystem**:
 | **Ash-NLP** | Natural language processing backend | [ash-nlp](https://github.com/the-alphabet-cartel/ash-nlp) |
 | **Ash-Dash** | Administrative dashboard (this repo) | [ash-dash](https://github.com/the-alphabet-cartel/ash-dash) |
 | **Ash-Thrash** | Integration testing suite | [ash-thrash](https://github.com/the-alphabet-cartel/ash-thrash) |
+| **Ash-Vault** | Secure archive storage for sensitive data | [ash-vault](https://github.com/the-alphabet-cartel/ash-vault) |
 
 ---
 
@@ -206,9 +207,9 @@ Ash-Dash maps PocketID groups to CRT roles:
 
 | PocketID Group | Dashboard Role | Permissions |
 |----------------|----------------|-------------|
-| `ash-admin` | Admin | Full access, delete operations, system config |
-| `ash-lead` | Lead | Reopen sessions, unlock notes, archive management |
-| `ash-crt` | Member | View sessions, add notes, claim sessions |
+| `cartel_crt_admin` | Admin | Full access, delete operations, system config |
+| `cartel_crt_lead` | Lead | Reopen sessions, unlock notes, archive management |
+| `cartel_crt` | Member | View sessions, add notes, claim sessions |
 
 ### Environment Variables
 
@@ -276,7 +277,7 @@ npm run test
 
 ### Code Standards
 
-This project follows the [Clean Architecture Charter](docs/standards/clean_architecture_charter.md):
+This project follows our internal Clean Architecture Charter:
 - Factory function pattern for all managers
 - Dependency injection
 - Comprehensive error handling
@@ -302,9 +303,7 @@ ash-dash/
 │   │   └── services/     # API client
 │   └── dist/             # Built frontend (Docker)
 ├── docs/                  # Documentation
-│   ├── wiki/             # Built-in wiki content
-│   ├── standards/        # Coding standards
-│   └── v5.0/             # Version documentation
+│   └── wiki/             # Built-in wiki content
 ├── migrations/            # Alembic migrations
 ├── tests/                 # Test suite
 └── secrets/              # Docker secrets (gitignored)
@@ -353,7 +352,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | Version | Date | Highlights |
 |---------|------|------------|
 | v5.0.0 | 2026-01 | Complete recode: Vue 3 frontend, FastAPI backend, OIDC auth, archive system |
-| v4.x | 2025 | Legacy version (deprecated) |
 
 ---
 
