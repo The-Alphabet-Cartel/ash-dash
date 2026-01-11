@@ -207,9 +207,9 @@ Ash-Dash maps PocketID groups to CRT roles:
 
 | PocketID Group | Dashboard Role | Permissions |
 |----------------|----------------|-------------|
-| `cartel_crt_admin` | Admin | Full access, delete operations, system config |
-| `cartel_crt_lead` | Lead | Reopen sessions, unlock notes, archive management |
-| `cartel_crt` | Member | View sessions, add notes, claim sessions |
+| `ash_crt` | Member | View sessions, add notes, claim sessions |
+| `ash_crt_lead` | Lead | Reopen sessions, unlock notes, archive management |
+| `ash_crt_admin` | Admin | Full access, delete operations, system config |
 
 ### Environment Variables
 
