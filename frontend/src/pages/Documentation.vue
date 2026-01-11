@@ -3,12 +3,18 @@
 Ash-DASH: Discord Crisis Detection Dashboard
 The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
-Documentation Page - Wiki and training materials
+Documentation Page - Wiki and training materials with role-based access
 ============================================================================
-FILE VERSION: v5.0-7-7.8-2
-LAST MODIFIED: 2026-01-09
-PHASE: Phase 7 - Documentation Wiki
+FILE VERSION: v5.0-11-11.11-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
+============================================================================
+
+ACCESS CONTROL:
+    - Admin/Operations categories: Admin role required
+    - Other categories: All CRT members
+    - Navigation auto-filters based on user role
 ============================================================================
 -->
 
@@ -144,7 +150,24 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           <Loader2 class="w-8 h-8 animate-spin text-purple-500" />
         </div>
 
-        <!-- Error State -->
+        <!-- Access Denied Error State -->
+        <div v-else-if="accessDenied" class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mb-4">
+            <Lock class="w-8 h-8 text-yellow-500" />
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">Access Restricted</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+            This documentation is only available to administrators. If you believe you should have access, please contact CRT leadership.
+          </p>
+          <button 
+            @click="goToIndex"
+            class="mt-4 px-4 py-2 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+          >
+            Return to Documents
+          </button>
+        </div>
+
+        <!-- General Error State -->
         <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
           <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
             <AlertCircle class="w-8 h-8 text-red-500" />
@@ -236,7 +259,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
               Ash-Dash Documentation
             </h3>
             <p class="text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
-              Training materials, reference guides, and resources for CRT members and administrators.
+              Training materials, reference guides, and resources for CRT members.
             </p>
           </div>
 
@@ -340,11 +363,14 @@ import {
   ChevronDown,
   Loader2,
   AlertCircle,
+  Lock,
   User,
   Calendar,
   GraduationCap,
   HelpCircle,
-  Home
+  Home,
+  Server,
+  Wrench
 } from 'lucide-vue-next'
 
 // =============================================================================
@@ -368,6 +394,7 @@ const currentDocument = ref(null)
 const currentSlug = ref(null)
 const loadingDoc = ref(false)
 const error = ref(null)
+const accessDenied = ref(false)
 
 // Search state
 const searchQuery = ref('')
@@ -389,6 +416,8 @@ const categoryIcons = {
   'graduation-cap': GraduationCap,
   'file-text': FileText,
   'help-circle': HelpCircle,
+  'server': Server,
+  'wrench': Wrench,
 }
 
 function getCategoryIcon(iconName) {
@@ -422,6 +451,8 @@ function toggleCategory(slug) {
 function goToIndex() {
   currentDocument.value = null
   currentSlug.value = null
+  error.value = null
+  accessDenied.value = false
   router.push({ query: {} })
 }
 
@@ -434,6 +465,7 @@ async function loadDocument(slug) {
   
   loadingDoc.value = true
   error.value = null
+  accessDenied.value = false
   currentSlug.value = slug
   
   // Update URL
@@ -444,8 +476,14 @@ async function loadDocument(slug) {
     currentDocument.value = response.data
   } catch (err) {
     console.error('Failed to load document:', err)
-    error.value = err.response?.data?.detail || 'Failed to load document'
     currentDocument.value = null
+    
+    // Check for 403 access denied
+    if (err.response?.status === 403) {
+      accessDenied.value = true
+    } else {
+      error.value = err.response?.data?.detail || 'Failed to load document'
+    }
   } finally {
     loadingDoc.value = false
   }
@@ -511,7 +549,13 @@ async function downloadPDF() {
     window.URL.revokeObjectURL(url)
   } catch (err) {
     console.error('PDF download failed:', err)
-    alert('Failed to download PDF. Please try again.')
+    
+    // Check for 403 access denied
+    if (err.response?.status === 403) {
+      alert('Access denied. This document requires administrator privileges.')
+    } else {
+      alert('Failed to download PDF. Please try again.')
+    }
   } finally {
     downloadingPDF.value = false
   }
@@ -539,6 +583,8 @@ watch(() => route.query.doc, (newSlug) => {
     // Return to index
     currentDocument.value = null
     currentSlug.value = null
+    error.value = null
+    accessDenied.value = false
   }
 })
 </script>

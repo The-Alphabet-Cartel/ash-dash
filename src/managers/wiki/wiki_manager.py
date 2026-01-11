@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Wiki Manager - Documentation wiki management system
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-7-7.8-2
-LAST MODIFIED: 2026-01-08
-PHASE: Phase 7 - Documentation Wiki
+FILE VERSION: v5.0-11-11.11-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -70,7 +70,7 @@ from .models import (
 )
 
 # Module version
-__version__ = "v5.0-7-7.8-2"
+__version__ = "v5.0-11-11.11-1"
 
 # Initialize fallback logger
 logger = logging.getLogger(__name__)
@@ -85,7 +85,12 @@ CATEGORY_CONFIG: Dict[str, Dict[str, str]] = {
     "admin": {
         "name": "Administration",
         "icon": "settings",
-        "description": "System administration and configuration guides",
+        "description": "System administration and configuration guides (Admin only)",
+    },
+    "operations": {
+        "name": "Operations",
+        "icon": "server",
+        "description": "Deployment, configuration, and operational procedures (Admin only)",
     },
     "crt": {
         "name": "CRT Operations",
