@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Audit Logs Page - View system action history
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.3-6
+FILE VERSION: v5.0-11-11.3-1
 LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -39,6 +39,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <!-- Action Filter -->
         <select
           v-model="filters.action"
+          aria-label="Filter by action type"
           class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
         >
           <option value="">All Actions</option>
@@ -68,26 +69,28 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <button
           @click="fetchLogs"
           :disabled="isLoading"
+          aria-label="Refresh audit logs"
           class="btn-secondary flex items-center gap-2"
         >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" aria-hidden="true" />
           Refresh
         </button>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading && logs.length === 0" class="flex justify-center py-12">
-      <Loader2 class="w-8 h-8 animate-spin text-purple-500" />
+    <div v-if="isLoading && logs.length === 0" class="flex justify-center py-12" role="status" aria-label="Loading audit logs">
+      <Loader2 class="w-8 h-8 animate-spin text-purple-500" aria-hidden="true" />
     </div>
 
     <!-- Error State -->
     <div 
       v-else-if="error" 
       class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
+      role="alert"
     >
       <div class="flex items-center gap-2 text-red-600 dark:text-red-400">
-        <AlertCircle class="w-5 h-5" />
+        <AlertCircle class="w-5 h-5" aria-hidden="true" />
         <p>{{ error }}</p>
       </div>
     </div>
@@ -97,19 +100,19 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead class="bg-gray-50 dark:bg-gray-800">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Timestamp
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               User
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Action
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Entity
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Details
             </th>
           </tr>

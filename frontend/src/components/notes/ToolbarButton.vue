@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 ToolbarButton - Reusable formatting button for editor toolbar
 ============================================================================
-FILE VERSION: v5.0-6-6.2-1
-LAST MODIFIED: 2026-01-08
-PHASE: Phase 6 - Notes System
+FILE VERSION: v5.0-11-11.3-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -16,6 +16,8 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
   <button
     type="button"
     :title="title"
+    :aria-label="title"
+    :aria-pressed="active"
     :disabled="disabled"
     class="toolbar-button p-1.5 rounded transition-colors"
     :class="[
@@ -28,7 +30,9 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     ]"
     @click="$emit('click')"
   >
-    <slot />
+    <span aria-hidden="true">
+      <slot />
+    </span>
   </button>
 </template>
 

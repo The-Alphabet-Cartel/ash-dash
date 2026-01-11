@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 ArchiveButton - Button to archive a session with confirmation dialog
 ============================================================================
-FILE VERSION: v5.0-9-9.5-1
-LAST MODIFIED: 2026-01-09
-PHASE: Phase 9 - Archive System Implementation
+FILE VERSION: v5.0-11-11.3-2
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -27,8 +27,8 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       ]"
       :title="buttonTitle"
     >
-      <Archive v-if="!isArchiving" :class="iconSizeClasses" />
-      <Loader2 v-else :class="[iconSizeClasses, 'animate-spin']" />
+      <Archive v-if="!isArchiving" :class="iconSizeClasses" aria-hidden="true" />
+      <Loader2 v-else :class="[iconSizeClasses, 'animate-spin']" aria-hidden="true" />
       <span v-if="!iconOnly">{{ buttonText }}</span>
     </button>
 
@@ -37,16 +37,20 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div 
         v-if="showDialog" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="archive-dialog-title"
         @click.self="showDialog = false"
+        @keydown.escape="showDialog = false"
       >
         <div class="w-full max-w-md rounded-xl bg-white dark:bg-gray-800 shadow-xl overflow-hidden">
           <!-- Header -->
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center gap-3">
               <div class="flex-shrink-0 p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
-                <Archive class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <Archive class="w-5 h-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 id="archive-dialog-title" class="text-lg font-semibold text-gray-900 dark:text-white">
                 Archive Session
               </h3>
             </div>
@@ -118,7 +122,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 
             <!-- Warning -->
             <div class="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-              <Info class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <Info class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <p class="text-sm text-blue-700 dark:text-blue-300">
                 The session data and all notes will be encrypted before storage. 
                 The archive can be retrieved and decrypted later if needed.
@@ -130,7 +134,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
               v-if="archiveError" 
               class="flex items-start gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20"
             >
-              <AlertCircle class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <p class="text-sm text-red-700 dark:text-red-300">
                 {{ archiveError }}
               </p>
@@ -151,8 +155,8 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
               :disabled="isArchiving"
               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors disabled:opacity-50"
             >
-              <Loader2 v-if="isArchiving" class="w-4 h-4 animate-spin" />
-              <Archive v-else class="w-4 h-4" />
+              <Loader2 v-if="isArchiving" class="w-4 h-4 animate-spin" aria-hidden="true" />
+              <Archive v-else class="w-4 h-4" aria-hidden="true" />
               {{ isArchiving ? 'Archiving...' : 'Archive Session' }}
             </button>
           </div>

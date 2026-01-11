@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 MetricCard Component - Reusable dashboard metric display card
 ============================================================================
-FILE VERSION: v5.0-4-4.3-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 4 - Dashboard & Metrics
+FILE VERSION: v5.0-11-11.3-2
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -59,7 +59,7 @@ PROPS:
           {{ label }}
         </span>
         <div class="p-2 rounded-lg" :class="iconBgClass">
-          <component :is="icon" class="w-5 h-5" :class="iconClass" />
+          <component :is="icon" class="w-5 h-5" :class="iconClass" aria-hidden="true" />
         </div>
       </div>
       

@@ -5,7 +5,7 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Sessions Page - Session list with search, filters, and pagination
 ============================================================================
-FILE VERSION: v5.0-11-11.2-1
+FILE VERSION: v5.0-11-11.3-1
 LAST MODIFIED: 2026-01-10
 PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -26,11 +26,12 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <!-- Search Input -->
         <div class="flex-1 min-w-[250px]">
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
             <input
               v-model="searchInput"
               type="text"
               placeholder="Search by Discord ID, username, or session ID..."
+              aria-label="Search sessions"
               class="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               @input="debouncedSearch"
             />
@@ -39,8 +40,9 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
               v-if="searchInput"
               @click="clearSearch"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label="Clear search"
             >
-              <X class="w-4 h-4" />
+              <X class="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -49,6 +51,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <select 
           v-model="severityFilter"
           @change="handleSeverityChange"
+          aria-label="Filter by severity"
           class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         >
           <option value="">All Severities</option>
@@ -63,6 +66,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <select 
           v-model="statusFilter"
           @change="handleStatusChange"
+          aria-label="Filter by status"
           class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         >
           <option value="">All Statuses</option>
@@ -99,7 +103,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           @click="clearAllFilters"
           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
-          <FilterX class="w-4 h-4" />
+          <FilterX class="w-4 h-4" aria-hidden="true" />
           Clear Filters
         </button>
 
@@ -109,7 +113,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           :disabled="sessionsStore.isLoading"
           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors disabled:opacity-50"
         >
-          <RefreshCw :class="['w-4 h-4', sessionsStore.isLoading ? 'animate-spin' : '']" />
+          <RefreshCw :class="['w-4 h-4', sessionsStore.isLoading ? 'animate-spin' : '']" aria-hidden="true" />
           Refresh
         </button>
       </div>

@@ -33,11 +33,12 @@ ACCESS CONTROL:
         <!-- Search -->
         <div class="mb-4">
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search docs..."
+              aria-label="Search documentation"
               class="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-gray-100 dark:bg-gray-800 border-0 focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500"
               @input="debouncedSearch"
             />
@@ -45,20 +46,21 @@ ACCESS CONTROL:
               v-if="searchQuery"
               @click="clearSearch"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
             >
-              <X class="w-4 h-4" />
+              <X class="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         <!-- Search Results -->
-        <div v-if="isSearching" class="mb-4">
+        <div v-if="isSearching" class="mb-4" role="status" aria-label="Searching documentation">
           <div class="flex items-center justify-center py-4">
-            <Loader2 class="w-5 h-5 animate-spin text-purple-500" />
+            <Loader2 class="w-5 h-5 animate-spin text-purple-500" aria-hidden="true" />
           </div>
         </div>
 
-        <div v-else-if="searchResults.length > 0" class="mb-4">
+        <div v-else-if="searchResults.length > 0" class="mb-4" aria-live="polite">
           <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-2">
             Search Results ({{ searchResults.length }})
           </h4>

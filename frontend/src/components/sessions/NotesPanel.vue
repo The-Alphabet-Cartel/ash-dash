@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 NotesPanel - Full session notes editor with TipTap integration
 ============================================================================
-FILE VERSION: v5.0-10-10.3-9
+FILE VERSION: v5.0-11-11.3-3
 LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -19,7 +19,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText class="w-5 h-5 text-purple-500" />
+            <FileText class="w-5 h-5 text-purple-500" aria-hidden="true" />
             CRT Notes
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -32,7 +32,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         
         <!-- Session Lock Status -->
         <div v-if="isSessionLocked" class="flex items-center gap-1 text-yellow-600 dark:text-yellow-500">
-          <Lock class="w-4 h-4" />
+          <Lock class="w-4 h-4" aria-hidden="true" />
           <span class="text-sm">Locked</span>
         </div>
       </div>
@@ -43,7 +43,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center py-8">
         <div class="flex flex-col items-center gap-3">
-          <Loader2 class="w-8 h-8 animate-spin text-purple-500" />
+          <Loader2 class="w-8 h-8 animate-spin text-purple-500" aria-hidden="true" />
           <p class="text-sm text-gray-500 dark:text-gray-400">Loading notes...</p>
         </div>
       </div>
@@ -51,7 +51,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <!-- Error State -->
       <div v-else-if="error" class="flex items-center justify-center py-8">
         <div class="text-center">
-          <AlertCircle class="w-12 h-12 mx-auto mb-4 text-red-500" />
+          <AlertCircle class="w-12 h-12 mx-auto mb-4 text-red-500" aria-hidden="true" />
           <p class="text-red-500 mb-2">{{ error }}</p>
           <button 
             @click="loadNotes" 
@@ -83,7 +83,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           :class="showEditor ? 'max-h-48 overflow-y-auto' : 'max-h-64 overflow-y-auto'"
         >
           <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
-            <History class="w-4 h-4" />
+            <History class="w-4 h-4" aria-hidden="true" />
             {{ showEditor ? 'Previous Notes' : 'All Notes' }}
             <span class="text-xs text-gray-400">(click to view)</span>
           </h4>
@@ -120,8 +120,9 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
                     @click.stop="editNote(note)"
                     class="p-1 rounded text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
                     title="Edit note"
+                    aria-label="Edit note"
                   >
-                    <Pencil class="w-3.5 h-3.5" />
+                    <Pencil class="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                   
                   <!-- Delete Button (admin only) -->
@@ -130,11 +131,12 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
                     @click.stop="confirmDeleteNote(note)"
                     class="p-1 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     title="Delete note"
+                    aria-label="Delete note"
                   >
-                    <Trash2 class="w-3.5 h-3.5" />
+                    <Trash2 class="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                   
-                  <Lock v-if="note.is_locked" class="w-3 h-3 text-gray-400" />
+                  <Lock v-if="note.is_locked" class="w-3 h-3 text-gray-400" aria-hidden="true" />
                   <span class="text-xs text-gray-500 dark:text-gray-400">
                     {{ formatDate(note.created_at) }}
                   </span>
@@ -158,7 +160,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           class="flex items-center justify-center py-8"
         >
           <div class="text-center">
-            <FileText class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+            <FileText class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" aria-hidden="true" />
             <p class="text-gray-500 dark:text-gray-400 mb-2">No notes yet</p>
             <p v-if="!isSessionLocked" class="text-xs text-gray-400 dark:text-gray-500">
               Click "Add Note" to start documenting
@@ -180,8 +182,8 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
             :disabled="isNoteReadonly || saving"
             class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
-            <Save v-if="!saving" class="w-4 h-4" />
-            <Loader2 v-else class="w-4 h-4 animate-spin" />
+            <Save v-if="!saving" class="w-4 h-4" aria-hidden="true" />
+            <Loader2 v-else class="w-4 h-4 animate-spin" aria-hidden="true" />
             {{ saving ? 'Saving...' : 'Save' }}
           </button>
 
@@ -191,7 +193,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
             @click="cancelNewNote"
             class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
           >
-            <X class="w-4 h-4" />
+            <X class="w-4 h-4" aria-hidden="true" />
             Close
           </button>
 
@@ -239,15 +241,18 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div 
         v-if="noteToDelete" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-note-title"
         @click.self="noteToDelete = null"
       >
         <div class="w-full max-w-md p-6 rounded-xl bg-white dark:bg-gray-800 shadow-xl">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <Trash2 class="w-5 h-5 text-red-600 dark:text-red-400" />
+              <Trash2 class="w-5 h-5 text-red-600 dark:text-red-400" aria-hidden="true" />
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 id="delete-note-title" class="text-lg font-semibold text-gray-900 dark:text-white">
                 Delete Note?
               </h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -273,7 +278,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
               :disabled="deleting"
               class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              <Loader2 v-if="deleting" class="w-4 h-4 animate-spin" />
+              <Loader2 v-if="deleting" class="w-4 h-4 animate-spin" aria-hidden="true" />
               {{ deleting ? 'Deleting...' : 'Delete Note' }}
             </button>
           </div>

@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Archives Page - Browse and manage encrypted session archives
 ============================================================================
-FILE VERSION: v5.0-11-11.2-1
+FILE VERSION: v5.0-11-11.3-2
 LAST MODIFIED: 2026-01-10
-PHASE: Phase 11 - Polish & Documentation
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -26,7 +26,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div class="card p-4">
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-            <Archive class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <Archive class="w-5 h-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -41,7 +41,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div class="card p-4">
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-            <HardDrive class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <HardDrive class="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -56,7 +56,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div class="card p-4">
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-            <Lock class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <Lock class="w-5 h-5 text-purple-600 dark:text-purple-400" aria-hidden="true" />
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -71,7 +71,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div class="card p-4">
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-lg" :class="expiringCount > 0 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-green-100 dark:bg-green-900/30'">
-            <Clock class="w-5 h-5" :class="expiringCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'" />
+            <Clock class="w-5 h-5" :class="expiringCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'" aria-hidden="true" />
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -89,11 +89,12 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <!-- Search Input -->
         <div class="flex-1 min-w-[250px]">
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
             <input
               v-model="searchInput"
               type="text"
               placeholder="Search by Discord ID or username..."
+              aria-label="Search archives"
               class="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               @input="debouncedSearch"
             />
@@ -101,8 +102,9 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
               v-if="searchInput"
               @click="clearSearch"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label="Clear search"
             >
-              <X class="w-4 h-4" />
+              <X class="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -111,6 +113,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <select 
           v-model="severityFilter"
           @change="handleFilterChange"
+          aria-label="Filter by severity"
           class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         >
           <option value="">All Severities</option>
@@ -125,6 +128,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         <select 
           v-model="retentionFilter"
           @change="handleFilterChange"
+          aria-label="Filter by retention tier"
           class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         >
           <option value="">All Retention Tiers</option>
@@ -138,7 +142,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           @click="clearAllFilters"
           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
-          <FilterX class="w-4 h-4" />
+          <FilterX class="w-4 h-4" aria-hidden="true" />
           Clear Filters
         </button>
 
@@ -148,7 +152,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           :disabled="isLoading"
           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors disabled:opacity-50"
         >
-          <RefreshCw :class="['w-4 h-4', isLoading ? 'animate-spin' : '']" />
+          <RefreshCw :class="['w-4 h-4', isLoading ? 'animate-spin' : '']" aria-hidden="true" />
           Refresh
         </button>
       </div>
@@ -187,28 +191,28 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       />
 
       <!-- Table -->
-      <table v-else-if="archives.length > 0" class="w-full">
+      <table v-else-if="archives.length > 0" class="w-full" aria-label="Session archives list">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
               User
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
               Session
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
               Severity
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
               Archived
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
               Retention
             </th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
               Size
             </th>
-            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -286,18 +290,18 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
                 <button
                   @click="viewArchive(archive)"
                   class="p-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-                  title="View Archive"
+                  :aria-label="`View archive for ${archive.discord_user_name || 'Unknown User'}`"
                 >
-                  <Eye class="w-4 h-4" />
+                  <Eye class="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   @click="downloadArchive(archive)"
                   :disabled="isDownloading === archive.id"
                   class="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50"
-                  title="Download Archive"
+                  :aria-label="`Download archive for ${archive.discord_user_name || 'Unknown User'}`"
                 >
-                  <Download v-if="isDownloading !== archive.id" class="w-4 h-4" />
-                  <Loader2 v-else class="w-4 h-4 animate-spin" />
+                  <Download v-if="isDownloading !== archive.id" class="w-4 h-4" aria-hidden="true" />
+                  <Loader2 v-else class="w-4 h-4 animate-spin" aria-hidden="true" />
                 </button>
               </div>
             </td>

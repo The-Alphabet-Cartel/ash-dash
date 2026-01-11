@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 Session Detail Page - Comprehensive session view with analysis and history
 ============================================================================
-FILE VERSION: v5.0-10-10.3-9
+FILE VERSION: v5.0-11-11.3-6
 LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -20,7 +20,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
         to="/sessions"
         class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
       >
-        <ArrowLeft class="w-4 h-4" />
+        <ArrowLeft class="w-4 h-4" aria-hidden="true" />
         Back to Sessions
       </router-link>
 
@@ -31,7 +31,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           v-if="session.status === 'archived'"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 rounded-lg"
         >
-          <Archive class="w-4 h-4" />
+          <Archive class="w-4 h-4" aria-hidden="true" />
           Archived
         </span>
 
@@ -50,7 +50,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           :disabled="isClosing"
           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <XCircle class="w-4 h-4" />
+          <XCircle class="w-4 h-4" aria-hidden="true" />
           {{ isClosing ? 'Closing...' : 'Close Session' }}
         </button>
 
@@ -61,7 +61,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           :disabled="isReopening"
           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 border border-purple-600 dark:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <RotateCcw class="w-4 h-4" />
+          <RotateCcw class="w-4 h-4" aria-hidden="true" />
           {{ isReopening ? 'Reopening...' : 'Reopen Session' }}
         </button>
       </div>
@@ -174,10 +174,14 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <div 
         v-if="showCloseModal" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="close-session-title"
         @click.self="showCloseModal = false"
+        @keydown.escape="showCloseModal = false"
       >
         <div class="w-full max-w-md p-6 rounded-xl bg-white dark:bg-gray-800 shadow-xl">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 id="close-session-title" class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Close Session?
           </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">

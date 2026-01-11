@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 ServiceCard Component - Status card for system health services
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.3-5
+FILE VERSION: v5.0-11-11.11-2
 LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -55,7 +55,10 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       <dl class="grid grid-cols-2 gap-2 text-sm">
         <template v-for="(value, key) in displayDetails" :key="key">
           <dt class="text-gray-500 dark:text-gray-400">{{ formatKey(key) }}</dt>
-          <dd class="text-gray-900 dark:text-white font-medium text-right">
+          <dd 
+            class="text-gray-900 dark:text-white font-medium text-right truncate"
+            :title="getRawValue(key, value)"
+          >
             {{ formatValue(key, value) }}
           </dd>
         </template>
@@ -205,6 +208,15 @@ function formatKey(key) {
 }
 
 /**
+ * Get raw value for tooltip display
+ */
+function getRawValue(key, value) {
+  if (value === null || value === undefined) return ''
+  if (Array.isArray(value)) return value.join(', ')
+  return String(value)
+}
+
+/**
  * Format detail value for display
  */
 function formatValue(key, value) {
@@ -223,6 +235,19 @@ function formatValue(key, value) {
     return '-'
   }
   
-  return String(value)
+  // Handle arrays (like secrets_available)
+  if (Array.isArray(value)) {
+    if (value.length === 0) return 'None'
+    if (value.length <= 2) return value.join(', ')
+    return `${value.length} items`
+  }
+  
+  // Truncate long strings
+  const strValue = String(value)
+  if (strValue.length > 25) {
+    return strValue.substring(0, 22) + '...'
+  }
+  
+  return strValue
 }
 </script>

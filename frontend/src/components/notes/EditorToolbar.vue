@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 EditorToolbar - Formatting toolbar for TipTap editor
 ============================================================================
-FILE VERSION: v5.0-6-6.2-1
-LAST MODIFIED: 2026-01-08
-PHASE: Phase 6 - Notes System
+FILE VERSION: v5.0-11-11.3-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -16,9 +16,11 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
   <div 
     class="editor-toolbar flex flex-wrap items-center gap-1 p-2 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700"
     :class="{ 'opacity-50': disabled }"
+    role="toolbar"
+    aria-label="Text formatting"
   >
     <!-- Text Formatting Group -->
-    <div class="flex items-center gap-0.5 pr-2 border-r border-gray-300 dark:border-gray-600">
+    <div class="flex items-center gap-0.5 pr-2 border-r border-gray-300 dark:border-gray-600" role="group" aria-label="Text style">
       <ToolbarButton
         title="Bold (Ctrl+B)"
         :active="editor?.isActive('bold')"
@@ -57,7 +59,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     </div>
 
     <!-- Headers Group -->
-    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600">
+    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600" role="group" aria-label="Headings">
       <ToolbarButton
         title="Heading 1"
         :active="editor?.isActive('heading', { level: 1 })"
@@ -87,7 +89,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     </div>
 
     <!-- Lists Group -->
-    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600">
+    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600" role="group" aria-label="Lists">
       <ToolbarButton
         title="Bullet List"
         :active="editor?.isActive('bulletList')"
@@ -117,7 +119,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     </div>
 
     <!-- Blocks Group -->
-    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600">
+    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600" role="group" aria-label="Blocks">
       <ToolbarButton
         title="Code Block"
         :active="editor?.isActive('codeBlock')"
@@ -155,7 +157,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     </div>
 
     <!-- Undo/Redo Group -->
-    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600">
+    <div class="flex items-center gap-0.5 px-2 border-r border-gray-300 dark:border-gray-600" role="group" aria-label="History">
       <ToolbarButton
         title="Undo (Ctrl+Z)"
         :disabled="disabled || !canUndo"
@@ -209,14 +211,22 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     <div 
       v-if="showLinkModal" 
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="link-dialog-title"
       @click.self="closeLinkModal"
     >
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 
+          id="link-dialog-title"
+          class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
+        >
           {{ editor?.isActive('link') ? 'Edit Link' : 'Add Link' }}
         </h3>
         
+        <label for="link-url-input" class="sr-only">URL</label>
         <input
+          id="link-url-input"
           ref="linkInput"
           v-model="linkUrl"
           type="url"

@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 System Health Page - Monitor Ash ecosystem services
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.3-7
+FILE VERSION: v5.0-11-11.11-2
 LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+PHASE: Phase 11 - Polish & Documentation
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -105,7 +105,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           <span class="font-medium text-gray-900 dark:text-white">Version</span>
         </div>
         <p class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ health.version || 'Unknown' }}
+          {{ health.service?.version || 'Unknown' }}
         </p>
         <p class="text-sm text-gray-500 dark:text-gray-400">
           Ash-Dash
@@ -121,7 +121,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           <span class="font-medium text-gray-900 dark:text-white">Environment</span>
         </div>
         <p class="text-2xl font-bold text-gray-900 dark:text-white capitalize">
-          {{ health.environment || 'Unknown' }}
+          {{ health.service?.environment || 'Unknown' }}
         </p>
         <p class="text-sm text-gray-500 dark:text-gray-400">
           Deployment mode

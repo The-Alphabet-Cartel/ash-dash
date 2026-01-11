@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 SessionsTable - Table component for displaying session list
 ============================================================================
-FILE VERSION: v5.0-5-5.4-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 5 - Session Management
+FILE VERSION: v5.0-11-11.3-1
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -44,7 +44,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
     <!-- Empty State -->
     <div v-else-if="sessions.length === 0" class="px-6 py-16 text-center">
       <div class="mx-auto w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
-        <Inbox class="w-8 h-8 text-gray-400 dark:text-gray-500" />
+        <Inbox class="w-8 h-8 text-gray-400 dark:text-gray-500" aria-hidden="true" />
       </div>
       <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No Sessions Found</h4>
       <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
@@ -54,28 +54,28 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
 
     <!-- Table -->
     <div v-else class="overflow-x-auto">
-      <table class="w-full">
+      <table class="w-full" aria-label="Sessions list">
         <thead class="bg-gray-50 dark:bg-gray-900/50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Severity
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               User
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Status
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Duration
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Started
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Assigned To
             </th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -84,8 +84,13 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
           <tr 
             v-for="session in sessions" 
             :key="session.id"
-            class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+            class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500"
+            tabindex="0"
+            role="button"
+            :aria-label="`View session for ${session.discord_username || 'Unknown User'}`"
             @click="$emit('row-click', session)"
+            @keydown.enter="$emit('row-click', session)"
+            @keydown.space.prevent="$emit('row-click', session)"
           >
             <!-- Severity -->
             <td class="px-6 py-4 whitespace-nowrap">
@@ -149,7 +154,7 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
                 class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
               >
                 View
-                <ChevronRight class="w-4 h-4" />
+                <ChevronRight class="w-4 h-4" aria-hidden="true" />
               </button>
             </td>
           </tr>

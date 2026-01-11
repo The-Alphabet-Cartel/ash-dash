@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 SeverityBadge - Reusable severity indicator badge
 ============================================================================
-FILE VERSION: v5.0-5-5.4-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 5 - Session Management
+FILE VERSION: v5.0-11-11.3-2
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -19,9 +19,12 @@ Repository: https://github.com/the-alphabet-cartel/ash-dash
       sizeClasses,
       colorClasses
     ]"
+    role="status"
+    :aria-label="`Severity: ${severity}`"
   >
     <span 
       v-if="showDot"
+      aria-hidden="true"
       :class="[
         'rounded-full',
         dotSizeClasses,

@@ -6,7 +6,7 @@
  *
  * Main Stylesheet - Tailwind CSS imports and global styles
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-11-11.1-1
+ * FILE VERSION: v5.0-11-11.3-2
  * LAST MODIFIED: 2026-01-10
  * PHASE: Phase 11 - Polish & Documentation
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -33,6 +33,18 @@
   /* Focus styles for accessibility */
   *:focus-visible {
     @apply outline-2 outline-offset-2 outline-purple-500;
+  }
+  
+  /* Respect user preference for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

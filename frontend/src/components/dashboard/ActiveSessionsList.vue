@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 ActiveSessionsList Component - Real-time list of active crisis sessions
 ============================================================================
-FILE VERSION: v5.0-4-4.6-1
-LAST MODIFIED: 2026-01-07
-PHASE: Phase 4 - Dashboard & Metrics
+FILE VERSION: v5.0-11-11.3-2
+LAST MODIFIED: 2026-01-10
+PHASE: Phase 11 - Polish & Documentation (ARIA)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -56,7 +56,8 @@ FEATURES:
         </span>
         <RefreshCw 
           v-if="loading" 
-          class="w-4 h-4 text-purple-500 animate-spin" 
+          class="w-4 h-4 text-purple-500 animate-spin"
+          aria-hidden="true"
         />
       </div>
     </div>
@@ -81,7 +82,7 @@ FEATURES:
         class="flex flex-col items-center justify-center py-12 text-center"
       >
         <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-          <Shield class="w-8 h-8 text-gray-400 dark:text-gray-500" />
+          <Shield class="w-8 h-8 text-gray-400 dark:text-gray-500" aria-hidden="true" />
         </div>
         <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
           No Active Sessions
@@ -92,18 +93,24 @@ FEATURES:
       </div>
 
       <!-- Sessions List -->
-      <div v-else class="space-y-3">
+      <div v-else class="space-y-3" role="list" aria-label="Active crisis sessions">
         <div 
           v-for="session in sessions" 
           :key="session.session_id"
           class="session-item p-4 rounded-lg border border-gray-200 dark:border-gray-700 
                  hover:border-purple-500 dark:hover:border-purple-500 
+                 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
                  transition-all cursor-pointer group"
+          role="listitem"
+          tabindex="0"
+          :aria-label="`View session for ${session.discord_username || 'User ' + session.discord_user_id}, severity ${session.severity}`"
           @click="navigateToSession(session.session_id)"
+          @keydown.enter="navigateToSession(session.session_id)"
+          @keydown.space.prevent="navigateToSession(session.session_id)"
         >
           <div class="flex items-center gap-4">
             <!-- Severity Indicator -->
-            <div class="relative flex-shrink-0">
+            <div class="relative flex-shrink-0" aria-hidden="true">
               <span 
                 class="w-3 h-3 rounded-full block"
                 :class="severityDotClass(session.severity)"
@@ -131,11 +138,11 @@ FEATURES:
               </div>
               <div class="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
                 <span class="flex items-center gap-1">
-                  <Clock class="w-3.5 h-3.5" />
+                  <Clock class="w-3.5 h-3.5" aria-hidden="true" />
                   {{ formatElapsed(session.elapsed_seconds) }}
                 </span>
                 <span v-if="session.crt_member_name" class="flex items-center gap-1">
-                  <User class="w-3.5 h-3.5" />
+                  <User class="w-3.5 h-3.5" aria-hidden="true" />
                   {{ session.crt_member_name }}
                 </span>
                 <span v-else class="text-yellow-600 dark:text-yellow-400">
@@ -145,7 +152,7 @@ FEATURES:
             </div>
 
             <!-- Arrow -->
-            <ChevronRight class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors flex-shrink-0" />
+            <ChevronRight class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors flex-shrink-0" aria-hidden="true" />
           </div>
         </div>
       </div>
