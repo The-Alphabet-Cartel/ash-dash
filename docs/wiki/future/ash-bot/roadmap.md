@@ -1,6 +1,6 @@
 ---
 title: "Ash-Bot - v5.0 Development Roadmap"
-description: "Roadmap for the v5.0 recode of the Ash Ecosystem"
+description: "Roadmap for the v5.0 recode of Ash-Bot, the Crisis Detection Discord Bot"
 category: roadmap
 tags:
   - roadmap
@@ -8,57 +8,129 @@ tags:
   - ash-bot
 author: "PapaBearDoes"
 version: "5.0"
-last_updated: "2026-01-05"
+last_updated: "2026-01-12"
 ---
 # Ash-Bot: v5.0 Development Roadmap
 
 ============================================================================
-**Ash-Bot**: Crisis Detection Discord Bot for The Alphabet Cartel  
-**The Alphabet Cartel** - https://discord.gg/alphabetcartel | alphabetcartel.org
+**Ash-Bot**: Crisis Detection Discord Bot
+**The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.12  
-**Last Updated**: 2026-01-05  
-**Status**: 🟡 Phase 9 In Progress (9.1 Complete)  
+**Document Version**: v5.0.13
+**Created**: 2026-01-03
+**Last Updated**: 2026-01-12
+**Status**: 🟢 Production Ready (Phase 9 Enhancements In Progress)
 **Repository**: https://github.com/the-alphabet-cartel/ash-bot
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Quick Reference](#quick-reference)
-3. [Phase 0: Foundation Cleanup](#phase-0-foundation-cleanup)
-4. [Phase 1: Discord Connectivity](#phase-1-discord-connectivity)
-5. [Phase 2: Redis Integration](#phase-2-redis-integration)
-6. [Phase 3: Alert System](#phase-3-alert-system)
-7. [Phase 4: Ash Personality](#phase-4-ash-personality)
-8. [Phase 5: Production Hardening](#phase-5-production-hardening)
-9. [Phase 6: Final Testing & Documentation](#phase-6-final-testing--documentation)
-10. [Phase 7: Core Safety & User Preferences](#phase-7-core-safety--user-preferences)
-11. [Phase 8: Metrics & Reporting](#phase-8-metrics--reporting)
-12. [Phase 9: Documentation & Polish](#phase-9-documentation--polish)
-13. [Post-Launch](#post-launch)
-14. [Change Log](#change-log)
+1. [Mission Statement](#-mission-statement)
+2. [Executive Summary](#-executive-summary)
+3. [Architecture Overview](#-architecture-overview)
+4. [Technology Stack](#-technology-stack)
+5. [Phase Overview](#-phase-overview)
+6. [Detailed Phase Breakdown](#-detailed-phase-breakdown)
+7. [Security Considerations](#-security-considerations)
+8. [Infrastructure & Deployment](#-infrastructure--deployment)
+9. [Progress Summary](#-progress-summary)
+10. [Success Criteria](#-success-criteria)
+11. [Future Enhancements](#-future-enhancements)
+12. [Change Log](#-change-log)
 
 ---
 
-## Overview
+## 🎯 Mission Statement
 
-### Mission
+```
+MISSION - NEVER TO BE VIOLATED:
+    Monitor  → Send messages to Ash-NLP for crisis classification
+    Alert    → Notify Crisis Response Team via embeds when crisis detected
+    Track    → Maintain user history for escalation pattern detection
+    Protect  → Safeguard our LGBTQIA+ community through early intervention
+```
 
-Build a crisis detection Discord bot that:
-- **Monitors** → Sends messages to Ash-NLP for crisis classification
-- **Alerts** → Notifies Crisis Response Team via embeds when crisis detected
-- **Tracks** → Maintains user history for escalation pattern detection
-- **Supports** → Provides AI-powered conversational support via Ash
-- **Protects** → Safeguards our LGBTQIA+ community through early intervention
+---
 
-### Architecture Reference
+## 📋 Executive Summary
 
-- **System Architecture**: [docs/architecture/system_architecture.md](../architecture/system_architecture.md)
-- **Clean Architecture Charter**: [docs/standards/clean_architecture_charter.md](../standards/clean_architecture_charter.md)
-- **Ash-NLP API Reference**: [docs/api/reference.md](../api/reference.md)
+Ash-Bot is the Discord frontend for the Ash Crisis Detection Ecosystem. It serves as the primary interface between The Alphabet Cartel's Discord community and the crisis detection infrastructure.
+
+### Key Capabilities
+
+- **Real-time Monitoring**: Listens to configured channels and forwards messages to Ash-NLP for analysis
+- **Intelligent Alerting**: Routes crisis alerts to appropriate CRT channels based on severity
+- **User History**: Maintains rolling message history in Redis for escalation pattern detection
+- **AI Support**: Provides "Talk to Ash" functionality via Claude API for immediate conversational support
+- **CRT Tools**: Slash commands for Crisis Response Team workflow management
+
+### Current Status
+
+Ash-Bot v5.0 is **production ready** and running. Core functionality (Phases 0-8) is complete with 500+ tests passing. Phase 9 CRT workflow enhancements are in progress.
+
+---
+
+## 🏗️ Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         Ash-Bot Architecture                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│    Discord Gateway                                                          │
+│         │                                                                   │
+│         ▼                                                                   │
+│    ┌──────────────────────────────────────────────────────────────────┐     │
+│    │                      Ash-Bot (discord.py)                        │     │
+│    │                                                                  │     │
+│    │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐    │     │
+│    │  │ Discord      │  │ Alert        │  │ Ash Personality      │    │     │
+│    │  │ Manager      │  │ Dispatcher   │  │ (Claude API)         │    │     │
+│    │  └──────────────┘  └──────────────┘  └──────────────────────┘    │     │
+│    │         │                 │                    │                 │     │
+│    │         ▼                 ▼                    ▼                │     │
+│    │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐    │     │
+│    │  │ NLP Client   │  │ Embed        │  │ Session              │    │     │
+│    │  │ Manager      │  │ Builder      │  │ Manager              │    │     │
+│    │  └──────────────┘  └──────────────┘  └──────────────────────┘    │     │
+│    │         │                                                        │     │
+│    └─────────┼────────────────────────────────────────────────────────┘     │
+│              │                                                              │
+│              ▼                                                              │
+│    ┌───────────────────┐    ┌──────────────────┐                            │
+│    │     Ash-NLP       │    │      Redis       │                            │
+│    │   (Port 30880)    │    │  (User History)  │                            │
+│    └───────────────────┘    └──────────────────┘                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Severity Behavior Matrix
+
+| Severity | Store | Alert | Channel | CRT Ping | Ash Behavior |
+|----------|-------|-------|---------|----------|--------------|
+| SAFE/NONE | ❌ | ❌ | - | ❌ | None |
+| LOW | ✅ | ❌ | - | ❌ | None |
+| MEDIUM | ✅ | ✅ | #monitor-queue | ❌ | Monitor silently |
+| HIGH | ✅ | ✅ | #crisis-response | ✅ | Talk to Ash button |
+| CRITICAL | ✅ | ✅ | #critical-response | ✅ | Talk to Ash button |
+
+---
+
+## 🛠️ Technology Stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Runtime** | Python 3.11 | Primary language |
+| **Discord Library** | discord.py 2.x | Discord API interaction |
+| **HTTP Client** | httpx | Async HTTP for Ash-NLP API |
+| **Cache/Storage** | Redis | User history, session data |
+| **AI Integration** | Anthropic Claude API | Ash personality conversations |
+| **Configuration** | JSON + Environment | Clean Architecture compliant |
+| **Health Monitoring** | asyncio HTTP server | /health, /metrics endpoints |
+| **Containerization** | Docker | Deployment |
 
 ### Target Performance
 
@@ -72,17 +144,203 @@ Build a crisis detection Discord bot that:
 
 ---
 
-## Quick Reference
+## 📅 Phase Overview
 
-### Severity Behavior Matrix
+| Phase | Name | Focus | Status |
+|-------|------|-------|--------|
+| 0 | Foundation Cleanup | Docker, configs, headers | ✅ Complete |
+| 1 | Discord Connectivity | Bot connection, NLP integration | ✅ Complete |
+| 2 | Redis Integration | User history, TTL management | ✅ Complete |
+| 3 | Alert System | Embeds, buttons, severity routing | ✅ Complete |
+| 4 | Ash Personality | Claude API, DM sessions | ✅ Complete |
+| 5 | Production Hardening | Health, metrics, circuit breakers | ✅ Complete |
+| 6 | Final Testing | End-to-end validation | ✅ Complete |
+| 7 | Core Safety | Auto-initiate, opt-out, sensitivity | ✅ Complete |
+| 8 | Metrics & Reporting | Response tracking, weekly reports | ✅ Complete |
+| 9 | CRT Workflow | Slash commands, handoff, check-ins | 🟡 In Progress |
 
-| Severity | Store | Alert | Channel | CRT Ping | Ash Behavior |
-|----------|-------|-------|---------|----------|--------------|
-| SAFE/NONE | ❌ | ❌ | - | ❌ | None |
-| LOW | ✅ | ❌ | - | ❌ | None |
-| MEDIUM | ✅ | ✅ | #monitor-queue | ❌ | Monitor silently |
-| HIGH | ✅ | ✅ | #crisis-response | ✅ | Talk to Ash button |
-| CRITICAL | ✅ | ✅ | #critical-response | ✅ | Talk to Ash button |
+---
+
+## 📋 Detailed Phase Breakdown
+
+### Phase 0: Foundation Cleanup ✅ Complete
+**Goal**: Establish working Docker dev environment and update existing files
+
+- [x] Docker environment setup and verification
+- [x] Clean Architecture header updates
+- [x] Configuration management (JSON + env)
+- [x] LoggingConfigManager integration
+- [x] Base test framework
+
+**Completed**: 2026-01-03
+**Documentation**: [Phase 0 Completion Report](phase0/complete.md)
+
+---
+
+### Phase 1: Discord Connectivity ✅ Complete
+**Goal**: Basic bot connectivity, channel monitoring, NLP integration
+
+- [x] DiscordManager with event handling
+- [x] ChannelConfigManager for monitored channels
+- [x] NLPClientManager with retry logic
+- [x] NLP request/response models
+- [x] 77 unit tests passing
+
+**Completed**: 2026-01-03
+**Documentation**: [Phase 1 Completion Report](phase1/complete.md)
+
+---
+
+### Phase 2: Redis Integration ✅ Complete
+**Goal**: Persistent storage, user history tracking, TTL management
+
+- [x] RedisManager with connection pooling
+- [x] UserHistoryManager for message tracking
+- [x] History models with Pydantic
+- [x] Graceful degradation when Redis unavailable
+- [x] 90+ unit tests passing
+
+**Completed**: 2026-01-04
+**Documentation**: [Phase 2 Completion Report](phase2/complete.md)
+
+---
+
+### Phase 3: Alert System ✅ Complete
+**Goal**: Full alerting pipeline with embeds, buttons, severity routing
+
+- [x] AlertDispatcher for routing logic
+- [x] EmbedBuilder for rich Discord embeds
+- [x] CooldownManager to prevent alert spam
+- [x] AlertButtons view (Acknowledge, Talk to Ash)
+- [x] 89 unit tests passing
+
+**Completed**: 2026-01-04
+**Documentation**: [Phase 3 Completion Report](phase3/complete.md)
+
+---
+
+### Phase 4: Ash Personality ✅ Complete
+**Goal**: AI-powered conversational support via Claude API
+
+- [x] ClaudeClientManager with API integration
+- [x] AshSessionManager for DM session lifecycle
+- [x] AshPersonalityManager for system prompts
+- [x] Safety guardrails with resource injection
+- [x] Session timeout (5 min idle, 10 min max)
+- [x] 69+ unit tests passing
+
+**Completed**: 2026-01-04
+**Documentation**: [Phase 4 Completion Report](phase4/complete.md)
+
+---
+
+### Phase 5: Production Hardening ✅ Complete
+**Goal**: Production-grade infrastructure, monitoring, error recovery
+
+- [x] CircuitBreaker utility class
+- [x] retry_with_backoff decorator
+- [x] MetricsManager (Prometheus format)
+- [x] HealthManager with component registration
+- [x] HealthServer (6 endpoints)
+- [x] Operational documentation (runbook, troubleshooting, deployment)
+- [x] 40+ unit tests passing
+
+**Completed**: 2026-01-04
+**Documentation**: [Phase 5 Completion Report](phase5/completion_report.md)
+
+---
+
+### Phase 6: Final Testing & Documentation ✅ Complete
+**Goal**: End-to-end testing, final documentation, deployment verification
+
+- [x] Integration test suite
+- [x] End-to-end flow validation
+- [x] Documentation review
+- [x] 50+ tests passing
+
+**Completed**: 2026-01-04
+**Documentation**: [Phase 6 Completion Report](phase6/complete.md)
+
+---
+
+### Phase 7: Core Safety & User Preferences ✅ Complete
+**Goal**: Auto-initiation, user opt-out, channel sensitivity
+
+- [x] Auto-initiate Ash when CRT doesn't respond (3 min)
+- [x] User opt-out via reaction
+- [x] Per-channel sensitivity adjustments
+- [x] 65+ new tests passing
+
+**Completed**: 2026-01-05
+**Documentation**: [Phase 7 Completion Report](phase7/complete.md)
+
+---
+
+### Phase 8: Metrics & Reporting ✅ Complete
+**Goal**: Response time tracking, weekly reports, data retention
+
+- [x] Alert response time metrics
+- [x] Automated weekly CRT reports
+- [x] Data retention and cleanup policies
+- [x] PUID/PGID container support
+- [x] 127 new tests passing
+
+**Completed**: 2026-01-05
+**Documentation**: [Phase 8 Completion Report](phase8/complete.md)
+
+---
+
+### Phase 9: CRT Workflow Enhancements 🟡 In Progress
+**Goal**: Slash commands, session handoff, follow-up check-ins
+
+#### Step 9.1: CRT Slash Commands ✅ Complete
+- [x] `/ash status` - System status overview
+- [x] `/ash stats` - CRT statistics
+- [x] `/ash history` - User history lookup
+- [x] `/ash config` - Configuration view
+- [x] `/ash notes` - Session notes
+- [x] `/ash optout` - Manage user opt-outs
+- [x] Permission system (CRT/Admin roles)
+- [x] 27+ unit tests
+
+**Completed**: 2026-01-05
+**Documentation**: [Phase 9.1 Completion Report](phase9/phase9_1_complete.md)
+
+#### Step 9.2: Session Handoff & Notes 🔲 Ready
+- [ ] CRT-to-CRT session handoff
+- [ ] Handoff notification system
+- [ ] Session notes persistence
+- [ ] Handoff audit logging
+
+#### Step 9.3: Follow-Up Check-Ins 🔲 Ready
+- [ ] Scheduled follow-up reminders
+- [ ] Check-in message templates
+- [ ] Follow-up tracking and completion
+
+---
+
+## 🔐 Security Considerations
+
+1. **Authentication**: Discord bot token via Docker secrets
+2. **Authorization**: Role-based slash command permissions (CRT Member vs Admin)
+3. **Data Protection**: User history TTL in Redis (configurable retention)
+4. **API Security**: Claude API key via Docker secrets
+5. **Rate Limiting**: Cooldown manager prevents alert flooding
+6. **Audit Trail**: All CRT actions logged with timestamps
+
+---
+
+## 🖥️ Infrastructure & Deployment
+
+### Deployment Configuration
+
+| Setting | Value |
+|---------|-------|
+| **Host** | Lofn (10.20.30.253) |
+| **Container** | ash-bot |
+| **Internal Port** | 8080 (health) |
+| **External Port** | 30881 |
+| **Health Check** | HTTP /health |
 
 ### Key Endpoints
 
@@ -91,339 +349,109 @@ Build a crisis detection Discord bot that:
 | Ash-NLP API | `http://ash-nlp:30880` |
 | Redis | `ash-redis:6379` |
 | Claude API | `https://api.anthropic.com` |
-| Discord Gateway | via discord.py |
-| Health Endpoints | `http://localhost:8080/health` |
+| Health | `http://localhost:8080/health` |
+| Metrics | `http://localhost:8080/metrics` |
 
 ### File Structure
 
 ```
-src/managers/
-├── config_manager.py       ✅ Complete (Phase 0)
-├── secrets_manager.py      ✅ Complete (Phase 0)
-├── discord/
-│   ├── __init__.py               ✅ Complete (Phase 1)
-│   ├── discord_manager.py        ✅ Complete (Phase 5 - metrics)
-│   ├── channel_config_manager.py ✅ Complete (Phase 1)
-│   └── slash_commands.py         🔲 Deferred (backlog)
-├── alerting/
-│   ├── __init__.py               ✅ Complete (Phase 3)
-│   ├── cooldown_manager.py       ✅ Complete (Phase 3)
-│   ├── embed_builder.py          ✅ Complete (Phase 3)
-│   └── alert_dispatcher.py       ✅ Complete (Phase 3)
-├── storage/
-│   ├── __init__.py               ✅ Complete (Phase 2)
-│   ├── redis_manager.py          ✅ Complete (Phase 5 - error recovery)
-│   └── user_history_manager.py   ✅ Complete (Phase 2)
-├── nlp/
-│   ├── __init__.py               ✅ Complete (Phase 1)
-│   └── nlp_client_manager.py     ✅ Complete (Phase 5 - circuit breaker)
-├── models/
-│   ├── __init__.py               ✅ Complete (Phase 1)
-│   ├── nlp_models.py             ✅ Complete (Phase 1)
-│   └── history_models.py         ✅ Complete (Phase 2)
-├── ash/
-│   ├── __init__.py               ✅ Complete (Phase 4)
-│   ├── claude_client_manager.py  ✅ Complete (Phase 5 - circuit breaker)
-│   ├── ash_session_manager.py    ✅ Complete (Phase 4)
-│   └── ash_personality_manager.py ✅ Complete (Phase 4)
-├── utils/
-│   ├── __init__.py               ✅ Complete (Phase 5)
-│   ├── circuit_breaker.py        ✅ Complete (Phase 5)
-│   └── retry.py                  ✅ Complete (Phase 5)
-├── metrics/
-│   ├── __init__.py               ✅ Complete (Phase 5)
-│   └── metrics_manager.py        ✅ Complete (Phase 5)
-└── health/
-    ├── __init__.py               ✅ Complete (Phase 5)
-    ├── health_manager.py         ✅ Complete (Phase 5)
-    └── health_server.py          ✅ Complete (Phase 5)
-
-src/prompts/
-├── __init__.py                   ✅ Complete (Phase 4)
-└── ash_system_prompt.py          ✅ Complete (Phase 4)
-
-src/views/
-├── __init__.py                   ✅ Complete (Phase 3)
-└── alert_buttons.py              ✅ Complete (Phase 4 - Talk to Ash)
-
-docs/operations/
-├── runbook.md                    ✅ Complete (Phase 5)
-├── troubleshooting.md            ✅ Complete (Phase 5)
-└── deployment.md                 ✅ Complete (Phase 5)
+ash-bot/
+├── src/
+│   ├── managers/
+│   │   ├── config_manager.py
+│   │   ├── secrets_manager.py
+│   │   ├── discord/
+│   │   ├── alerting/
+│   │   ├── storage/
+│   │   ├── nlp/
+│   │   ├── ash/
+│   │   ├── utils/
+│   │   ├── metrics/
+│   │   └── health/
+│   ├── models/
+│   ├── prompts/
+│   └── views/
+├── config/
+│   └── default.json
+├── tests/
+├── docs/
+├── main.py
+├── Dockerfile
+└── docker-compose.yml
 ```
 
 ---
 
-## Phase 0: Foundation Cleanup
+## 📊 Progress Summary
 
-**Status**: 🟢 Complete  
-**Goal**: Establish working Docker dev environment and update existing files  
-**Completed**: 2026-01-03
+### Completed Phases: 8.5 of 9
 
-See [Phase 0 Completion Report](phase0/complete.md) for details.
+| Phase | Status | Date | Key Deliverables |
+|-------|--------|------|------------------|
+| Phase 0 | ✅ Complete | 2026-01-03 | Docker, configs, headers |
+| Phase 1 | ✅ Complete | 2026-01-03 | Discord, NLP, 77 tests |
+| Phase 2 | ✅ Complete | 2026-01-04 | Redis, history, 90+ tests |
+| Phase 3 | ✅ Complete | 2026-01-04 | Alerts, embeds, 89 tests |
+| Phase 4 | ✅ Complete | 2026-01-04 | Ash AI, Claude, 69+ tests |
+| Phase 5 | ✅ Complete | 2026-01-04 | Health, metrics, circuit breakers |
+| Phase 6 | ✅ Complete | 2026-01-04 | E2E testing, docs |
+| Phase 7 | ✅ Complete | 2026-01-05 | Auto-initiate, opt-out, 65+ tests |
+| Phase 8 | ✅ Complete | 2026-01-05 | Metrics, reports, 127 tests |
+| Phase 9 | 🟡 In Progress | - | Slash commands (9.1 ✅), handoff, check-ins |
 
----
-
-## Phase 1: Discord Connectivity
-
-**Status**: 🟢 Complete  
-**Goal**: Basic bot connectivity, channel monitoring, NLP integration  
-**Completed**: 2026-01-03
-
-See [Phase 1 Completion Report](phase1/complete.md) for details.
-
-**Key Accomplishments:**
-- 12 new files created
-- 77 unit tests written and passing
-- Full NLP integration with retry logic
-- Clean Architecture patterns throughout
+**Total Tests**: 500+ (unit and integration tests across all phases)
 
 ---
 
-## Phase 2: Redis Integration
+## ✅ Success Criteria
 
-**Status**: 🟢 Complete  
-**Goal**: Persistent storage, user history tracking, TTL management  
-**Completed**: 2026-01-04
+Core functionality complete:
 
-See [Phase 2 Completion Report](phase2/complete.md) for details.
-
-**Key Accomplishments:**
-- 5 new files created
-- 90+ unit tests written and passing
-- Full history integration with NLP context
-- Graceful degradation when Redis unavailable
-
----
-
-## Phase 3: Alert System
-
-**Status**: 🟢 Complete  
-**Goal**: Full alerting pipeline with embeds, buttons, severity routing  
-**Completed**: 2026-01-04
-
-See [Phase 3 Completion Report](phase3/complete.md) for details.
-
-**Key Accomplishments:**
-- 8 new files created
-- 89 unit tests written and passing
-- Full alert routing pipeline
-- Acknowledge button with embed updates
-- Talk to Ash button (completed in Phase 4)
+1. ✅ Bot connects to Discord and monitors configured channels
+2. ✅ Messages forwarded to Ash-NLP for classification
+3. ✅ Alerts routed to correct CRT channels by severity
+4. ✅ Rich embeds with Acknowledge and Talk to Ash buttons
+5. ✅ User history maintained in Redis with TTL
+6. ✅ Ash personality provides AI support via Claude
+7. ✅ Auto-initiate when CRT doesn't respond
+8. ✅ User opt-out functionality
+9. ✅ Health and metrics endpoints operational
+10. ✅ Circuit breakers protect external services
+11. ✅ Weekly CRT reports generated
+12. ✅ Data retention policies enforced
+13. ✅ CRT slash commands operational
+14. 🔲 Session handoff between CRT members
+15. 🔲 Follow-up check-in system
 
 ---
 
-## Phase 4: Ash Personality
+## 🔜 Future Enhancements
 
-**Status**: 🟢 Complete  
-**Goal**: AI-powered conversational support via Claude API  
-**Completed**: 2026-01-04
+See [enhancements.md](enhancements.md) for detailed planning.
 
-See [Phase 4 Completion Report](phase4/complete.md) for details.
+### Post-v5.0 Backlog
 
-**Key Accomplishments:**
-- 6 new source files in `src/managers/ash/` and `src/prompts/`
-- 69+ unit tests written and passing
-- Full DM routing - messages routed to active Ash sessions
-- Session lifecycle - 5 min idle, 10 min max with cleanup loop
-- Safety guardrails - trigger detection with resource injection
-- Fallback responses - graceful degradation on Claude API errors
-
----
-
-## Phase 5: Production Hardening
-
-**Status**: 🟢 Complete  
-**Goal**: Production-grade infrastructure, monitoring, error recovery  
-**Completed**: 2026-01-04
-
-See [Phase 5 Completion Report](phase5/completion_report.md) for details.
-
-### Tasks Completed
-
-#### Step 5.1: Production Utilities
-- [x] Create `CircuitBreaker` class with three states
-- [x] Create `retry_with_backoff` decorator
-- [x] Implement configurable thresholds
-- [x] Integrate with metrics system
-
-#### Step 5.2: Metrics Manager
-- [x] Create `MetricsManager` with counters/gauges/histograms
-- [x] Implement Prometheus-format export
-- [x] Create `LabeledCounter` for multi-label metrics
-- [x] Thread-safe operations
-
-#### Step 5.3: Health Manager
-- [x] Create `HealthManager` with component registration
-- [x] Implement status aggregation (healthy/degraded/unhealthy)
-- [x] Create `ComponentStatus` and `HealthStatus` models
-- [x] Detailed health reports
-
-#### Step 5.4: HTTP Health Endpoints
-- [x] Create lightweight `HealthServer` using asyncio
-- [x] Implement `/health` and `/healthz` (liveness)
-- [x] Implement `/health/ready` and `/readyz` (readiness)
-- [x] Implement `/health/detailed` (full status)
-- [x] Implement `/metrics` (Prometheus format)
-
-#### Step 5.5: Error Recovery Integration
-- [x] Add circuit breaker to NLPClientManager
-- [x] Add circuit breaker to ClaudeClientManager
-- [x] Add retry logic to RedisManager
-- [x] Add reconnection tracking to DiscordManager
-- [x] Implement graceful degradation in all managers
-
-#### Step 5.6: Operational Documentation
-- [x] Create `docs/operations/runbook.md`
-- [x] Create `docs/operations/troubleshooting.md`
-- [x] Create `docs/operations/deployment.md`
-
-#### Step 5.7: Configuration Updates
-- [x] Add health/metrics/circuit_breaker sections to `default.json`
-- [x] Add new environment variables to `.env.template`
-- [x] Update `docker-compose.yml` with HTTP healthcheck
-
-#### Step 5.8: Integration
-- [x] Update `main.py` with MetricsManager
-- [x] Inject metrics into all managers
-- [x] Initialize HealthManager with component registration
-- [x] Start/stop HealthServer with bot lifecycle
-- [x] Update Dockerfile with HTTP healthcheck
-
-### Deliverables
-- [x] Health endpoints responding (6 endpoints)
-- [x] Metrics export in Prometheus format (15+ metrics)
-- [x] Circuit breakers on external services
-- [x] Retry logic with exponential backoff
-- [x] Graceful degradation on failures
-- [x] Operational documentation complete
-
-### New Files Created
-```
-src/managers/utils/__init__.py
-src/managers/utils/circuit_breaker.py
-src/managers/utils/retry.py
-src/managers/metrics/__init__.py
-src/managers/metrics/metrics_manager.py
-src/managers/health/__init__.py
-src/managers/health/health_manager.py
-src/managers/health/health_server.py
-docs/operations/runbook.md
-docs/operations/troubleshooting.md
-docs/operations/deployment.md
-```
+- Web dashboard for CRT analytics
+- Historical trend visualization
+- Custom alert thresholds per channel
+- Multi-guild support
+- Webhook integration for external systems
+- ML model fine-tuning based on feedback
+- Mobile push notifications for CRT
+- Scheduled wellness check-ins
+- Streaming Ash responses
+- Session persistence in Redis
+- Session history export for CRT
 
 ---
 
-## Phase 6: Final Testing & Documentation
-
-**Status**: 🟢 Complete  
-**Goal**: End-to-end testing, final documentation, deployment verification  
-**Completed**: 2026-01-04
-
-See [Phase 6 Completion Report](phase6/complete.md) for details.
-
----
-
-## Phase 7: Core Safety & User Preferences
-
-**Status**: 🟢 Complete  
-**Goal**: Auto-initiation, user opt-out, channel sensitivity  
-**Completed**: 2026-01-05
-
-See [Phase 7 Completion Report](phase7/complete.md) for details.
-
-**Key Accomplishments:**
-- Auto-initiate when CRT doesn't respond within 3 minutes
-- User opt-out via reaction
-- Per-channel sensitivity adjustments
-- 65+ new tests
-
----
-
-## Phase 8: Metrics & Reporting
-
-**Status**: 🟢 Complete  
-**Goal**: Response time tracking, weekly reports, data retention  
-**Completed**: 2026-01-05
-
-See [Phase 8 Completion Report](phase8/complete.md) for details.
-
-Phase 8 Step Reports:
-- [Phase 8.1](phase8/phase8.1_complete.md) - Response Time Tracking
-- [Phase 8.2](phase8/phase8_2_complete.md) - Weekly CRT Report
-- [Phase 8.3](phase8/phase8_3_complete.md) - Data Retention Policy
-
-**Key Accomplishments:**
-- Alert response time metrics (acknowledge, Ash contact, human response)
-- Automated weekly reports with CRT statistics
-- Automated data retention and cleanup
-- PUID/PGID container support (LinuxServer.io style)
-- 127 new tests
-
----
-
-## Phase 9: CRT Workflow Enhancements
-
-**Status**: 🟡 In Progress (9.1 Complete)  
-**Goal**: Slash commands, session handoff, follow-up check-ins  
-**Depends On**: Phase 8 ✅
-
-See [Phase 9 Planning](phase9/planning.md) for details.
-
-### Step Progress
-
-| Step | Feature | Status |
-|------|---------|--------|
-| 9.1 | CRT Slash Commands | 🟢 Complete |
-| 9.2 | Session Handoff & Notes | 🔲 Ready |
-| 9.3 | Follow-Up Check-Ins | 🔲 Ready |
-
-### Step 9.1: CRT Slash Commands ✅
-
-See [Phase 9.1 Completion Report](phase9/phase9_1_complete.md) for details.
-
-**Key Accomplishments:**
-- 6 slash commands: `/ash status`, `/ash stats`, `/ash history`, `/ash config`, `/ash notes`, `/ash optout`
-- Permission system with CRT and Admin role levels
-- Rich embed responses with consistent formatting
-- 27+ unit tests
-- Full integration with existing managers
-
----
-
-## Post-Launch
-
-### Future Enhancements (Backlog)
-
-- [ ] Web dashboard for CRT analytics
-- [ ] Historical trend visualization
-- [ ] Custom alert thresholds per channel
-- [ ] Multi-guild support
-- [ ] Webhook integration for external systems
-- [ ] ML model fine-tuning based on feedback
-- [ ] Mobile push notifications for CRT
-- [ ] Scheduled wellness check-ins
-- [ ] Streaming Ash responses
-- [ ] Session persistence in Redis
-- [ ] Session history export for CRT
-- [ ] Slash commands (/userhistory, /ashstatus)
-
-### Maintenance Tasks
-
-- [ ] Monthly dependency updates
-- [ ] Quarterly security audits
-- [ ] Model performance monitoring
-- [ ] User feedback collection
-- [ ] Documentation refresh
-
----
-
-## Change Log
+## 📝 Change Log
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-05 | v5.0.11 | Phase 8 complete - Added PUID/PGID container support | Claude + PapaBearDoes |
+| 2026-01-12 | v5.0.13 | Roadmap restructured to hybrid template format | Claude + PapaBearDoes |
+| 2026-01-05 | v5.0.12 | Phase 9.1 complete - CRT slash commands | Claude + PapaBearDoes |
+| 2026-01-05 | v5.0.11 | Phase 8 complete - PUID/PGID container support | Claude + PapaBearDoes |
 | 2026-01-05 | v5.0.10 | Phase 8 complete - Response metrics, weekly reports, data retention | Claude + PapaBearDoes |
 | 2026-01-05 | v5.0.9 | Phase 7 complete - Auto-initiate, user opt-out, channel sensitivity | Claude + PapaBearDoes |
 | 2026-01-04 | v5.0.8 | Phase 5 complete - Health, metrics, error recovery, documentation | Claude + PapaBearDoes |
@@ -434,31 +462,6 @@ See [Phase 9.1 Completion Report](phase9/phase9_1_complete.md) for details.
 | 2026-01-03 | v5.0.3 | Phase 0 complete - headers, configs, Docker verified | Claude + PapaBearDoes |
 | 2026-01-03 | v5.0.2 | Added Docker dev environment to Phase 0 | Claude + PapaBearDoes |
 | 2026-01-03 | v5.0.1 | Initial roadmap created | Claude + PapaBearDoes |
-
----
-
-## Progress Summary
-
-| Phase | Status | Completion | Tests |
-|-------|--------|------------|-------|
-| Phase 0: Foundation Cleanup | 🟢 Complete | 100% | - |
-| Phase 1: Discord Connectivity | 🟢 Complete | 100% | 77 |
-| Phase 2: Redis Integration | 🟢 Complete | 100% | 90+ |
-| Phase 3: Alert System | 🟢 Complete | 100% | 89 |
-| Phase 4: Ash Personality | 🟢 Complete | 100% | 69+ |
-| Phase 5: Production Hardening | 🟢 Complete | 100% | 40+ |
-| Phase 6: Final Testing | 🟢 Complete | 100% | 50+ |
-| Phase 7: Core Safety | 🟢 Complete | 100% | 65+ |
-| Phase 8: Metrics & Reporting | 🟢 Complete | 100% | 127 |
-| Phase 9: Documentation | 🔲 Not Started | 0% | - |
-
-**Total Tests**: 500+ (unit and integration tests across all phases)
-
-**Legend**:
-- 🔲 Not Started
-- 🟡 In Progress
-- 🟢 Complete
-- 🔴 Blocked
 
 ---
 

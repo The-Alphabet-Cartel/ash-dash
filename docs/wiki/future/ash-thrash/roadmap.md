@@ -1,46 +1,49 @@
-# Ash-Thrash v5.0 Roadmap
+---
+title: "Ash-Thrash - v5.0 Development Roadmap"
+description: "Roadmap for the v5.0 development of Ash-Thrash, the Crisis Detection Testing Suite"
+category: roadmap
+tags:
+  - roadmap
+  - planning
+  - ash-thrash
+author: "PapaBearDoes"
+version: "5.0"
+last_updated: "2026-01-12"
+---
+# Ash-Thrash: v5.0 Development Roadmap
 
 ============================================================================
-**Ash-Thrash**: Discord Crisis Detection Testing Suite
+**Ash-Thrash**: Crisis Detection Testing Suite
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0  
-**Created**: 2026-01-11  
-**Last Updated**: 2026-01-11  
-**Status**: 🚧 In Development  
+**Document Version**: v5.0.1
+**Created**: 2026-01-11
+**Last Updated**: 2026-01-12
+**Status**: 📋 Planning (Ready to Begin)
 **Repository**: https://github.com/the-alphabet-cartel/ash-thrash
 
 ---
 
 ## Table of Contents
 
-1. [Executive Summary](#executive-summary)
-2. [Mission Statement](#mission-statement)
-3. [Project Goals](#project-goals)
-4. [Architecture Overview](#architecture-overview)
-5. [Phase Overview](#phase-overview)
-6. [Test Scenario Distribution](#test-scenario-distribution)
-7. [Technology Stack](#technology-stack)
-8. [Success Metrics](#success-metrics)
-9. [Dependencies](#dependencies)
-10. [Future Enhancements](#future-enhancements)
+1. [Mission Statement](#-mission-statement)
+2. [Executive Summary](#-executive-summary)
+3. [Architecture Overview](#-architecture-overview)
+4. [Technology Stack](#-technology-stack)
+5. [Phase Overview](#-phase-overview)
+6. [Detailed Phase Breakdown](#-detailed-phase-breakdown)
+7. [Test Scenario Distribution](#-test-scenario-distribution)
+8. [Security Considerations](#-security-considerations)
+9. [Infrastructure & Deployment](#-infrastructure--deployment)
+10. [Progress Summary](#-progress-summary)
+11. [Success Criteria](#-success-criteria)
+12. [Future Enhancements](#-future-enhancements)
+13. [Change Log](#-change-log)
 
 ---
 
-## Executive Summary
-
-Ash-Thrash v5.0 is a complete recode of the Ash Ecosystem's testing suite, designed to comprehensively validate the crisis detection capabilities of Ash-NLP and eventually the entire Ash ecosystem. This version focuses on:
-
-- **525+ test scenarios** across multiple crisis severity categories
-- **Individual API testing** for detailed analysis and stress testing
-- **Flexible tolerance system** for human communication variability
-- **Comprehensive reporting** with baseline tracking for regression detection
-- **Clean Architecture compliance** following the Ash ecosystem standards
-
----
-
-## Mission Statement
+## 🎯 Mission Statement
 
 ```
 MISSION - NEVER TO BE VIOLATED:
@@ -52,103 +55,112 @@ MISSION - NEVER TO BE VIOLATED:
 
 ---
 
-## Project Goals
+## 📋 Executive Summary
 
-### Primary Goals
+Ash-Thrash is the comprehensive testing suite for the Ash Crisis Detection Ecosystem. It validates the accuracy and reliability of Ash-NLP's crisis classification through extensive test scenarios, regression detection, and performance benchmarking.
+
+### Key Capabilities
+
+- **525+ Test Scenarios**: Comprehensive coverage across all crisis severity levels
+- **Real API Testing**: Live integration with Ash-NLP (no mocks per Rule #8)
+- **Flexible Tolerance System**: Accounts for human communication variability
+- **Regression Detection**: Baseline comparison to catch accuracy degradation
+- **Performance Benchmarking**: Latency and throughput validation
+- **Detailed Reporting**: JSON, HTML, and Discord webhook notifications
+
+### Project Goals
 
 | Goal | Description | Success Criteria |
 |------|-------------|------------------|
-| **Accuracy Validation** | Verify Ash-NLP correctly classifies crisis messages | ≥95% accuracy on high/critical, ≥85% on medium/low |
+| **Accuracy Validation** | Verify crisis classification correctness | ≥95% accuracy on high/critical, ≥85% on medium/low |
 | **False Positive Prevention** | Ensure non-crisis content doesn't trigger alerts | ≥95% accuracy on "none" priority messages |
-| **Performance Validation** | Confirm Ash-NLP handles load appropriately | Response times within acceptable thresholds |
-| **Regression Detection** | Catch accuracy degradations before production | Baseline comparison with deviation alerts |
+| **Performance Validation** | Confirm acceptable response times | p95 latency < 500ms |
+| **Regression Detection** | Catch degradations before production | Baseline comparison with deviation alerts |
 
-### Secondary Goals
+### Current Status
 
-| Goal | Description |
-|------|-------------|
-| **Edge Case Coverage** | Test ambiguous scenarios, sarcasm, gaming context, cultural expressions |
-| **LGBTQIA+ Specific Testing** | Validate detection of identity-related distress patterns |
-| **Documentation** | Comprehensive test coverage reporting for team visibility |
+Ash-Thrash v5.0 is in **planning stage** with roadmap complete. Ready to begin Phase 1 development.
 
 ---
 
-## Architecture Overview
-
-### Directory Structure
+## 🏗️ Architecture Overview
 
 ```
-ash-thrash/
-├── src/
-│   ├── config/
-│   │   ├── default.json
-│   │   ├── testing.json
-│   │   ├── production.json
-│   │   └── phrases/
-│   │       ├── high_priority.json
-│   │       ├── medium_priority.json
-│   │       ├── low_priority.json
-│   │       ├── none_priority.json
-│   │       ├── edge_cases/
-│   │       │   ├── maybe_high_medium.json
-│   │       │   ├── maybe_medium_low.json
-│   │       │   └── maybe_low_none.json
-│   │       └── specialty/
-│   │           ├── irony_sarcasm.json
-│   │           ├── gaming_context.json
-│   │           ├── song_lyrics_quotes.json
-│   │           ├── lgbtqia_specific.json
-│   │           └── cultural_slang.json
-│   │
-│   ├── managers/
-│   │   ├── config_manager.py
-│   │   ├── secrets_manager.py
-│   │   ├── logging_config_manager.py
-│   │   ├── nlp_client_manager.py
-│   │   ├── phrase_loader_manager.py
-│   │   ├── test_runner_manager.py
-│   │   ├── result_analyzer_manager.py
-│   │   └── report_manager.py
-│   │
-│   └── validators/
-│       ├── classification_validator.py
-│       └── response_validator.py
-│
-├── tests/
-├── reports/
-├── logs/
-├── docs/
-├── main.py
-├── Dockerfile
-└── docker-compose.yml
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        Ash-Thrash Architecture                             │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│    ┌─────────────────────────────────────────────────────────────────┐     │
+│    │                    Ash-Thrash Container                         │     │
+│    │                                                                 │     │
+│    │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐   │     │
+│    │  │ PhraseLoader     │  │ TestRunner       │  │ Report       │   │     │
+│    │  │ Manager          │  │ Manager          │  │ Manager      │   │     │
+│    │  │                  │  │                  │  │              │   │     │
+│    │  │ • Load JSON      │  │ • Orchestrate    │  │ • JSON       │   │     │
+│    │  │ • Validate       │  │ • Track progress │  │ • HTML       │   │     │
+│    │  │ • Categorize     │  │ • Collect results│  │ • Discord    │   │     │
+│    │  └──────────────────┘  └──────────────────┘  └──────────────┘   │     │
+│    │           │                    │                    │           │     │
+│    │           ▼                   ▼                    ▼           │     │
+│    │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐   │     │
+│    │  │ NLPClient        │  │ ResultAnalyzer   │  │ Baseline     │   │     │
+│    │  │ Manager          │  │ Manager          │  │ Tracker      │   │     │
+│    │  │                  │  │                  │  │              │   │     │
+│    │  │ • HTTP client    │  │ • Calculate      │  │ • Store      │   │     │
+│    │  │ • Retry logic    │  │   accuracy       │  │ • Compare    │   │     │
+│    │  │ • Timeout        │  │ • Categorize     │  │ • Alert      │   │     │
+│    │  └──────────────────┘  └──────────────────┘  └──────────────┘   │     │
+│    │           │                                                     │     │
+│    └───────────┼─────────────────────────────────────────────────────┘     │
+│                │                                                           │
+│                ▼                                                           │
+│    ┌───────────────────────┐                                               │
+│    │       Ash-NLP         │                                               │
+│    │    (Port 30880)       │                                               │
+│    │                       │                                               │
+│    │  Live API Testing     │                                               │
+│    │  (No Mocks - Rule #8) │                                               │
+│    └───────────────────────┘                                               │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
-
-### Manager Responsibilities
-
-| Manager | Responsibility |
-|---------|----------------|
-| `ConfigManager` | JSON configuration loading, environment variable overrides, validation |
-| `SecretsManager` | Docker secrets handling for sensitive tokens |
-| `LoggingConfigManager` | Colorized, structured logging output (Rule #11) |
-| `NLPClientManager` | HTTP client for Ash-NLP API with retry logic |
-| `PhraseLoaderManager` | Load and validate test phrases from JSON files |
-| `TestRunnerManager` | Orchestrate test execution, progress tracking |
-| `ResultAnalyzerManager` | Calculate accuracy metrics, category breakdowns |
-| `ReportManager` | Generate JSON/HTML reports, Discord webhook notifications |
 
 ---
 
-## Phase Overview
+## 🛠️ Technology Stack
 
-### Phase Summary
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Runtime** | Python 3.11 | Primary language |
+| **Testing** | pytest | Test framework |
+| **HTTP Client** | httpx | Async HTTP for Ash-NLP API |
+| **Validation** | Pydantic v2.x | Data validation |
+| **Terminal Output** | Rich | Colorized progress display |
+| **Configuration** | JSON + Environment | Clean Architecture compliant |
+| **Containerization** | Docker | Deployment |
 
-| Phase | Name | Description | Estimated Effort |
-|-------|------|-------------|------------------|
-| **Phase 1** | Foundation | Core infrastructure, managers, logging | 8-12 hours |
-| **Phase 2** | Test Execution Engine | Runner, validators, result collection | 6-8 hours |
-| **Phase 3** | Analysis & Reporting | Metrics, reports, baseline tracking | 6-8 hours |
-| **Phase 4** | Test Data Population | 525+ test scenarios across categories | 8-12 hours |
-| **Phase 5** | Performance & Stress Testing | Load testing, latency analysis | 4-6 hours |
+### Target Server
+
+| Specification | Value |
+|---------------|-------|
+| **OS** | Debian 12 |
+| **CPU** | AMD Ryzen 7 5800x |
+| **GPU** | NVIDIA RTX 3060 (12GB VRAM) |
+| **RAM** | 64GB |
+| **Server** | Lofn (10.20.30.253) |
+
+---
+
+## 📅 Phase Overview
+
+| Phase | Name | Focus | Status |
+|-------|------|-------|--------|
+| 1 | Foundation | Core infrastructure, managers, logging | 🔲 Not Started |
+| 2 | Test Execution Engine | Runner, validators, result collection | 🔲 Not Started |
+| 3 | Analysis & Reporting | Metrics, reports, baseline tracking | 🔲 Not Started |
+| 4 | Test Data Population | 525+ test scenarios across categories | 🔲 Not Started |
+| 5 | Performance & Stress Testing | Load testing, latency analysis | 🔲 Not Started |
 
 ### Phase Dependencies
 
@@ -164,45 +176,98 @@ Phase 4 (Test Data) ←── Can start parallel with Phase 2
 Phase 5 (Performance)
 ```
 
-### Detailed Phase Breakdown
+### Estimated Effort
 
-#### Phase 1: Foundation
-- ConfigManager completion with full validation
-- LoggingConfigManager with colorized output
-- SecretsManager for Docker secrets
-- NLPClientManager with HTTP client, retry logic, timeout handling
-- PhraseLoaderManager with JSON schema validation
-
-#### Phase 2: Test Execution Engine
-- TestRunnerManager for orchestration
-- ClassificationValidator for expected vs actual comparison
-- ResponseValidator for API response structure
-- In-memory result collection
-- Progress tracking and status reporting
-
-#### Phase 3: Analysis & Reporting
-- ResultAnalyzerManager for metrics calculation
-- Accuracy by category, subcategory, and overall
-- False positive/negative rate tracking
-- ReportManager for JSON, HTML, Discord webhook output
-- Baseline storage and comparison logic
-
-#### Phase 4: Test Data Population
-- Migrate existing ~200 phrases from old structure
-- Expand to 525+ scenarios
-- Add new subcategories for specialty testing
-- Validate phrase distribution and coverage
-
-#### Phase 5: Performance & Stress Testing
-- Concurrent request testing
-- Latency tracking (p50, p95, p99)
-- Load curve generation
-- Server stability validation
-- Resource utilization monitoring
+| Phase | Estimated Hours |
+|-------|-----------------|
+| Phase 1 | 8-12 hours |
+| Phase 2 | 6-8 hours |
+| Phase 3 | 6-8 hours |
+| Phase 4 | 8-12 hours |
+| Phase 5 | 4-6 hours |
+| **Total** | **32-46 hours** |
 
 ---
 
-## Test Scenario Distribution
+## 📋 Detailed Phase Breakdown
+
+### Phase 1: Foundation 🔲 Not Started
+**Goal**: Establish core infrastructure and managers
+
+- [ ] Project directory structure (Clean Architecture compliant)
+- [ ] Docker setup (Dockerfile, docker-compose.yml)
+- [ ] ConfigManager with full validation
+- [ ] LoggingConfigManager with colorized output
+- [ ] SecretsManager for Docker secrets
+- [ ] NLPClientManager with HTTP client, retry logic, timeout handling
+- [ ] PhraseLoaderManager with JSON schema validation
+- [ ] Health check endpoint
+
+**Estimated**: 8-12 hours
+
+---
+
+### Phase 2: Test Execution Engine 🔲 Not Started
+**Goal**: Build test orchestration and validation
+
+- [ ] TestRunnerManager for orchestration
+- [ ] ClassificationValidator (expected vs actual comparison)
+- [ ] ResponseValidator (API response structure)
+- [ ] In-memory result collection
+- [ ] Progress tracking with Rich terminal output
+- [ ] Tolerance system for edge cases
+
+**Estimated**: 6-8 hours
+
+---
+
+### Phase 3: Analysis & Reporting 🔲 Not Started
+**Goal**: Implement metrics calculation and reporting
+
+- [ ] ResultAnalyzerManager for metrics calculation
+- [ ] Accuracy by category, subcategory, and overall
+- [ ] False positive/negative rate tracking
+- [ ] ReportManager for JSON output
+- [ ] ReportManager for HTML output
+- [ ] Discord webhook notifications
+- [ ] Baseline storage and comparison logic
+- [ ] Regression alerting
+
+**Estimated**: 6-8 hours
+
+---
+
+### Phase 4: Test Data Population 🔲 Not Started
+**Goal**: Create comprehensive test scenario library
+
+- [ ] Migrate existing ~200 phrases from old structure
+- [ ] High/Critical priority scenarios (125 total)
+- [ ] Medium priority scenarios (100 total)
+- [ ] Low priority scenarios (100 total)
+- [ ] None priority scenarios (100 total)
+- [ ] Edge case scenarios (75 total)
+- [ ] Specialty scenarios (100 total)
+- [ ] Validate phrase distribution and coverage
+
+**Estimated**: 8-12 hours
+
+---
+
+### Phase 5: Performance & Stress Testing 🔲 Not Started
+**Goal**: Validate system performance under load
+
+- [ ] Concurrent request testing
+- [ ] Latency tracking (p50, p95, p99)
+- [ ] Load curve generation
+- [ ] Server stability validation
+- [ ] Resource utilization monitoring
+- [ ] Performance baseline establishment
+
+**Estimated**: 4-6 hours
+
+---
+
+## 📊 Test Scenario Distribution
 
 ### Target: 525+ Test Scenarios
 
@@ -234,11 +299,9 @@ Phase 5 (Performance)
 | **Cultural/Slang** | 15 | Internet slang, cultural expressions |
 | **Multi-language Hints** | 10 | Code-switching, expressions from other languages |
 
-### Subcategory Organization
+### Subcategory Examples
 
-Each priority category maintains granular subcategories for detailed weakness identification:
-
-**High Priority Subcategories** (examples):
+**High Priority Subcategories**:
 - `method_specific` - Explicit suicide methods mentioned
 - `suicidal_planning` - Active planning statements
 - `suicidal_intent_immediate` - Immediate intent expressions
@@ -246,7 +309,7 @@ Each priority category maintains granular subcategories for detailed weakness id
 - `burden_thoughts` - Feeling like a burden to others
 - `self_harm_intent` - Self-harm with intent
 
-**Medium Priority Subcategories** (examples):
+**Medium Priority Subcategories**:
 - `depression_severe` - Acknowledged severe depression
 - `emotional_overwhelm` - Feeling overwhelmed
 - `hopelessness` - Pervasive hopelessness
@@ -255,111 +318,136 @@ Each priority category maintains granular subcategories for detailed weakness id
 
 ---
 
-## Technology Stack
+## 🔐 Security Considerations
 
-### Core Technologies
-
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **Python** | Primary language | 3.11+ |
-| **pytest** | Testing framework | Latest |
-| **httpx** | Async HTTP client | Latest |
-| **Pydantic** | Data validation | v2.x |
-| **Rich** | Terminal output formatting | Latest |
-
-### Infrastructure
-
-| Component | Purpose |
-|-----------|---------|
-| **Docker** | Containerization |
-| **Docker Compose** | Service orchestration |
-| **Docker Secrets** | Sensitive credential management |
-
-### Target Server
-
-| Specification | Value |
-|---------------|-------|
-| **OS** | Debian 12 |
-| **CPU** | AMD Ryzen 7 5800x |
-| **GPU** | NVIDIA RTX 3060 (12GB VRAM) |
-| **RAM** | 64GB |
-| **Server IP** | 10.20.30.253 |
+1. **Test Data Sensitivity**: Test phrases contain simulated crisis content - handle appropriately
+2. **API Access**: NLP client credentials via Docker secrets
+3. **Network Isolation**: Only communicates with Ash-NLP on internal network
+4. **Report Storage**: Results stored locally, not transmitted externally
+5. **Discord Webhooks**: Webhook URL stored as secret
 
 ---
 
-## Success Metrics
+## 🖥️ Infrastructure & Deployment
 
-### Accuracy Targets
+### Deployment Configuration
 
-| Category | Minimum | Target | Stretch |
-|----------|---------|--------|---------|
-| High/Critical | 90% | 95% | 98% |
-| Medium | 80% | 85% | 90% |
-| Low | 80% | 85% | 90% |
-| None (False Positive Prevention) | 90% | 95% | 98% |
+| Setting | Value |
+|---------|-------|
+| **Host** | Lofn (10.20.30.253) |
+| **Container** | ash-thrash |
+| **Port** | 30887 (API/Health) |
+| **Health Check** | HTTP /health |
 
-### Performance Targets
+### Dependencies
 
-| Metric | Acceptable | Target | Optimal |
-|--------|------------|--------|---------|
-| Single Request Latency (p50) | <500ms | <300ms | <200ms |
-| Single Request Latency (p95) | <1000ms | <500ms | <300ms |
-| Sustained Throughput | 5 req/s | 10 req/s | 20 req/s |
+| Service | Host | Port | Required |
+|---------|------|------|----------|
+| Ash-NLP | Lofn | 30880 | ✅ Yes |
+| Discord Webhook | External | 443 | 🟡 Optional |
 
-### Quality Targets
+### File Structure
 
-| Metric | Target |
-|--------|--------|
-| Test Coverage (Ash-Thrash code) | ≥80% |
-| Documentation Completeness | 100% |
-| Clean Architecture Compliance | 100% |
+```
+ash-thrash/
+├── src/
+│   ├── config/
+│   │   ├── default.json
+│   │   ├── testing.json
+│   │   └── phrases/
+│   │       ├── high_priority.json
+│   │       ├── medium_priority.json
+│   │       ├── low_priority.json
+│   │       ├── none_priority.json
+│   │       ├── edge_cases/
+│   │       └── specialty/
+│   ├── managers/
+│   │   ├── config_manager.py
+│   │   ├── secrets_manager.py
+│   │   ├── logging_config_manager.py
+│   │   ├── nlp_client_manager.py
+│   │   ├── phrase_loader_manager.py
+│   │   ├── test_runner_manager.py
+│   │   ├── result_analyzer_manager.py
+│   │   └── report_manager.py
+│   └── validators/
+│       ├── classification_validator.py
+│       └── response_validator.py
+├── tests/
+├── reports/
+├── logs/
+├── docs/
+├── main.py
+├── Dockerfile
+└── docker-compose.yml
+```
 
 ---
 
-## Dependencies
+## 📊 Progress Summary
 
-### External Dependencies
+### Completed Phases: 0 of 5
 
-| Dependency | Required For | Status |
-|------------|--------------|--------|
-| Ash-NLP Server | All testing | ✅ Available at 10.20.30.253:30880 |
-| Docker | Containerization | ✅ Available on Lofn |
-| Network Access | API communication | ✅ Internal network |
+| Phase | Status | Date | Key Deliverables |
+|-------|--------|------|------------------|
+| Phase 1 | 🔲 Not Started | - | Foundation, managers |
+| Phase 2 | 🔲 Not Started | - | Test execution engine |
+| Phase 3 | 🔲 Not Started | - | Analysis & reporting |
+| Phase 4 | 🔲 Not Started | - | 525+ test scenarios |
+| Phase 5 | 🔲 Not Started | - | Performance testing |
 
-### Internal Dependencies
-
-| Dependency | Required For | Notes |
-|------------|--------------|-------|
-| Clean Architecture Charter | Code standards | Must follow v5.1+ |
-| Ash-NLP API Schema | Request/Response format | See `docs/api/` |
+**Overall Progress**: 0% (Planning Complete)
 
 ---
 
-## Future Enhancements
+## ✅ Success Criteria
 
-The following enhancements are planned for post-v5.0 releases. See `docs/wiki/future/ash-thrash/enhancements.md` for full details.
+The project is complete when:
 
-### Planned Enhancements
+1. [ ] 525+ test scenarios created and validated
+2. [ ] High/Critical accuracy ≥ 95%
+3. [ ] Medium/Low accuracy ≥ 85%
+4. [ ] None (false positive prevention) accuracy ≥ 95%
+5. [ ] p95 latency < 500ms
+6. [ ] Baseline comparison operational
+7. [ ] Regression alerting functional
+8. [ ] JSON and HTML reports generated
+9. [ ] Discord webhook notifications working
+10. [ ] All code follows Clean Architecture Charter
+11. [ ] Documentation complete
+12. [ ] Docker deployment operational
+
+---
+
+## 🔜 Future Enhancements
+
+See [enhancements.md](enhancements.md) for detailed planning.
+
+### Post-v5.0 Backlog
 
 | Enhancement | Priority | Description |
 |-------------|----------|-------------|
-| Multi-Consensus Algorithm Testing | 🟡 Medium | Test each phrase against all consensus algorithms |
+| Multi-Consensus Testing | 🟡 Medium | Test each phrase against all consensus algorithms |
 | Discord Message Simulation | 🟡 Medium | End-to-end Ash-Bot integration testing |
 | Ash-Dash API Integration | 🟢 Low | Dashboard data flow validation |
+| Automated CI/CD Integration | 🟡 Medium | Run tests on every commit |
+| Historical Trend Analysis | 🟢 Low | Track accuracy over time |
 
 ### Research Items
 
 | Item | Status |
 |------|--------|
 | Optimal test phrase count per category | 🔬 Research needed |
+| Adversarial testing techniques | 🔬 Research needed |
 
 ---
 
-## Document History
+## 📝 Change Log
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v5.0 | 2026-01-11 | PapaBearDoes + Claude | Initial v5.0 roadmap |
+| Date | Version | Changes | Author |
+|------|---------|---------|--------|
+| 2026-01-12 | v5.0.1 | Roadmap restructured to hybrid template format | Claude + PapaBearDoes |
+| 2026-01-11 | v5.0.0 | Initial v5.0 roadmap created | Claude + PapaBearDoes |
 
 ---
 
