@@ -39,7 +39,7 @@ last_updated: "2026-01-11"
 
 ## 📋 Overview
 
-This document tracks potential enhancements and feature ideas for {project_name} beyond the core v5.0 roadmap. Items are organized by priority and implementation complexity.
+This document tracks potential enhancements and feature ideas for Ash-Thrash beyond the core v5.0 roadmap. Items are organized by priority and implementation complexity.
 
 ### Priority Legend
 
@@ -63,28 +63,91 @@ This document tracks potential enhancements and feature ideas for {project_name}
 
 ## 🎯 Active Enhancements
 
-### 1. {EnhancementTitle}
+### 1. Multi-Consensus Algorithm Comparative Testing
 
-**Priority**: {priority}  
-**Complexity**: {complexity}  
-**Depends On**: {depends_on}
-**Estimated Time**: {estimated_time}
+**Priority**: 🟡 Medium  
+**Complexity**: 🟨 Medium  
+**Depends On**: Core NLP Testing Suite (Phase 1)  
+**Estimated Time**: 6-8 hours
 
-{enhancement_description}
+Test each phrase against all available Ash-NLP consensus algorithms to compare accuracy and identify algorithm-specific strengths/weaknesses.
 
 **Features**:
-- {feature1}
-- {feature2}
-- {feature3}
-- etc.
+- Test each phrase against all four consensus algorithms:
+  - `weighted_voting` (current default)
+  - `majority_voting`
+  - `unanimous`
+  - `conflict_aware`
+- Generate comparative accuracy reports per algorithm
+- Identify which algorithm performs best for each crisis category
+- Track algorithm-specific false positive/negative rates
+- Recommend optimal algorithm settings based on test results
 
 **Implementation**:
-- {implementation1}
-- {implementation2}
-- {implementation3}
-- etc.
+- Add `consensus_algorithm` parameter to test runner
+- Create parallel test execution mode (one run per algorithm)
+- Develop comparative report generator
+- Add algorithm performance metrics to baseline tracking
 
-**Benefit**: {benefits}
+**Benefit**: Enables data-driven optimization of Ash-NLP's consensus configuration. May reveal that different algorithms perform better for different crisis severity levels, informing potential adaptive consensus strategies.
+
+---
+
+### 2. Discord Message Simulation (Ash-Bot Integration Testing)
+
+**Priority**: 🟡 Medium  
+**Complexity**: 🟧 High  
+**Depends On**: Core NLP Testing Suite (Phase 1), Ash-Bot architecture understanding  
+**Estimated Time**: 12-16 hours
+
+Simulate Discord messages through Ash-Bot's internal message processing pipeline to test end-to-end crisis detection flow without requiring actual Discord API interaction.
+
+**Features**:
+- Bypass Discord API while using Ash-Bot's actual message handler code paths
+- Test message → Ash-NLP → alert generation flow
+- Validate Crisis Response Team notification triggers
+- Test user history tracking and escalation pattern detection
+- Verify embed formatting and alert content accuracy
+
+**Implementation**:
+- Study Ash-Bot's message handler architecture
+- Create mock Discord message objects that satisfy Ash-Bot's expectations
+- Develop test harness that injects messages into Ash-Bot's processing pipeline
+- Capture and validate alert payloads before Discord delivery
+- Add latency measurement for full pipeline timing
+
+**Benefit**: Enables comprehensive end-to-end testing of the entire crisis detection pipeline without needing Discord test channels or risking false alerts to Crisis Response Team during testing.
+
+**Notes**:
+- Requires deep understanding of Ash-Bot's internal architecture
+- May need coordination with Ash-Bot development to ensure testability
+- Consider adding test hooks to Ash-Bot specifically for this purpose
+
+---
+
+### 3. Ash-Dash API Integration Testing
+
+**Priority**: 🟢 Low  
+**Complexity**: 🟨 Medium  
+**Depends On**: Discord Message Simulation, Ash-Dash API stability  
+**Estimated Time**: 8-10 hours
+
+Validate that crisis alerts properly flow through to Ash-Dash and appear correctly in the dashboard interface.
+
+**Features**:
+- Test alert ingestion via Ash-Dash API
+- Validate session creation and tracking
+- Verify CRT (Crisis Response Team) notification workflows
+- Test historical data queries and reporting endpoints
+- Validate user history aggregation
+
+**Implementation**:
+- Create Ash-Dash API client manager for Ash-Thrash
+- Develop test scenarios for dashboard data flow
+- Add dashboard state validation after test alerts
+- Implement cleanup routines for test data
+
+**Benefit**: Ensures the full ecosystem works together, from message detection through dashboard visibility for Crisis Response Teams.
 
 ---
 
@@ -92,15 +155,33 @@ This document tracks potential enhancements and feature ideas for {project_name}
 
 Features we may want eventually, but are lower priority.
 
-### 1. {enhancement_title}
+### 1. Automated Regression Detection
 
-{enhancement_description}
+Automatically compare test results against historical baselines and flag regressions via Discord webhook.
 
 **Notes**:
-- {enhancement_note1}
-- {enhancement_note2}
-- {enhancement_note3}
-- etc.
+- Requires baseline storage infrastructure
+- Would benefit from CI/CD integration
+- Could alert on >2% accuracy drops
+
+### 2. Performance Profiling Suite
+
+Detailed performance analysis beyond basic latency tracking.
+
+**Notes**:
+- GPU memory utilization during inference
+- Model-specific latency breakdown
+- Throughput degradation curves under load
+- Memory leak detection for long-running tests
+
+### 3. Test Data Generation Tools
+
+AI-assisted generation of new test phrases to expand coverage.
+
+**Notes**:
+- Use Claude API to generate variations of existing phrases
+- Human review required before adding to test suite
+- Could help identify coverage gaps
 
 ---
 
@@ -110,11 +191,11 @@ Ideas discussed but not currently planned. May revisit based on team feedback.
 
 | Idea | Reason for Deferral |
 |------|---------------------|
-| {idea1} | {reason_deferred1} |
-| {idea2} | {reason_deferred2} |
-| {idea3} | {reason_deferred3} |
-| {idea4} | {reason_deferred4} |
-| {idea5} | {reason_deferred5} |
+| Mock Ash-NLP Server | Violates Clean Architecture Rule #8 (real-world testing) |
+| Browser-based Test UI | Complexity not justified for manual runs |
+| Multi-language Testing | English-only community focus for now |
+| Real Discord Channel Testing | Risk of false CRT alerts, complex setup |
+| Automated Daily Test Runs | Manual execution preferred initially |
 
 ---
 
@@ -122,17 +203,7 @@ Ideas discussed but not currently planned. May revisit based on team feedback.
 
 Space for tracking community-requested features.
 
-### CR-XXX: {feature_name}
-**Requested By**: {discord_username_or_multiple_users}
-**Date**: {date}
-**Priority**: 🔴/🟡/🟢/⚪
-**Complexity**: 🟦/🟨/🟧/🟥
-
-**Description**: {description}
-
-**Use Case**: {use_case}
-
-**Notes**: {notes}
+*No community requests yet.*
 
 ---
 
@@ -140,15 +211,20 @@ Space for tracking community-requested features.
 
 Ideas requiring research before planning.
 
-### R-XXX: {research_topic}
+### R-001: Optimal Test Phrase Count Per Category
 
 **Status**: 🔬 Research Needed
 
-**Question**: {research_question}
+**Question**: What is the minimum number of test phrases per category needed to achieve statistically significant accuracy measurements?
 
-**Approach**: {research_approach}
+**Approach**: 
+- Research ML testing best practices
+- Analyze variance in current test results
+- Determine confidence interval requirements
 
-**Concerns**: {research_concerns}
+**Concerns**: 
+- Too few phrases may miss edge cases
+- Too many phrases increases test runtime significantly
 
 ---
 
