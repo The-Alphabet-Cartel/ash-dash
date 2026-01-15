@@ -9,7 +9,7 @@ tags:
   - ecosystem
 author: "PapaBearDoes"
 version: "5.0"
-last_updated: "2026-01-12"
+last_updated: "2026-01-14"
 ---
 # Ash Ecosystem: v5.0 Development Roadmap
 
@@ -18,9 +18,9 @@ last_updated: "2026-01-12"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.1
+**Document Version**: v5.0.3
 **Created**: 2026-01-11
-**Last Updated**: 2026-01-12
+**Last Updated**: 2026-01-15
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
 **Repository**: https://github.com/the-alphabet-cartel/ash
 
@@ -82,6 +82,7 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 | **Ash-Dash** | 🟢 Complete | All 11 phases complete, WCAG 2.1 AA accessible |
 | **Ash-Vault** | 🟢 Complete | All 5 phases complete, 1-2-3 backup operational |
 | **Ash-Thrash** | 📋 Planning | Ready to begin Phase 1 development |
+| **Ash (Core)** | 📋 Planning | Ecosystem Health API - All 5 phases documented |
 
 **The ecosystem is live and protecting our community.**
 
@@ -152,7 +153,13 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 │    └───────────────────────────┘                                                     │
 │                                                                                      │
 │    ┌──────────────────────────────────────────────────────────────────────────────┐  │
-│    │                        ASH-THRASH (:30887)                                   │  │
+│    │                   ASH (CORE) - Ecosystem Health API (:30887)                 │  │
+│    │         https://ash.alphabetcartel.net/health/ecosystem                      │  │
+│    │    Aggregates health from all components + validates inter-connectivity      │  │
+│    └──────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                      │
+│    ┌──────────────────────────────────────────────────────────────────────────────┐  │
+│    │                        ASH-THRASH (:30888)                                   │  │
 │    │                      Crisis Detection Testing Suite                          │  │
 │    │                                                                              │  │
 │    │  • 525+ Test Scenarios   • Regression Detection   • Performance Benchmarks   │  │
@@ -224,6 +231,20 @@ The backup infrastructure running on the Syn VM, providing encrypted storage and
 
 ---
 
+### Ash (Core) - Ecosystem Health API
+**Repository**: [github.com/the-alphabet-cartel/ash](https://github.com/the-alphabet-cartel/ash)
+
+The centralized ecosystem health monitoring service providing a single endpoint for all component status and inter-component connectivity.
+
+| Capability | Description |
+|------------|-------------|
+| **Aggregate** | Unified health status from all ecosystem components |
+| **Validate** | Inter-component connectivity verification |
+| **Report** | Single endpoint for monitoring tools and dashboard |
+| **Alert** | Ecosystem-wide status and degradation detection |
+
+---
+
 ### Ash-Thrash - Crisis Detection Testing Suite
 **Repository**: [github.com/the-alphabet-cartel/ash-thrash](https://github.com/the-alphabet-cartel/ash-thrash)
 
@@ -260,7 +281,8 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 | 30884 | MinIO API | Syn | Object storage API |
 | 30885 | MinIO Console | Syn | Object storage UI |
 | 30886 | Ash-Vault Health | Syn | Backup service health |
-| 30887 | Ash-Thrash | Lofn | Testing suite API |
+| 30887 | Ash (Core) | Lofn | Ecosystem Health API |
+| 30888 | Ash-Thrash | Lofn | Testing suite API |
 
 ### Hardware Specifications
 
@@ -271,8 +293,29 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 - Storage: NAS mount
 - OS: Debian 12
 
+**Bacchus (AI Rig)**:
+- CPU: AMD Ryzen 7 7700X (8 cores)
+- GPU: NVIDIA RTX 3050 (6GB VRAM)
+- RAM: 128GB
+- Storage:
+  - NVME OS Drive (C:) - 1Tb
+  - Docker/AI Drive (F:) - 1Tb
+  - Storage Drive (D:) - 7Tb
+- OS: Windows 11 Pro
+
+**Odin (Hypervisor)**:
+- CPU: AMD Ryzen 7 2700 (8 cores)
+- GPU: NVIDIA GTX 1650 (4GB VRAM)
+- RAM: 80GB
+- Storage:
+  - NVME OS Drive (C:) - 1Tb
+  - VM Drive (D:) - 2.7Tb
+- OS: Windows 11 Pro
+
 **Syn (Archive VM)**:
 - Hypervisor: Hyper-V on Odin
+- CPU: 4 Virtual
+- RAM: 4Gb
 - OS: Debian Trixie
 - Storage: ZFS with native AES-256-GCM encryption
 - Purpose: Dedicated archive guardian
@@ -289,6 +332,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 | **Ash-NLP** | v5.0.10 | 6/6 complete | 140+ | 🟢 Complete |
 | **Ash-Dash** | v5.0.12 | 11/11 complete | 101 | 🟢 Complete |
 | **Ash-Vault** | v5.0.2 | 5/5 complete | N/A | 🟢 Complete |
+| **Ash (Core)** | v5.0.1 | 0/5 planned | 0 | 📋 Planning (Phase 1 ready) |
 | **Ash-Thrash** | v5.0.1 | 0/5 complete | 0 | 📋 Planning |
 
 ### Key Metrics
@@ -352,12 +396,18 @@ See individual roadmaps for detailed success criteria:
 
 ### Immediate Priority
 
-1. **Verify Ash-Dash ↔ Ash-Vault Connection**
+1. **Ash Ecosystem Health API (Phase 1)**
+   - Implement centralized health monitoring service
+   - Single endpoint for ecosystem status
+   - Estimated effort: 8-12 hours
+   - See: [Phase 1 Planning](../../v5.0/phase1/planning.md)
+
+2. **Verify Ash-Dash ↔ Ash-Vault Connection**
    - Test archive upload/download workflow
    - Verify credentials and network connectivity
    - Document any issues found
 
-2. **Begin Ash-Thrash Development**
+3. **Begin Ash-Thrash Development**
    - Start Phase 1: Foundation
    - Estimated effort: 32-46 hours total
    - Target: 525+ test scenarios
@@ -366,6 +416,7 @@ See individual roadmaps for detailed success criteria:
 
 | Priority | Task | Component |
 |----------|------|-----------|
+| 🔴 High | Ecosystem Health API Phase 1 | Ash (Core) |
 | 🔴 High | Vault connection verification | Ash-Dash, Ash-Vault |
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
@@ -380,6 +431,7 @@ Detailed roadmaps for each component:
 
 | Component | Roadmap Location |
 |-----------|------------------|
+| **Ash (Core)** | [This Document + phase1/planning.md](../../v5.0/phase1/planning.md) |
 | **Ash-Bot** | [ash-bot/roadmap.md](ash-bot/roadmap.md) |
 | **Ash-NLP** | [ash-nlp/roadmap.md](ash-nlp/roadmap.md) |
 | **Ash-Dash** | [ash-dash/roadmap.md](ash-dash/roadmap.md) |
@@ -390,6 +442,7 @@ Enhancement tracking for each component:
 
 | Component | Enhancements Location |
 |-----------|----------------------|
+| **Ash (Core)** | [enhancements.md](../../v5.0/enhancements.md) |
 | **Ash-Bot** | [ash-bot/enhancements.md](ash-bot/enhancements.md) |
 | **Ash-NLP** | [ash-nlp/enhancements.md](ash-nlp/enhancements.md) |
 | **Ash-Dash** | [ash-dash/enhancements.md](ash-dash/enhancements.md) |
@@ -402,6 +455,8 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-15 | v5.0.3 | Added Phase 2-5 planning documents for Ash (Core), fixed architecture diagram port allocation | Claude + PapaBearDoes |
+| 2026-01-14 | v5.0.2 | Added Ash (Core) Ecosystem Health API, Phase 1 planning, updated port allocation (30887 for Ash, 30888 for Ash-Thrash) | Claude + PapaBearDoes |
 | 2026-01-12 | v5.0.1 | Created ecosystem roadmap from hybrid template | Claude + PapaBearDoes |
 | 2026-01-11 | v5.0.0 | Initial ecosystem roadmap (template only) | Claude + PapaBearDoes |
 

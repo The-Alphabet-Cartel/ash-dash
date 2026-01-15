@@ -280,7 +280,7 @@ MINIO_REGION=us-east-1
 OIDC_ENABLED=true
 OIDC_ISSUER=https://id.alphabetcartel.net
 OIDC_CLIENT_ID=ash-dash
-OIDC_REDIRECT_URI=https://ash-dash.alphabetcartel.net/auth/callback
+OIDC_REDIRECT_URI=https://crt.alphabetcartel.net/auth/callback
 OIDC_SCOPES=openid profile email groups
 OIDC_SESSION_LIFETIME=86400
 

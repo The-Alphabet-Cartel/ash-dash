@@ -145,7 +145,7 @@ MINIO_SECURE=false
 # OIDC (PocketID)
 OIDC_ISSUER=https://id.alphabetcartel.net
 OIDC_CLIENT_ID=ash-dash
-OIDC_REDIRECT_URI=https://ash-dash.alphabetcartel.net/auth/callback
+OIDC_REDIRECT_URI=https://crt.alphabetcartel.net/auth/callback
 ```
 
 See [Configuration Reference](./configuration.md) for all options.
@@ -192,16 +192,16 @@ Create `/etc/nginx/sites-available/ash-dash`:
 ```nginx
 server {
     listen 80;
-    server_name ash-dash.alphabetcartel.net;
+    server_name crt.alphabetcartel.net;
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name ash-dash.alphabetcartel.net;
+    server_name crt.alphabetcartel.net;
 
-    ssl_certificate /etc/letsencrypt/live/ash-dash.alphabetcartel.net/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/ash-dash.alphabetcartel.net/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/crt.alphabetcartel.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/crt.alphabetcartel.net/privkey.pem;
 
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -234,7 +234,7 @@ systemctl reload nginx
 Using Certbot:
 
 ```bash
-certbot --nginx -d ash-dash.alphabetcartel.net
+certbot --nginx -d crt.alphabetcartel.net
 ```
 
 ## Step 7: Configure PocketID
@@ -243,7 +243,7 @@ In PocketID admin panel:
 
 1. Create new OIDC client
 2. Client ID: `ash-dash`
-3. Redirect URIs: `https://ash-dash.alphabetcartel.net/auth/callback`
+3. Redirect URIs: `https://crt.alphabetcartel.net/auth/callback`
 4. Grant types: `authorization_code`
 5. Response types: `code`
 6. Scopes: `openid profile email groups`
@@ -275,12 +275,12 @@ mc policy set none syn/ash-archives
 ### Health Check
 
 ```bash
-curl https://ash-dash.alphabetcartel.net/health/detailed
+curl https://crt.alphabetcartel.net/health/detailed
 ```
 
 ### Login Test
 
-1. Navigate to https://ash-dash.alphabetcartel.net
+1. Navigate to https://crt.alphabetcartel.net
 2. Click "Sign in with PocketID"
 3. Authenticate with PocketID
 4. Verify dashboard loads
@@ -324,7 +324,7 @@ docker compose up -d --build
 
 ```bash
 # Check version
-curl https://ash-dash.alphabetcartel.net/health
+curl https://crt.alphabetcartel.net/health
 
 # Check logs
 docker logs ash-dash --tail 50
