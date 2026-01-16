@@ -13,9 +13,9 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-10-10.4-1
- * LAST MODIFIED: 2026-01-10
- * PHASE: Phase 10 - Authentication & Authorization
+ * FILE VERSION: v5.0-2-2.1-1
+ * LAST MODIFIED: 2026-01-15
+ * PHASE: Phase 2 - Dashboard Integration (Ecosystem Health API)
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -34,6 +34,29 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Include cookies for OIDC session auth
+})
+
+// =============================================================================
+// Ecosystem API Client (Ash Core - Port 30887)
+// =============================================================================
+
+/**
+ * Axios instance for Ash (Core) Ecosystem Health API.
+ * 
+ * The ecosystem API runs on a separate service (port 30887) and provides
+ * aggregated health status for all Ash components.
+ * 
+ * URL Resolution:
+ *   - VITE_ASH_API_URL environment variable (if set)
+ *   - Docker internal: http://ash:30887 (container-to-container)
+ *   - External: https://ash.alphabetcartel.net (via reverse proxy)
+ */
+const ecosystemApiClient = axios.create({
+  baseURL: import.meta.env.VITE_ASH_API_URL || 'http://ash:30887',
+  timeout: 15000, // Longer timeout for ecosystem-wide checks
+  headers: {
+    'Content-Type': 'application/json',
+  },
 })
 
 // =============================================================================
@@ -110,7 +133,51 @@ api.interceptors.response.use(
 )
 
 // =============================================================================
-// Health API (Note: Health endpoints are at root, not under /api)
+// Ecosystem Health API (Ash Core - Aggregated Health)
+// =============================================================================
+
+/**
+ * API for Ash (Core) Ecosystem Health service.
+ * 
+ * Provides centralized health monitoring for all Ash ecosystem components:
+ * - Ash-Bot (Discord bot)
+ * - Ash-NLP (Crisis detection NLP)
+ * - Ash-Dash (This dashboard)
+ * - Ash-Vault (Archive infrastructure)
+ * - Ash-Thrash (Testing suite)
+ * 
+ * Also validates inter-component connectivity.
+ */
+export const ecosystemApi = {
+  /**
+   * Get full ecosystem health report
+   * @returns {Promise<{
+   *   ecosystem: string,
+   *   status: 'healthy'|'degraded'|'unhealthy'|'unreachable',
+   *   timestamp: string,
+   *   summary: {healthy: number, degraded: number, unhealthy: number, unreachable: number, disabled: number},
+   *   components: Object<string, {status, endpoint, response_time_ms?, version?, error?}>,
+   *   connections: Object<string, {status, latency_ms?, error?}>,
+   *   meta: {check_duration_ms, timeout_ms, aggregator_version}
+   * }>}
+   */
+  getHealth: () => ecosystemApiClient.get('/health/ecosystem'),
+
+  /**
+   * Simple liveness check for Ash (Core) API
+   * @returns {Promise<{status, service, timestamp}>}
+   */
+  getLiveness: () => ecosystemApiClient.get('/health'),
+
+  /**
+   * Readiness check for Ash (Core) API
+   * @returns {Promise<{status, ready, service, timestamp}>}
+   */
+  getReadiness: () => ecosystemApiClient.get('/health/ready'),
+}
+
+// =============================================================================
+// Health API (Ash-Dash Internal - Note: Health endpoints are at root, not under /api)
 // =============================================================================
 
 export const healthApi = {

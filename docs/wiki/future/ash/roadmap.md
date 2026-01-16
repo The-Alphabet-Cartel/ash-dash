@@ -18,7 +18,7 @@ last_updated: "2026-01-14"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.3
+**Document Version**: v5.0.5
 **Created**: 2026-01-11
 **Last Updated**: 2026-01-15
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
@@ -82,7 +82,7 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 | **Ash-Dash** | 🟢 Complete | All 11 phases complete, WCAG 2.1 AA accessible |
 | **Ash-Vault** | 🟢 Complete | All 5 phases complete, 1-2-3 backup operational |
 | **Ash-Thrash** | 📋 Planning | Ready to begin Phase 1 development |
-| **Ash (Core)** | 📋 Planning | Ecosystem Health API - All 5 phases documented |
+| **Ash (Core)** | 🟢 Phase 1 Complete | Ecosystem Health API - Phase 1 operational |
 
 **The ecosystem is live and protecting our community.**
 
@@ -95,6 +95,13 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 │                              ASH ECOSYSTEM ARCHITECTURE                              │
 ├──────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                      │
+│    ┌──────────────────────────────────────────────────────────────────────────────┐  │
+│    │                   ASH (CORE) - Ecosystem Health API (:30887)                 │  │
+│    │         https://ash.alphabetcartel.net/health/ecosystem                      │  │
+│    │    Aggregates health from all components + validates inter-connectivity      │  │
+│    └──────────────────────────────────────────────────────────────────────────────┘  │
+│                 │              │                │                │                   │
+│                 ▼             ▼                ▼                ▼                  │
 │    ┌──────────────────────────────────────────────────────────────────────────────┐  │
 │    │                        DISCORD GATEWAY                                       │  │
 │    └──────────────────────────────────────────────────────────────────────────────┘  │
@@ -151,12 +158,6 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 │    │  │ (Dash Database)  │     │                   └──────────────────────────┘      │
 │    │  └──────────────────┘     │                                                     │
 │    └───────────────────────────┘                                                     │
-│                                                                                      │
-│    ┌──────────────────────────────────────────────────────────────────────────────┐  │
-│    │                   ASH (CORE) - Ecosystem Health API (:30887)                 │  │
-│    │         https://ash.alphabetcartel.net/health/ecosystem                      │  │
-│    │    Aggregates health from all components + validates inter-connectivity      │  │
-│    └──────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                      │
 │    ┌──────────────────────────────────────────────────────────────────────────────┐  │
 │    │                        ASH-THRASH (:30888)                                   │  │
@@ -289,14 +290,14 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 **Lofn (Primary Host)**:
 - CPU: AMD Ryzen 7 5800x (8 cores)
 - GPU: NVIDIA RTX 3060 (12GB VRAM)
-- RAM: 64GB
+- RAM: 64Gb
 - Storage: NAS mount
 - OS: Debian 12
 
 **Bacchus (AI Rig)**:
 - CPU: AMD Ryzen 7 7700X (8 cores)
 - GPU: NVIDIA RTX 3050 (6GB VRAM)
-- RAM: 128GB
+- RAM: 128Gb
 - Storage:
   - NVME OS Drive (C:) - 1Tb
   - Docker/AI Drive (F:) - 1Tb
@@ -306,7 +307,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 **Odin (Hypervisor)**:
 - CPU: AMD Ryzen 7 2700 (8 cores)
 - GPU: NVIDIA GTX 1650 (4GB VRAM)
-- RAM: 80GB
+- RAM: 80Gb
 - Storage:
   - NVME OS Drive (C:) - 1Tb
   - VM Drive (D:) - 2.7Tb
@@ -332,7 +333,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 | **Ash-NLP** | v5.0.10 | 6/6 complete | 140+ | 🟢 Complete |
 | **Ash-Dash** | v5.0.12 | 11/11 complete | 101 | 🟢 Complete |
 | **Ash-Vault** | v5.0.2 | 5/5 complete | N/A | 🟢 Complete |
-| **Ash (Core)** | v5.0.1 | 0/5 planned | 0 | 📋 Planning (Phase 1 ready) |
+| **Ash (Core)** | v5.0.1 | 2/5 complete | 0 | 🟢 Phase 2 Complete |
 | **Ash-Thrash** | v5.0.1 | 0/5 complete | 0 | 📋 Planning |
 
 ### Key Metrics
@@ -349,21 +350,50 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 
 ## ⚠️ Known Issues
 
+### Ash-Vault ZFS Backup Failures
+
+**Status**: 🔴 Active Issue
+**Priority**: High
+**Components**: Ash-Vault
+**Discovered**: 2026-01-16 (via Ash Ecosystem Health API testing)
+
+The Ash-Vault backup service health endpoint responds normally, but the underlying ZFS backup jobs are failing:
+
+**Failures Observed**:
+- ❌ ZFS Daily Snapshot: "Failed to create daily snapshot" (Dataset: syn/archives)
+- ❌ ZFS Replication to Lofn: "No local snapshots available for replication" (Target: 10.20.30.253:backup/ash-vault)
+
+**Root Cause**: The replication failure is a cascading effect - since daily snapshots aren't being created, there are no snapshots available to replicate.
+
+**Investigation Needed**:
+- [ ] Check ZFS pool status on Syn VM (`zpool status`)
+- [ ] Verify syn/archives dataset exists and is healthy
+- [ ] Check Ash-Vault service logs for snapshot creation errors
+- [ ] Verify ZFS permissions for the ash-vault service user
+- [ ] Test manual snapshot creation
+
+**Impact**: 1-2-3 backup strategy is currently non-functional. No new snapshots or off-site replications are occurring.
+
+---
+
 ### Ash-Dash ↔ Ash-Vault Connection
 
-**Status**: 🟡 Needs Verification
+**Status**: 🟡 Partially Verified
 **Priority**: Medium
 **Components**: Ash-Dash, Ash-Vault
 
-The connection between Ash-Dash (Lofn) and Ash-Vault (MinIO on Syn) experienced some failures during development. Both services are operational independently, but the integration requires verification.
+The network connectivity between Ash-Dash and Ash-Vault (MinIO) has been verified working via the Ash Ecosystem Health API. However, the underlying backup infrastructure has issues (see above).
 
-**Verification Needed**:
-- [ ] MinIO health endpoint accessible from Ash-Dash container
+**Verified** ✅:
+- [x] MinIO health endpoint accessible from Ash-Dash container (15.27ms latency)
+- [x] Network path between Lofn and Syn is operational
+
+**Still Needs Verification**:
 - [ ] Archive upload workflow completes successfully
 - [ ] Archive retrieval and decryption works end-to-end
 - [ ] Retention policy cleanup jobs execute correctly
 
-**Impact**: Archive functionality in Ash-Dash may not work until verified.
+**Impact**: Archive functionality in Ash-Dash may work for uploads/downloads, but long-term backup integrity is compromised by ZFS failures.
 
 ---
 
@@ -376,10 +406,10 @@ The connection between Ash-Dash (Lofn) and Ash-Vault (MinIO on Syn) experienced 
 | All components follow Clean Architecture Charter v5.0+ | ✅ | Charter at v5.3 |
 | Discord crisis detection operational | ✅ | Ash-Bot + Ash-NLP live |
 | CRT dashboard accessible | ✅ | Ash-Dash complete |
-| Encrypted archive storage | 🟡 | Implemented, needs verification |
-| 1-2-3 backup strategy | ✅ | Ash-Vault operational |
+| Encrypted archive storage | 🟡 | MinIO accessible, ZFS backups failing |
+| 1-2-3 backup strategy | 🔴 | ZFS snapshot/replication failures |
 | Comprehensive testing suite | 🔲 | Ash-Thrash in development |
-| Production health monitoring | ✅ | All components have health endpoints |
+| Production health monitoring | ✅ | Ash (Core) Phase 1 complete |
 
 ### Per-Component Criteria
 
@@ -396,16 +426,15 @@ See individual roadmaps for detailed success criteria:
 
 ### Immediate Priority
 
-1. **Ash Ecosystem Health API (Phase 1)**
-   - Implement centralized health monitoring service
-   - Single endpoint for ecosystem status
-   - Estimated effort: 8-12 hours
-   - See: [Phase 1 Planning](../../v5.0/phase1/planning.md)
+1. **Ash-Vault ZFS Backup Investigation** 🔴
+   - Diagnose and fix ZFS snapshot creation failures
+   - Restore 1-2-3 backup functionality
+   - Priority: Critical for data protection
 
-2. **Verify Ash-Dash ↔ Ash-Vault Connection**
-   - Test archive upload/download workflow
-   - Verify credentials and network connectivity
-   - Document any issues found
+2. **Ash Ecosystem Health API (Phase 2)** ✅
+   - Dashboard integration with `/health/ecosystem` - Complete
+   - Updated Ash-Dash System Health page - Complete
+   - See: [Phase 2 Planning](phase2/planning.md)
 
 3. **Begin Ash-Thrash Development**
    - Start Phase 1: Foundation
@@ -416,8 +445,8 @@ See individual roadmaps for detailed success criteria:
 
 | Priority | Task | Component |
 |----------|------|-----------|
-| 🔴 High | Ecosystem Health API Phase 1 | Ash (Core) |
-| 🔴 High | Vault connection verification | Ash-Dash, Ash-Vault |
+| 🔴 High | ZFS backup investigation | Ash-Vault |
+| ✅ Done | Ecosystem Health API Phase 2 | Ash (Core) |
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
 | 🟡 Medium | Phase 9.3: Follow-up Check-ins | Ash-Bot |
@@ -431,7 +460,7 @@ Detailed roadmaps for each component:
 
 | Component | Roadmap Location |
 |-----------|------------------|
-| **Ash (Core)** | [This Document + phase1/planning.md](../../v5.0/phase1/planning.md) |
+| **Ash (Core)** | [This Document + phase1-5/planning.md](phase1-5/planning.md) |
 | **Ash-Bot** | [ash-bot/roadmap.md](ash-bot/roadmap.md) |
 | **Ash-NLP** | [ash-nlp/roadmap.md](ash-nlp/roadmap.md) |
 | **Ash-Dash** | [ash-dash/roadmap.md](ash-dash/roadmap.md) |
@@ -442,7 +471,7 @@ Enhancement tracking for each component:
 
 | Component | Enhancements Location |
 |-----------|----------------------|
-| **Ash (Core)** | [enhancements.md](../../v5.0/enhancements.md) |
+| **Ash (Core)** | [enhancements.md](enhancements.md) |
 | **Ash-Bot** | [ash-bot/enhancements.md](ash-bot/enhancements.md) |
 | **Ash-NLP** | [ash-nlp/enhancements.md](ash-nlp/enhancements.md) |
 | **Ash-Dash** | [ash-dash/enhancements.md](ash-dash/enhancements.md) |
@@ -455,7 +484,8 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-15 | v5.0.3 | Added Phase 2-5 planning documents for Ash (Core), fixed architecture diagram port allocation | Claude + PapaBearDoes |
+| 2026-01-15 | v5.0.5 | Phase 2 complete - Ash-Dash System Health page now consumes Ecosystem Health API | Claude + PapaBearDoes |
+| 2026-01-16 | v5.0.4 | Phase 1 complete, updated known issues with ZFS backup failures discovered during testing | Claude + PapaBearDoes |
 | 2026-01-14 | v5.0.2 | Added Ash (Core) Ecosystem Health API, Phase 1 planning, updated port allocation (30887 for Ash, 30888 for Ash-Thrash) | Claude + PapaBearDoes |
 | 2026-01-12 | v5.0.1 | Created ecosystem roadmap from hybrid template | Claude + PapaBearDoes |
 | 2026-01-11 | v5.0.0 | Initial ecosystem roadmap (template only) | Claude + PapaBearDoes |

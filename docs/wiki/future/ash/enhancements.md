@@ -18,11 +18,11 @@ last_updated: "2026-01-12"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.1
+**Document Version**: v5.0.2
 **Created**: 2026-01-12
 **Phase**: Post-v5.0 Planning
 **Status**: 📋 Backlog
-**Last Updated**: 2026-01-12
+**Last Updated**: 2026-01-15
 
 ---
 
@@ -79,7 +79,51 @@ This document provides a consolidated view of all planned enhancements across th
 
 These enhancements require coordination across multiple Ash components and represent the highest-impact ecosystem improvements.
 
-### 1. Ash-Dash ↔ Ash-Vault Integration Verification
+### 1. LoggingConfigManager Colorization Enforcement
+
+**Priority**: 🔴 High (Immediate - Charter Compliance)
+**Components**: Ash-Bot, Ash-NLP, Ash-Dash, Ash-Vault
+**Complexity**: 🟨 Medium
+**Estimated Time**: 4-6 hours total (1-2 hours per component)
+**Status**: ⚠️ Charter v5.2 Compliance Required
+
+Update LoggingConfigManager in all submodules to comply with Clean Architecture Charter v5.2 Rule #9, which now mandates standardized ANSI colorization across all ecosystem components.
+
+**Reference Implementation**: Ash (Core) `src/managers/logging_config_manager.py`
+
+**Required Color Scheme** (per Charter v5.2):
+
+| Log Level | Color | ANSI Code |
+|-----------|-------|-----------|
+| CRITICAL | Bright Red (Bold) | `\033[1;91m` |
+| ERROR | Red | `\033[91m` |
+| WARNING | Yellow | `\033[93m` |
+| INFO | Cyan | `\033[96m` |
+| DEBUG | Gray | `\033[90m` |
+| SUCCESS | Green | `\033[92m` |
+
+**Implementation Tasks**:
+- [ ] **Ash-Bot**: Update `managers/logging_config_manager.py` with standard color scheme
+- [ ] **Ash-NLP**: Update `managers/logging_config_manager.py` with standard color scheme
+- [ ] **Ash-Dash**: Update `src/managers/logging_config_manager.py` with standard color scheme
+- [ ] **Ash-Vault**: Update `src/managers/logging_config_manager.py` with standard color scheme
+- [ ] Verify colorization works in Docker container logs
+- [ ] Ensure `LOG_FORMAT=json` still disables colors for log aggregators
+
+**Current State**:
+- Ash (Core): ✅ Colorized (reference implementation)
+- Ash-Bot: ❌ Monochromatic
+- Ash-NLP: ❌ Monochromatic
+- Ash-Dash: ❌ Monochromatic
+- Ash-Vault: ❌ Monochromatic
+
+**Benefit**: Consistent visual debugging across all ecosystem components with immediate severity recognition through color coding.
+
+**See**: [Clean Architecture Charter v5.2 - Rule #9](../../../standards/clean_architecture_charter.md)
+
+---
+
+### 2. Ash-Dash ↔ Ash-Vault Integration Verification
 
 **Priority**: 🔴 High (Immediate)
 **Components**: Ash-Dash, Ash-Vault
@@ -98,7 +142,7 @@ The connection between Ash-Dash and Ash-Vault experienced failures during develo
 
 ---
 
-### 2. CRT Feedback Loop
+### 3. CRT Feedback Loop
 
 **Priority**: 🔴 High
 **Components**: Ash-Bot, Ash-NLP, Ash-Dash
@@ -130,7 +174,7 @@ Periodic weight/threshold optimization
 
 ---
 
-### 3. Backup Health Visibility
+### 4. Backup Health Visibility
 
 **Priority**: 🔴 High
 **Components**: Ash-Vault, Ash-Dash
@@ -149,7 +193,7 @@ Surface Ash-Vault backup health status in Ash-Dash Admin interface, giving admin
 
 ---
 
-### 4. End-to-End Testing Suite
+### 5. End-to-End Testing Suite
 
 **Priority**: 🟡 Medium
 **Components**: Ash-Thrash, Ash-Bot, Ash-NLP, Ash-Dash
@@ -442,6 +486,7 @@ Add ideas directly to the component's `enhancements.md` file:
 
 | Enhancement | Component(s) | Complexity |
 |-------------|--------------|------------|
+| LoggingConfigManager Colorization | Ash-Bot, Ash-NLP, Ash-Dash, Ash-Vault | 🟨 Medium |
 | Ash-Dash ↔ Ash-Vault Verification | Ash-Dash, Ash-Vault | 🟨 Medium |
 | Alert Escalation Chain | Ash-Bot | 🟧 High |
 | Conversation Context Window | Ash-NLP | 🟧 High |
@@ -474,6 +519,7 @@ Add ideas directly to the component's `enhancements.md` file:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-15 | v5.0.2 | Added LoggingConfigManager Colorization Enforcement as first priority (Charter v5.2 Rule #9 compliance) | Claude + PapaBearDoes |
 | 2026-01-12 | v5.0.1 | Created ecosystem umbrella enhancements document | Claude + PapaBearDoes |
 
 ---
