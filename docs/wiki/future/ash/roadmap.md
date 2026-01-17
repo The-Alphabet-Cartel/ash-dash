@@ -9,7 +9,7 @@ tags:
   - ecosystem
 author: "PapaBearDoes"
 version: "5.0"
-last_updated: "2026-01-14"
+last_updated: "2026-01-17"
 ---
 # Ash Ecosystem: v5.0 Development Roadmap
 
@@ -18,9 +18,9 @@ last_updated: "2026-01-14"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.5
+**Document Version**: v5.0.6
 **Created**: 2026-01-11
-**Last Updated**: 2026-01-15
+**Last Updated**: 2026-01-17
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
 **Repository**: https://github.com/the-alphabet-cartel/ash
 
@@ -82,7 +82,7 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 | **Ash-Dash** | 🟢 Complete | All 11 phases complete, WCAG 2.1 AA accessible |
 | **Ash-Vault** | 🟢 Complete | All 5 phases complete, 1-2-3 backup operational |
 | **Ash-Thrash** | 📋 Planning | Ready to begin Phase 1 development |
-| **Ash (Core)** | 🟢 Phase 1 Complete | Ecosystem Health API - Phase 1 operational |
+| **Ash (Core)** | 🟢 Phase 2 Complete | Ecosystem Health API - Dashboard integrated |
 
 **The ecosystem is live and protecting our community.**
 
@@ -412,7 +412,7 @@ The network connectivity between Ash-Dash and Ash-Vault (MinIO) has been verifie
 | Encrypted archive storage | 🟡 | MinIO accessible, ZFS backups failing |
 | 1-2-3 backup strategy | 🔴 | ZFS snapshot/replication failures |
 | Comprehensive testing suite | 🔲 | Ash-Thrash in development |
-| Production health monitoring | ✅ | Ash (Core) Phase 1 complete |
+| Production health monitoring | ✅ | Ash (Core) Phase 2 complete |
 
 ### Per-Component Criteria
 
@@ -434,10 +434,10 @@ See individual roadmaps for detailed success criteria:
    - Restore 1-2-3 backup functionality
    - Priority: Critical for data protection
 
-2. **Ash Ecosystem Health API (Phase 2)** ✅
+2. **Ash Ecosystem Health API (Phase 2)** ✅ Complete
    - Dashboard integration with `/health/ecosystem` - Complete
-   - Updated Ash-Dash System Health page - Complete
-   - See: [Phase 2 Planning](phase2/planning.md)
+   - Backend proxy implementation - Complete
+   - See: [Phase 2 Completion](phase2/complete.md)
 
 3. **Begin Ash-Thrash Development**
    - Start Phase 1: Foundation
@@ -487,7 +487,8 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-15 | v5.0.5 | Phase 2 complete - Ash-Dash System Health page now consumes Ecosystem Health API | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | Claude + PapaBearDoes |
+| 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | Claude + PapaBearDoes |
 | 2026-01-16 | v5.0.4 | Phase 1 complete, updated known issues with ZFS backup failures discovered during testing | Claude + PapaBearDoes |
 | 2026-01-14 | v5.0.2 | Added Ash (Core) Ecosystem Health API, Phase 1 planning, updated port allocation (30887 for Ash, 30888 for Ash-Thrash) | Claude + PapaBearDoes |
 | 2026-01-12 | v5.0.1 | Created ecosystem roadmap from hybrid template | Claude + PapaBearDoes |

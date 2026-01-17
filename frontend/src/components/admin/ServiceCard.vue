@@ -5,9 +5,9 @@ The Alphabet Cartel - https://discord.gg/alphabetcartel | alphabetcartel.org
 ============================================================================
 ServiceCard Component - Status card for system health services
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-11-11.11-2
-LAST MODIFIED: 2026-01-10
-PHASE: Phase 11 - Polish & Documentation
+FILE VERSION: v5.0-2-2.6-1
+LAST MODIFIED: 2026-01-17
+PHASE: Phase 2 - Dashboard Integration (Ecosystem Health API)
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 -->
@@ -220,19 +220,29 @@ function getRawValue(key, value) {
  * Format detail value for display
  */
 function formatValue(key, value) {
+  // Handle null/undefined
+  if (value === null || value === undefined) {
+    return '-'
+  }
+  
   // Handle latency values (convert to ms)
   if (key.includes('latency') && typeof value === 'number') {
     return `${value.toFixed(0)}ms`
   }
   
+  // Handle response time values
+  if (key.includes('response_time') && typeof value === 'number') {
+    return `${value.toFixed(2)}`
+  }
+  
+  // Handle uptime values (format as readable)
+  if (key.includes('uptime') && typeof value === 'number') {
+    return formatUptime(value)
+  }
+  
   // Handle boolean values
   if (typeof value === 'boolean') {
     return value ? 'Yes' : 'No'
-  }
-  
-  // Handle null/undefined
-  if (value === null || value === undefined) {
-    return '-'
   }
   
   // Handle arrays (like secrets_available)
@@ -242,6 +252,14 @@ function formatValue(key, value) {
     return `${value.length} items`
   }
   
+  // Handle plain objects (avoid [object Object])
+  if (typeof value === 'object' && value !== null) {
+    const keys = Object.keys(value)
+    if (keys.length === 0) return '-'
+    if (keys.length === 1) return formatValue(keys[0], value[keys[0]])
+    return `${keys.length} properties`
+  }
+  
   // Truncate long strings
   const strValue = String(value)
   if (strValue.length > 25) {
@@ -249,5 +267,17 @@ function formatValue(key, value) {
   }
   
   return strValue
+}
+
+/**
+ * Format uptime seconds to readable string
+ */
+function formatUptime(seconds) {
+  if (seconds < 60) return `${Math.floor(seconds)}s`
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
+  const days = Math.floor(seconds / 86400)
+  const hours = Math.floor((seconds % 86400) / 3600)
+  return `${days}d ${hours}h`
 }
 </script>
