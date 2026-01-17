@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Secrets Manager for Ash-Dash Service
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.4-1
-LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+FILE VERSION: v5.0-4-1.0-1
+LAST MODIFIED: 2026-01-17
+PHASE: Phase 4 - Alerting Integration
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -33,15 +33,12 @@ DOCKER SECRETS LOCATIONS:
 
 SUPPORTED SECRETS:
 - archive_master_key: AES-256 encryption key for session archives (BINARY)
-- claude_api_token: Claude API key for Claude AI access
-- discord_alert_token: Discord webhook URL for system alerts
-- discord_bot_token: Discord bot token
-- huggingface_token: HuggingFace API token for model downloads
+- ash_dash_discord_alert_token: Discord webhook URL for Ash-Dash alerts
 - minio_access_key: MinIO access key (username)
 - minio_secret_key: MinIO secret key (password)
+- oidc_client_secret: PocketID OIDC client secret for authentication
 - postgres_token: PostgreSQL password
 - redis_token: Redis password for secure connections
-- webhook_token: Webhook signing secret
 """
 
 import logging
@@ -68,16 +65,12 @@ LOCAL_SECRETS_PATH = Path("secrets")
 # Known secret names and their descriptions
 KNOWN_SECRETS = {
     "archive_master_key": "AES-256 encryption key for session archives (binary)",
-    "claude_api_token": "Claude API key for Claude AI access",
-    "discord_alert_token": "Discord webhook URL for system alerts",
-    "discord_bot_token": "Discord bot token",
-    "huggingface_token": "HuggingFace API token for authenticated model downloads",
+    "ash_dash_discord_alert_token": "Discord webhook URL for Ash-Dash alerts",
     "minio_root_user": "MinIO root username for archive storage",
     "minio_root_password": "MinIO root password for archive storage",
     "oidc_client_secret": "PocketID OIDC client secret for authentication",
     "postgres_token": "PostgreSQL password for secure connections",
     "redis_token": "Redis password for secure connections",
-    "webhook_token": "Webhook signing secret",
 }
 
 # Secrets that are binary (not text)
@@ -352,18 +345,24 @@ class SecretsManager:
 
     def get_discord_alert_token(self) -> Optional[str]:
         """
-        Get Discord alert token.
+        Get Discord alert webhook token for Ash-Dash.
 
-        Also checks DISCORD_ALERT_TOKEN environment variable as fallback
-        (standard Discord environment variable).
+        Uses the module-specific secret name `ash_dash_discord_alert_token`.
+        Also checks ASH_DASH_DISCORD_ALERT_TOKEN environment variable as fallback.
 
         Returns:
-            Discord alert token or None
+            Discord alert webhook URL or None
         """
-        # Try our secrets system first
-        token = self.get("discord_alert_token")
+        # Try our secrets system first (new module-specific name)
+        token = self.get("ash_dash_discord_alert_token")
 
-        # Fallback to standard Discord env vars
+        # Fallback to environment variable
+        if token is None:
+            token = os.environ.get("ASH_DASH_DISCORD_ALERT_TOKEN")
+
+        # Legacy fallback (deprecated - will be removed)
+        if token is None:
+            token = self.get("discord_alert_token")
         if token is None:
             token = os.environ.get("DISCORD_ALERT_TOKEN")
 

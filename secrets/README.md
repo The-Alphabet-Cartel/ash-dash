@@ -1,6 +1,6 @@
 # Ash-Dash Secrets
 
-**Version**: v5.0-10-10.4-1
+**Version**: v5.0-4-1.0-1
 **Repository**: https://github.com/the-alphabet-cartel/ash-dash
 **Community**: [The Alphabet Cartel](https://discord.gg/alphabetcartel) | [alphabetcartel.org](https://alphabetcartel.org)
 
@@ -24,7 +24,7 @@ This directory contains sensitive credentials used by Ash-Dash. These files are:
 | `minio_root_password` | MinIO root password | ✅ Required | Archive storage |
 | `archive_master_key` | AES-256 encryption key | ✅ Required | Session archive encryption |
 | `oidc_client_secret` | PocketID client secret | ✅ Required | OIDC authentication |
-| `discord_alert_token` | Discord webhook URL | Optional | System alerts |
+| `ash_dash_discord_alert_token` | Discord webhook URL | Optional | Ash-Dash system alerts |
 | `redis_token` | Redis password | Optional | Session data cache |
 
 ---
@@ -91,18 +91,24 @@ wc -c secrets/archive_master_key
 
 ⚠️ **BACKUP IMMEDIATELY** - See [Key Backup Procedures](#archive-master-key-backup) below.
 
-### 5. Discord Alert Webhook (Optional)
+### 5. Ash-Dash Discord Alert Webhook (Optional)
 
-For system alerts and notifications:
+For dashboard system alerts and notifications:
 
 1. In Discord: Server Settings → Integrations → Webhooks → New Webhook
-2. Copy the webhook URL
-3. Create the secret:
+2. Name it something like "Ash-Dash Alerts"
+3. Select the channel for alerts (e.g., #ash-dash-alerts)
+4. Copy the webhook URL
+5. Create the secret:
 
 ```bash
-echo "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN" > secrets/discord_alert_token
-chmod 600 secrets/discord_alert_token
+# Create the webhook secret for Ash-Dash
+echo "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN" > secrets/ash_dash_discord_alert_token
+chmod 600 secrets/ash_dash_discord_alert_token
 ```
+
+> **Note**: Each Ash module now uses its own Discord alert webhook for independent routing.
+> The legacy shared `discord_alert_token` is deprecated.
 
 ### 6. OIDC Client Secret (Required for Authentication)
 
@@ -285,27 +291,30 @@ Secrets are defined in `docker-compose.yml` and mounted at `/run/secrets/`:
 
 ```yaml
 secrets:
-  postgres_token:
-    file: ./secrets/postgres_token
+  archive_master_key:
+    file: ./secrets/archive_master_key
+  ash_dash_discord_alert_token:
+    file: ./secrets/ash_dash_discord_alert_token
   minio_root_user:
     file: ./secrets/minio_root_user
   minio_root_password:
     file: ./secrets/minio_root_password
-  archive_master_key:
-    file: ./secrets/archive_master_key
-  discord_alert_token:
-    file: ./secrets/discord_alert_token
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+  postgres_token:
+    file: ./secrets/postgres_token
   redis_token:
     file: ./secrets/redis_token
 
 services:
   ash-dash:
     secrets:
-      - postgres_token
+      - archive_master_key
+      - ash_dash_discord_alert_token
       - minio_root_user
       - minio_root_password
-      - archive_master_key
-      - discord_alert_token
+      - oidc_client_secret
+      - postgres_token
       - redis_token
 ```
 

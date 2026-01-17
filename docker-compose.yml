@@ -1,8 +1,8 @@
 # ============================================================================
 # Ash-Dash v5.0 Docker Compose Configuration
 # ============================================================================
-# FILE VERSION: v5.0-10-10.4-1
-# LAST MODIFIED: 2026-01-10
+# FILE VERSION: v5.0-4-1.0-1
+# LAST MODIFIED: 2026-01-17
 # Repository: https://github.com/the-alphabet-cartel/ash-dash
 # Community: The Alphabet Cartel - https://discord.gg/alphabetcartel
 # ============================================================================
@@ -27,13 +27,13 @@
 #
 # SECRETS:
 #   Secrets are stored in ./secrets/ directory:
-#   - ./secrets/postgres_token      - PostgreSQL password
-#   - ./secrets/archive_master_key  - AES-256 encryption key for archives
-#   - ./secrets/minio_root_user      - MinIO username
-#   - ./secrets/minio_root_password   - MinIO password
-#   - ./secrets/oidc_client_secret    - PocketID OIDC client secret
-#   - ./secrets/discord_alert_token - Discord webhook for alerts (optional)
-#   - ./secrets/redis_token         - Redis password (optional)
+#   - ./secrets/archive_master_key        - AES-256 encryption key for archives
+#   - ./secrets/ash_dash_discord_alert_token - Discord webhook for Ash-Dash alerts
+#   - ./secrets/minio_root_user           - MinIO username
+#   - ./secrets/minio_root_password       - MinIO password
+#   - ./secrets/oidc_client_secret        - PocketID OIDC client secret
+#   - ./secrets/postgres_token            - PostgreSQL password
+#   - ./secrets/redis_token               - Redis password
 #
 # REQUIREMENTS:
 #   - Docker Engine 24.0+
@@ -106,7 +106,7 @@ services:
     # Docker Secrets
     secrets:
       - archive_master_key
-      - discord_alert_token
+      - ash_dash_discord_alert_token
       - minio_root_user
       - minio_root_password
       - oidc_client_secret
@@ -197,8 +197,8 @@ volumes:
 secrets:
   archive_master_key:
     file: ./secrets/archive_master_key
-  discord_alert_token:
-    file: ./secrets/discord_alert_token
+  ash_dash_discord_alert_token:
+    file: ./secrets/ash_dash_discord_alert_token
   minio_root_user:
     file: ./secrets/minio_root_user
   minio_root_password:
@@ -209,8 +209,6 @@ secrets:
     file: ./secrets/postgres_token
   redis_token:
     file: ./secrets/redis_token
-  webhook_token:
-    file: ./secrets/webhook_token
 
 # =============================================================================
 # Networks
