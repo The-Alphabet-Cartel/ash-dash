@@ -296,7 +296,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 
 **Bacchus (AI Rig)**:
 - CPU: AMD Ryzen 7 7700X (8 cores)
-- GPU: NVIDIA RTX 3050 (6GB VRAM)
+- GPU: NVIDIA RTX 5060 (8GB VRAM)
 - RAM: 128Gb
 - Storage:
   - NVME OS Drive (C:) - 1Tb
@@ -306,7 +306,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 
 **Odin (Hypervisor)**:
 - CPU: AMD Ryzen 7 2700 (8 cores)
-- GPU: NVIDIA GTX 1650 (4GB VRAM)
+- GPU: NVIDIA RTX 3060 (6GB VRAM)
 - RAM: 80Gb
 - Storage:
   - NVME OS Drive (C:) - 1Tb
@@ -317,6 +317,9 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 - Hypervisor: Hyper-V on Odin
 - CPU: 4 Virtual
 - RAM: 4Gb
+- Storage:
+  - Virtual OS Drive - 256Gb
+  - Virtual ZFS Archive Drive - 256Gb
 - OS: Debian Trixie
 - Storage: ZFS with native AES-256-GCM encryption
 - Purpose: Dedicated archive guardian

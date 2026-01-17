@@ -13,8 +13,8 @@
  * ============================================================================
  * API Client - Axios-based service for backend communication
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-2-2.1-1
- * LAST MODIFIED: 2026-01-15
+ * FILE VERSION: v5.0-2-2.6-1
+ * LAST MODIFIED: 2026-01-17
  * PHASE: Phase 2 - Dashboard Integration (Ecosystem Health API)
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
@@ -37,26 +37,32 @@ const api = axios.create({
 })
 
 // =============================================================================
-// Ecosystem API Client (Ash Core - Port 30887)
+// Ecosystem API Client (Proxied through Ash-Dash backend)
 // =============================================================================
 
 /**
  * Axios instance for Ash (Core) Ecosystem Health API.
  * 
- * The ecosystem API runs on a separate service (port 30887) and provides
- * aggregated health status for all Ash components.
+ * The ecosystem API runs on a separate service (port 30887). Instead of calling
+ * it directly from the browser (which can't resolve Docker hostnames), we proxy
+ * through the Ash-Dash backend at /api/ecosystem/*.
  * 
- * URL Resolution:
- *   - VITE_ASH_API_URL environment variable (if set)
- *   - Docker internal: http://ash:30887 (container-to-container)
- *   - External: https://ash.alphabetcartel.net (via reverse proxy)
+ * Proxy Pattern:
+ *   Browser → /api/ecosystem/* (Ash-Dash) → http://ash:30887/* (Ash Core)
+ * 
+ * This approach:
+ *   - Uses Docker internal networking (ash:30887)
+ *   - No VITE_ environment variables needed
+ *   - No external URL configuration required
+ *   - Works seamlessly in any deployment environment
  */
 const ecosystemApiClient = axios.create({
-  baseURL: import.meta.env.VITE_ASH_API_URL || 'http://ash:30887',
+  baseURL: '/api/ecosystem',
   timeout: 15000, // Longer timeout for ecosystem-wide checks
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Include cookies for OIDC session auth
 })
 
 // =============================================================================
@@ -151,6 +157,9 @@ api.interceptors.response.use(
 export const ecosystemApi = {
   /**
    * Get full ecosystem health report
+   * 
+   * Proxied: /api/ecosystem/health → http://ash:30887/health/ecosystem
+   * 
    * @returns {Promise<{
    *   ecosystem: string,
    *   status: 'healthy'|'degraded'|'unhealthy'|'unreachable',
@@ -161,19 +170,34 @@ export const ecosystemApi = {
    *   meta: {check_duration_ms, timeout_ms, aggregator_version}
    * }>}
    */
-  getHealth: () => ecosystemApiClient.get('/health/ecosystem'),
+  getHealth: () => ecosystemApiClient.get('/health'),
 
   /**
    * Simple liveness check for Ash (Core) API
+   * 
+   * Proxied: /api/ecosystem/liveness → http://ash:30887/health
+   * 
    * @returns {Promise<{status, service, timestamp}>}
    */
-  getLiveness: () => ecosystemApiClient.get('/health'),
+  getLiveness: () => ecosystemApiClient.get('/liveness'),
 
   /**
    * Readiness check for Ash (Core) API
+   * 
+   * Proxied: /api/ecosystem/readiness → http://ash:30887/health/ready
+   * 
    * @returns {Promise<{status, ready, service, timestamp}>}
    */
-  getReadiness: () => ecosystemApiClient.get('/health/ready'),
+  getReadiness: () => ecosystemApiClient.get('/readiness'),
+
+  /**
+   * Get Ash (Core) service info
+   * 
+   * Proxied: /api/ecosystem/info → http://ash:30887/
+   * 
+   * @returns {Promise<{service, description, version, endpoints}>}
+   */
+  getInfo: () => ecosystemApiClient.get('/info'),
 }
 
 // =============================================================================

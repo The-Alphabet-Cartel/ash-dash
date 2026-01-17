@@ -13,15 +13,15 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 API Routes Package - FastAPI route handlers
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.3-1
-LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+FILE VERSION: v5.0-2-2.6-1
+LAST MODIFIED: 2026-01-17
+PHASE: Phase 2 - Dashboard Integration (Ecosystem Health API)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
 """
 
-__version__ = "v5.0-10-10.4-1"
+__version__ = "v5.0-2-2.6-1"
 
 # Health check routes (Phase 1)
 from src.api.routes.health import router as health_router
@@ -50,6 +50,9 @@ from src.api.routes.admin import router as admin_router
 # Auth routes (Phase 10)
 from src.api.routes.auth import router as auth_router, api_router as auth_api_router
 
+# Ecosystem proxy routes (Phase 2 - Dashboard Integration)
+from src.api.routes.ecosystem import router as ecosystem_router
+
 __all__ = [
     "health_router",
     "sessions_router",
@@ -61,4 +64,5 @@ __all__ = [
     "admin_router",
     "auth_router",
     "auth_api_router",
+    "ecosystem_router",
 ]

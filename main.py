@@ -14,9 +14,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Main Entry Point - FastAPI Application Bootstrap
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-10-10.4-1
-LAST MODIFIED: 2026-01-10
-PHASE: Phase 10 - Authentication & Authorization
+FILE VERSION: v5.0-2-2.6-1
+LAST MODIFIED: 2026-01-17
+PHASE: Phase 2 - Dashboard Integration (Ecosystem Health API)
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -70,12 +70,13 @@ from src.api.routes.wiki import router as wiki_router
 from src.api.routes.archives import router as archives_router
 from src.api.routes.admin import router as admin_router
 from src.api.routes.auth import router as auth_router, api_router as auth_api_router
+from src.api.routes.ecosystem import router as ecosystem_router
 
 # =============================================================================
 # Module Info
 # =============================================================================
 
-__version__ = "v5.0-10-10.4-1"
+__version__ = "v5.0-2-2.6-1"
 
 # Frontend build directory
 FRONTEND_DIR = Path(__file__).parent / "frontend" / "dist"
@@ -378,6 +379,9 @@ app.include_router(notes_router)
 app.include_router(wiki_router)
 app.include_router(archives_router)
 app.include_router(admin_router)
+
+# Ecosystem proxy routes (Phase 2 - to Ash Core)
+app.include_router(ecosystem_router)
 
 # Auth routes (OIDC flow - no /api prefix)
 app.include_router(auth_router)
