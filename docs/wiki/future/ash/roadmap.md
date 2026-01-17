@@ -18,7 +18,7 @@ last_updated: "2026-01-17"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.7
+**Document Version**: v5.0.8
 **Created**: 2026-01-11
 **Last Updated**: 2026-01-17
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
@@ -82,7 +82,7 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 | **Ash-Dash** | 🟢 Complete | All 11 phases complete, WCAG 2.1 AA accessible |
 | **Ash-Vault** | 🟢 Complete | All 5 phases complete, 1-2-3 backup operational |
 | **Ash-Thrash** | 📋 Planning | Ready to begin Phase 1 development |
-| **Ash (Core)** | 🟢 Phase 2 Complete | Ecosystem Health API - Dashboard integrated |
+| **Ash (Core)** | 🟢 Phase 4 Complete | Ecosystem Health API - Discord webhook alerting |
 
 **The ecosystem is live and protecting our community.**
 
@@ -336,7 +336,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 | **Ash-NLP** | v5.0.10 | 6/6 complete | 140+ | 🟢 Complete |
 | **Ash-Dash** | v5.0.12 | 11/11 complete | 101 | 🟢 Complete |
 | **Ash-Vault** | v5.0.2 | 5/5 complete | N/A | 🟢 Complete |
-| **Ash (Core)** | v5.0.1 | 3/5 complete | 0 | 🟢 Phase 3 Complete |
+| **Ash (Core)** | v5.0.2 | 4/5 complete | 0 | 🟢 Phase 4 Complete |
 | **Ash-Thrash** | v5.0.1 | 0/5 complete | 0 | 📋 Planning |
 
 ### Key Metrics
@@ -450,9 +450,10 @@ See individual roadmaps for detailed success criteria:
 | Priority | Task | Component |
 |----------|------|-----------|
 | ✅ Done | CRT-Accessible System Health | Ash (Core) / Ash-Dash |
+| ✅ Done | Discord Webhook Alerting | Ash (Core) |
 | 🔴 High | ZFS backup investigation | Ash-Vault |
 | ✅ Done | Ecosystem Health API Phase 2 | Ash (Core) |
-| 🟡 Medium | Phase 4: Discord Webhook Alerting | Ash (Core) |
+| 🟢 Low | Phase 5: Metrics & History | Ash (Core) |
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
 | 🟡 Medium | Phase 9.3: Follow-up Check-ins | Ash-Bot |
@@ -490,6 +491,7 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-17 | v5.0.8 | Phase 4 complete - Discord webhook alerting for ecosystem health changes | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | Claude + PapaBearDoes |
 | 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | Claude + PapaBearDoes |
