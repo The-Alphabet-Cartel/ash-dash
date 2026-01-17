@@ -13,7 +13,7 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 System Health Page (Simplified) - CRT-Accessible Ecosystem Status Overview
 ----------------------------------------------------------------------------
-FILE VERSION: v5.0-3-3.1-1
+FILE VERSION: v5.0-3-3.1-2
 LAST MODIFIED: 2026-01-17
 PHASE: Phase 3 - CRT-Accessible System Health
 CLEAN ARCHITECTURE: Compliant
@@ -30,7 +30,8 @@ PURPOSE:
 -->
 
 <template>
-  <div class="system-health-simple">
+  <MainLayout>
+    <div class="system-health-simple">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <div>
@@ -201,7 +202,8 @@ PURPOSE:
         </p>
       </div>
     </div>
-  </div>
+    </div>
+  </MainLayout>
 </template>
 
 <script setup>
@@ -241,6 +243,7 @@ import {
 } from 'lucide-vue-next'
 import { ecosystemApi } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import { MainLayout } from '@/components/layout'
 import { format } from 'date-fns'
 
 // =============================================================================
