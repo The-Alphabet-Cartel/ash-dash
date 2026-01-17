@@ -18,7 +18,7 @@ last_updated: "2026-01-17"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.6
+**Document Version**: v5.0.7
 **Created**: 2026-01-11
 **Last Updated**: 2026-01-17
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
@@ -336,7 +336,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 | **Ash-NLP** | v5.0.10 | 6/6 complete | 140+ | 🟢 Complete |
 | **Ash-Dash** | v5.0.12 | 11/11 complete | 101 | 🟢 Complete |
 | **Ash-Vault** | v5.0.2 | 5/5 complete | N/A | 🟢 Complete |
-| **Ash (Core)** | v5.0.1 | 2/5 complete | 0 | 🟢 Phase 2 Complete |
+| **Ash (Core)** | v5.0.1 | 3/5 complete | 0 | 🟢 Phase 3 Complete |
 | **Ash-Thrash** | v5.0.1 | 0/5 complete | 0 | 📋 Planning |
 
 ### Key Metrics
@@ -412,7 +412,7 @@ The network connectivity between Ash-Dash and Ash-Vault (MinIO) has been verifie
 | Encrypted archive storage | 🟡 | MinIO accessible, ZFS backups failing |
 | 1-2-3 backup strategy | 🔴 | ZFS snapshot/replication failures |
 | Comprehensive testing suite | 🔲 | Ash-Thrash in development |
-| Production health monitoring | ✅ | Ash (Core) Phase 2 complete |
+| Production health monitoring | ✅ | Ash (Core) Phase 3 complete |
 
 ### Per-Component Criteria
 
@@ -434,10 +434,11 @@ See individual roadmaps for detailed success criteria:
    - Restore 1-2-3 backup functionality
    - Priority: Critical for data protection
 
-2. **Ash Ecosystem Health API (Phase 2)** ✅ Complete
-   - Dashboard integration with `/health/ecosystem` - Complete
-   - Backend proxy implementation - Complete
-   - See: [Phase 2 Completion](phase2/complete.md)
+2. **Ash Ecosystem Health API (Phase 3)** ✅ Complete
+   - CRT-accessible System Health page at `/system-health` - Complete
+   - Simplified operational/down view for all CRT members - Complete
+   - Pivoted from public status page to internal CRT access
+   - See: [Phase 3 Completion](phase3/planning.md)
 
 3. **Begin Ash-Thrash Development**
    - Start Phase 1: Foundation
@@ -448,8 +449,10 @@ See individual roadmaps for detailed success criteria:
 
 | Priority | Task | Component |
 |----------|------|-----------|
+| ✅ Done | CRT-Accessible System Health | Ash (Core) / Ash-Dash |
 | 🔴 High | ZFS backup investigation | Ash-Vault |
 | ✅ Done | Ecosystem Health API Phase 2 | Ash (Core) |
+| 🟡 Medium | Phase 4: Discord Webhook Alerting | Ash (Core) |
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
 | 🟡 Medium | Phase 9.3: Follow-up Check-ins | Ash-Bot |
@@ -487,6 +490,7 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | Claude + PapaBearDoes |
 | 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | Claude + PapaBearDoes |
 | 2026-01-16 | v5.0.4 | Phase 1 complete, updated known issues with ZFS backup failures discovered during testing | Claude + PapaBearDoes |
