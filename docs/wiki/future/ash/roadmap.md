@@ -18,7 +18,7 @@ last_updated: "2026-01-17"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.8
+**Document Version**: v5.0.9
 **Created**: 2026-01-11
 **Last Updated**: 2026-01-17
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
@@ -452,12 +452,10 @@ See individual roadmaps for detailed success criteria:
 | ✅ Done | CRT-Accessible System Health | Ash (Core) / Ash-Dash |
 | ✅ Done | Discord Webhook Alerting | Ash (Core) |
 | 🔴 High | ZFS backup investigation | Ash-Vault |
-| ✅ Done | Ecosystem Health API Phase 2 | Ash (Core) |
-| 🟢 Low | Phase 5: Metrics & History | Ash (Core) |
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
 | 🟡 Medium | Phase 9.3: Follow-up Check-ins | Ash-Bot |
-| 🟢 Low | Performance benchmarking | Ash-Vault |
+| 🟢 Low | Phase 5: Metrics & History | Ash (Core) |
 
 ---
 
@@ -491,7 +489,8 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-17 | v5.0.8 | Phase 4 complete - Discord webhook alerting for ecosystem health changes | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.9 | Phase 4 complete - Discord webhook alerting tested and verified, per-module webhook secrets implemented | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.8 | Phase 4 code complete - Discord webhook alerting for ecosystem health changes | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | Claude + PapaBearDoes |
 | 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | Claude + PapaBearDoes |

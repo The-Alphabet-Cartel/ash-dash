@@ -18,7 +18,7 @@ last_updated: "2026-01-12"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.3
+**Document Version**: v5.0.4
 **Created**: 2026-01-12
 **Phase**: Post-v5.0 Planning
 **Status**: 📋 Backlog
@@ -123,22 +123,16 @@ Update LoggingConfigManager in all submodules to comply with Clean Architecture 
 
 ---
 
-### 2. Per-Module Discord Alert Webhooks
+### 2. ~~Per-Module Discord Alert Webhooks~~ ✅ IMPLEMENTED
 
-**Priority**: 🔴 High (Infrastructure Standardization)
-**Components**: Ash (Core), Ash-Bot, Ash-NLP, Ash-Dash, Ash-Vault, Ash-Thrash
+**Priority**: ✅ Implemented (Phase 4 - 2026-01-17)
+**Components**: Ash (Core), Ash-Bot, Ash-NLP, Ash-Dash, Ash-Vault
 **Complexity**: 🟦 Low
-**Estimated Time**: 1-2 hours
-**Status**: 📋 Planned
+**Status**: ✅ Complete
 
-Separate Discord webhook tokens per module to allow independent alert routing and management.
+Separate Discord webhook tokens per module allowing independent alert routing and management.
 
-**Current State**:
-- Single `discord_alert_token` secret shared across ecosystem
-- All alerts go to same Discord channel
-- No per-module customization possible
-
-**Proposed Secret Names**:
+**Implemented Secret Names**:
 | Module | Secret File | Purpose |
 |--------|-------------|--------|
 | Ash (Core) | `ash_discord_alert_token` | Ecosystem health alerts |
@@ -146,29 +140,13 @@ Separate Discord webhook tokens per module to allow independent alert routing an
 | Ash-NLP | `ash_nlp_discord_alert_token` | Model conflict alerts |
 | Ash-Dash | `ash_dash_discord_alert_token` | Dashboard system alerts |
 | Ash-Vault | `ash_vault_discord_alert_token` | Backup failure alerts |
-| Ash-Thrash | `ash_thrash_discord_alert_token` | Test regression alerts |
 
-**Benefits**:
-- Route different alert types to different Discord channels
-- Independent webhook management per module
-- Granular notification control (e.g., #ash-health-alerts vs #ash-crisis-alerts)
-- Easier debugging when alerts misconfigure
-- Better organization for CRT notification preferences
+**Files Updated** (per module):
+- `src/managers/secrets_manager.py` - Updated `get_discord_alert_token()` with module-specific lookup + legacy fallback
+- `docker-compose.yml` - Updated secrets section with new names
+- `secrets/README.md` - Updated documentation
 
-**Implementation Tasks**:
-- [ ] Create new secret files with module-specific names
-- [ ] Update `docker-compose.yml` to mount module-specific secrets
-- [ ] Update each module's secrets manager to read new secret name
-- [ ] Update `.env.template` documentation
-- [ ] Update `secrets/README.md` with new secret names
-- [ ] Migrate existing `discord_alert_token` content to new files
-- [ ] Deprecate old `discord_alert_token` after migration
-
-**Migration Path**:
-1. Create new per-module secret files (can initially contain same webhook URL)
-2. Update module code to read new secret names
-3. Gradually configure different webhooks as desired
-4. Remove deprecated `discord_alert_token` after all modules migrated
+**Legacy Compatibility**: Each module's `get_discord_alert_token()` falls back to the deprecated `discord_alert_token` for migration support.
 
 ---
 
@@ -568,6 +546,7 @@ Add ideas directly to the component's `enhancements.md` file:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-17 | v5.0.4 | Marked Per-Module Discord Alert Webhooks as IMPLEMENTED (Phase 4 complete) | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.3 | Added Per-Module Discord Alert Webhooks enhancement, renumbered sections | Claude + PapaBearDoes |
 | 2026-01-15 | v5.0.2 | Added LoggingConfigManager Colorization Enforcement as first priority (Charter v5.2 Rule #9 compliance) | Claude + PapaBearDoes |
 | 2026-01-12 | v5.0.1 | Created ecosystem umbrella enhancements document | Claude + PapaBearDoes |
