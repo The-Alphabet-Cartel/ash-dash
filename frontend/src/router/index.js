@@ -13,9 +13,9 @@
  * ============================================================================
  * Vue Router Configuration - OIDC Authentication and Route Guards
  * ----------------------------------------------------------------------------
- * FILE VERSION: v5.0-11-11.3-1
- * LAST MODIFIED: 2026-01-10
- * PHASE: Phase 11 - Polish & Documentation
+ * FILE VERSION: v5.0-3-3.2-1
+ * LAST MODIFIED: 2026-01-17
+ * PHASE: Phase 3 - CRT-Accessible System Health
  * CLEAN ARCHITECTURE: Compliant
  * Repository: https://github.com/the-alphabet-cartel/ash-dash
  * ============================================================================
@@ -99,6 +99,15 @@ const routes = [
     component: () => import(/* webpackChunkName: "wiki" */ '@/pages/Documentation.vue'),
     meta: { 
       title: 'Documentation', 
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/system-health',
+    name: 'system-health',
+    component: () => import(/* webpackChunkName: "main" */ '@/pages/SystemHealth.vue'),
+    meta: { 
+      title: 'System Health', 
       requiresAuth: true,
     },
   },

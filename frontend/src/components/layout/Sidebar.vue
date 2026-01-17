@@ -13,9 +13,9 @@ MISSION - NEVER TO BE VIOLATED:
 ============================================================================
 Sidebar Component - Collapsible navigation sidebar with icons and tooltips
 ============================================================================
-FILE VERSION: v5.0-11-11.1-4
-LAST MODIFIED: 2026-01-10
-PHASE: Phase 11 - Polish & Documentation
+FILE VERSION: v5.0-3-3.3-1
+LAST MODIFIED: 2026-01-17
+PHASE: Phase 3 - CRT-Accessible System Health
 CLEAN ARCHITECTURE: Compliant
 Repository: https://github.com/the-alphabet-cartel/ash-dash
 ============================================================================
@@ -254,6 +254,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Activity,
 } from 'lucide-vue-next'
 import ThemeToggle from './ThemeToggle.vue'
 
@@ -303,6 +304,11 @@ const mainNavItems = [
     path: '/wiki', 
     label: 'Documentation', 
     icon: BookOpen,
+  },
+  { 
+    path: '/system-health', 
+    label: 'System Health', 
+    icon: Activity,
   },
 ]
 
