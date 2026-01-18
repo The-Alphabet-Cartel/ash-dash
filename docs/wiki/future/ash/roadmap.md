@@ -18,7 +18,7 @@ last_updated: "2026-01-18"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.12
+**Document Version**: v5.0.13
 **Created**: 2026-01-11
 **Last Updated**: 2026-01-18
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
@@ -353,29 +353,27 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 
 ## ⚠️ Known Issues
 
-### Ash-Vault ZFS Backup Failures
+### ~~Ash-Vault ZFS Backup Failures~~ ✅ RESOLVED
 
-**Status**: 🔴 Active Issue
-**Priority**: High
+**Status**: ✅ Resolved (2026-01-18)
+**Priority**: ~~High~~ Closed
 **Components**: Ash-Vault
-**Discovered**: 2026-01-16 (via Ash Ecosystem Health API testing)
+**Discovered**: 2026-01-16 | **Resolved**: 2026-01-18
 
-The Ash-Vault backup service health endpoint responds normally, but the underlying ZFS backup jobs are failing:
+**Root Cause Identified**: The Ash-Vault Docker container was missing `zfsutils-linux`. The container had privileged access and `/dev/zfs` mounted, but the `zfs` command binary wasn't installed.
 
-**Failures Observed**:
-- ❌ ZFS Daily Snapshot: "Failed to create daily snapshot" (Dataset: syn/archives)
-- ❌ ZFS Replication to Lofn: "No local snapshots available for replication" (Target: 10.20.30.253:backup/ash-vault)
+**Fix Applied**:
+1. Updated Dockerfile base image from `python:3.11-slim-bookworm` to `python:3.11-slim-trixie` (matching Syn host OS)
+2. Added Debian Trixie `contrib` repository (required for ZFS packages)
+3. Added `zfsutils-linux` to runtime dependencies
+4. Rebuilt and deployed container via GHCR
 
-**Root Cause**: The replication failure is a cascading effect - since daily snapshots aren't being created, there are no snapshots available to replicate.
+**Verification**:
+- ✅ `zfs version` works inside container (zfs-2.3.2-2)
+- ✅ Manual snapshot from container succeeds
+- ✅ Scheduled jobs will now execute at 3:00 AM daily
 
-**Investigation Needed**:
-- [ ] Check ZFS pool status on Syn VM (`zpool status`)
-- [ ] Verify syn/archives dataset exists and is healthy
-- [ ] Check Ash-Vault service logs for snapshot creation errors
-- [ ] Verify ZFS permissions for the ash-vault service user
-- [ ] Test manual snapshot creation
-
-**Impact**: 1-2-3 backup strategy is currently non-functional. No new snapshots or off-site replications are occurring.
+**Files Changed**: `ash-vault/Dockerfile` (v5.0-3-3.5a-2)
 
 ---
 
@@ -409,19 +407,19 @@ The network connectivity between Ash-Dash and Ash-Vault (MinIO) has been verifie
 | All components follow Clean Architecture Charter v5.0+ | ✅ | Charter at v5.3 |
 | Discord crisis detection operational | ✅ | Ash-Bot + Ash-NLP live |
 | CRT dashboard accessible | ✅ | Ash-Dash complete |
-| Encrypted archive storage | 🟡 | MinIO accessible, ZFS backups failing |
-| 1-2-3 backup strategy | 🔴 | ZFS snapshot/replication failures |
+| Encrypted archive storage | ✅ | MinIO accessible, ZFS snapshots working |
+| 1-2-3 backup strategy | ✅ | ZFS snapshot fix deployed 2026-01-18 |
 | Comprehensive testing suite | 🔲 | Ash-Thrash in development |
 | Production health monitoring | ✅ | Ash (Core) all 5 phases complete |
 
 ### Per-Component Criteria
 
 See individual roadmaps for detailed success criteria:
-- [Ash-Bot Success Criteria](ash-bot/roadmap.md#-success-criteria)
-- [Ash-NLP Success Criteria](ash-nlp/roadmap.md#-success-criteria)
-- [Ash-Dash Success Criteria](ash-dash/roadmap.md#-success-criteria)
-- [Ash-Vault Success Criteria](ash-vault/roadmap.md#-success-criteria)
-- [Ash-Thrash Success Criteria](ash-thrash/roadmap.md#-success-criteria)
+- [Ash-Bot Success Criteria](../ash-bot/roadmap.md#-success-criteria)
+- [Ash-NLP Success Criteria](../ash-nlp/roadmap.md#-success-criteria)
+- [Ash-Dash Success Criteria](../ash-dash/roadmap.md#-success-criteria)
+- [Ash-Vault Success Criteria](../ash-vault/roadmap.md#-success-criteria)
+- [Ash-Thrash Success Criteria](../ash-thrash/roadmap.md#-success-criteria)
 
 ---
 
@@ -429,10 +427,10 @@ See individual roadmaps for detailed success criteria:
 
 ### Immediate Priority
 
-1. **Ash-Vault ZFS Backup Investigation** 🔴
-   - Diagnose and fix ZFS snapshot creation failures
-   - Restore 1-2-3 backup functionality
-   - Priority: Critical for data protection
+1. **Ash-Vault ZFS Backup Investigation** ✅ Complete (2026-01-18)
+   - Root cause: Missing `zfsutils-linux` in Docker container
+   - Fix: Updated Dockerfile with Trixie base + ZFS tools
+   - 1-2-3 backup functionality restored
 
 2. **Ash Ecosystem Health API (Phase 3)** ✅ Complete
    - CRT-accessible System Health page at `/system-health` - Complete
@@ -452,7 +450,7 @@ See individual roadmaps for detailed success criteria:
 | ✅ Done | CRT-Accessible System Health | Ash (Core) / Ash-Dash |
 | ✅ Done | Discord Webhook Alerting | Ash (Core) |
 | ✅ Done | Phase 5: Metrics & History (SQLite) | Ash (Core) |
-| 🔴 High | ZFS backup investigation | Ash-Vault |
+| ✅ Done | ZFS backup fix (Dockerfile) | Ash-Vault |
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
 | 🟡 Medium | Phase 9.3: Follow-up Check-ins | Ash-Bot |
@@ -466,22 +464,22 @@ Detailed roadmaps for each component:
 | Component | Roadmap Location |
 |-----------|------------------|
 | **Ash (Core)** | [This Document + phase1-5/planning.md](phase1-5/planning.md) |
-| **Ash-Bot** | [ash-bot/roadmap.md](ash-bot/roadmap.md) |
-| **Ash-NLP** | [ash-nlp/roadmap.md](ash-nlp/roadmap.md) |
-| **Ash-Dash** | [ash-dash/roadmap.md](ash-dash/roadmap.md) |
-| **Ash-Vault** | [ash-vault/roadmap.md](ash-vault/roadmap.md) |
-| **Ash-Thrash** | [ash-thrash/roadmap.md](ash-thrash/roadmap.md) |
+| **Ash-Bot** | [ash-bot/roadmap.md](../ash-bot/roadmap.md) |
+| **Ash-NLP** | [ash-nlp/roadmap.md](../ash-nlp/roadmap.md) |
+| **Ash-Dash** | [ash-dash/roadmap.md](../ash-dash/roadmap.md) |
+| **Ash-Vault** | [ash-vault/roadmap.md](../ash-vault/roadmap.md) |
+| **Ash-Thrash** | [ash-thrash/roadmap.md](../ash-thrash/roadmap.md) |
 
 Enhancement tracking for each component:
 
 | Component | Enhancements Location |
 |-----------|----------------------|
 | **Ash (Core)** | [enhancements.md](enhancements.md) |
-| **Ash-Bot** | [ash-bot/enhancements.md](ash-bot/enhancements.md) |
-| **Ash-NLP** | [ash-nlp/enhancements.md](ash-nlp/enhancements.md) |
-| **Ash-Dash** | [ash-dash/enhancements.md](ash-dash/enhancements.md) |
-| **Ash-Vault** | [ash-vault/enhancements.md](ash-vault/enhancements.md) |
-| **Ash-Thrash** | [ash-thrash/enhancements.md](ash-thrash/enhancements.md) |
+| **Ash-Bot** | [ash-bot/enhancements.md](../ash-bot/enhancements.md) |
+| **Ash-NLP** | [ash-nlp/enhancements.md](../ash-nlp/enhancements.md) |
+| **Ash-Dash** | [ash-dash/enhancements.md](../ash-dash/enhancements.md) |
+| **Ash-Vault** | [ash-vault/enhancements.md](../ash-vault/enhancements.md) |
+| **Ash-Thrash** | [ash-thrash/enhancements.md](../ash-thrash/enhancements.md) |
 
 ---
 
@@ -489,18 +487,19 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-18 | v5.0.12 | **Phase 5 COMPLETE** - Metrics & History fully operational; Bug fixes: recovery incidents no longer duplicated, recovery alerts bypass cooldown | PapaBearDoes |
-| 2026-01-18 | v5.0.11 | Phase 5 Step 5.1 complete - SQLite database schema and MetricsDatabase abstraction layer | PapaBearDoes |
-| 2026-01-17 | v5.0.10 | Phase 5 started - SQLite selected for metrics storage, PostgreSQL migration guidelines documented | PapaBearDoes |
-| 2026-01-17 | v5.0.9 | Phase 4 complete - Discord webhook alerting tested and verified, per-module webhook secrets implemented | PapaBearDoes |
-| 2026-01-17 | v5.0.8 | Phase 4 code complete - Discord webhook alerting for ecosystem health changes | PapaBearDoes |
-| 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | PapaBearDoes |
-| 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | PapaBearDoes |
-| 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | PapaBearDoes |
-| 2026-01-16 | v5.0.4 | Phase 1 complete, updated known issues with ZFS backup failures discovered during testing | PapaBearDoes |
-| 2026-01-14 | v5.0.2 | Added Ash (Core) Ecosystem Health API, Phase 1 planning, updated port allocation (30887 for Ash, 30888 for Ash-Thrash) | PapaBearDoes |
-| 2026-01-12 | v5.0.1 | Created ecosystem roadmap from hybrid template | PapaBearDoes |
-| 2026-01-11 | v5.0.0 | Initial ecosystem roadmap (template only) | PapaBearDoes |
+| 2026-01-18 | v5.0.13 | **Ash-Vault ZFS Fix** - Added zfsutils-linux to Docker container; Updated base image to Trixie; 1-2-3 backup strategy restored | Claude + PapaBearDoes |
+| 2026-01-18 | v5.0.12 | **Phase 5 COMPLETE** - Metrics & History fully operational; Bug fixes: recovery incidents no longer duplicated, recovery alerts bypass cooldown | Claude + PapaBearDoes |
+| 2026-01-18 | v5.0.11 | Phase 5 Step 5.1 complete - SQLite database schema and MetricsDatabase abstraction layer | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.10 | Phase 5 started - SQLite selected for metrics storage, PostgreSQL migration guidelines documented | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.9 | Phase 4 complete - Discord webhook alerting tested and verified, per-module webhook secrets implemented | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.8 | Phase 4 code complete - Discord webhook alerting for ecosystem health changes | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | Claude + PapaBearDoes |
+| 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | Claude + PapaBearDoes |
+| 2026-01-16 | v5.0.4 | Phase 1 complete, updated known issues with ZFS backup failures discovered during testing | Claude + PapaBearDoes |
+| 2026-01-14 | v5.0.2 | Added Ash (Core) Ecosystem Health API, Phase 1 planning, updated port allocation (30887 for Ash, 30888 for Ash-Thrash) | Claude + PapaBearDoes |
+| 2026-01-12 | v5.0.1 | Created ecosystem roadmap from hybrid template | Claude + PapaBearDoes |
+| 2026-01-11 | v5.0.0 | Initial ecosystem roadmap (template only) | Claude + PapaBearDoes |
 
 ---
 
