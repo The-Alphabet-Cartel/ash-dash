@@ -9,7 +9,7 @@ tags:
   - ecosystem
 author: "PapaBearDoes"
 version: "5.0"
-last_updated: "2026-01-17"
+last_updated: "2026-01-18"
 ---
 # Ash Ecosystem: v5.0 Development Roadmap
 
@@ -18,9 +18,9 @@ last_updated: "2026-01-17"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.9
+**Document Version**: v5.0.11
 **Created**: 2026-01-11
-**Last Updated**: 2026-01-17
+**Last Updated**: 2026-01-18
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
 **Repository**: https://github.com/the-alphabet-cartel/ash
 
@@ -82,7 +82,7 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 | **Ash-Dash** | 🟢 Complete | All 11 phases complete, WCAG 2.1 AA accessible |
 | **Ash-Vault** | 🟢 Complete | All 5 phases complete, 1-2-3 backup operational |
 | **Ash-Thrash** | 📋 Planning | Ready to begin Phase 1 development |
-| **Ash (Core)** | 🟢 Phase 4 Complete | Ecosystem Health API - Discord webhook alerting |
+| **Ash (Core)** | 🔄 Phase 5 In Progress | Ecosystem Health API - Metrics & History |
 
 **The ecosystem is live and protecting our community.**
 
@@ -336,7 +336,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 | **Ash-NLP** | v5.0.10 | 6/6 complete | 140+ | 🟢 Complete |
 | **Ash-Dash** | v5.0.12 | 11/11 complete | 101 | 🟢 Complete |
 | **Ash-Vault** | v5.0.2 | 5/5 complete | N/A | 🟢 Complete |
-| **Ash (Core)** | v5.0.2 | 4/5 complete | 0 | 🟢 Phase 4 Complete |
+| **Ash (Core)** | v5.0.3 | 4/5 complete | 0 | 🔄 Phase 5 In Progress |
 | **Ash-Thrash** | v5.0.1 | 0/5 complete | 0 | 📋 Planning |
 
 ### Key Metrics
@@ -455,7 +455,7 @@ See individual roadmaps for detailed success criteria:
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
 | 🟡 Medium | Phase 9.3: Follow-up Check-ins | Ash-Bot |
-| 🟢 Low | Phase 5: Metrics & History | Ash (Core) |
+| 🔄 Active | Phase 5: Metrics & History (SQLite) | Ash (Core) |
 
 ---
 
@@ -489,6 +489,8 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-18 | v5.0.11 | Phase 5 Step 5.1 complete - SQLite database schema and MetricsDatabase abstraction layer | Claude + PapaBearDoes |
+| 2026-01-17 | v5.0.10 | Phase 5 started - SQLite selected for metrics storage, PostgreSQL migration guidelines documented | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.9 | Phase 4 complete - Discord webhook alerting tested and verified, per-module webhook secrets implemented | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.8 | Phase 4 code complete - Discord webhook alerting for ecosystem health changes | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | Claude + PapaBearDoes |
