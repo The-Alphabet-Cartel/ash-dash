@@ -18,7 +18,7 @@ last_updated: "2026-01-18"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.11
+**Document Version**: v5.0.12
 **Created**: 2026-01-11
 **Last Updated**: 2026-01-18
 **Status**: 🟢 Production Ready (Ash-Thrash In Development)
@@ -82,7 +82,7 @@ The v5.0 recode represents a complete rewrite of the Ash ecosystem with:
 | **Ash-Dash** | 🟢 Complete | All 11 phases complete, WCAG 2.1 AA accessible |
 | **Ash-Vault** | 🟢 Complete | All 5 phases complete, 1-2-3 backup operational |
 | **Ash-Thrash** | 📋 Planning | Ready to begin Phase 1 development |
-| **Ash (Core)** | 🔄 Phase 5 In Progress | Ecosystem Health API - Metrics & History |
+| **Ash (Core)** | 🟢 Complete | All 5 phases complete, metrics & alerting operational |
 
 **The ecosystem is live and protecting our community.**
 
@@ -336,7 +336,7 @@ The comprehensive testing suite for validating Ash-NLP accuracy and preventing r
 | **Ash-NLP** | v5.0.10 | 6/6 complete | 140+ | 🟢 Complete |
 | **Ash-Dash** | v5.0.12 | 11/11 complete | 101 | 🟢 Complete |
 | **Ash-Vault** | v5.0.2 | 5/5 complete | N/A | 🟢 Complete |
-| **Ash (Core)** | v5.0.3 | 4/5 complete | 0 | 🔄 Phase 5 In Progress |
+| **Ash (Core)** | v5.0.4 | 5/5 complete | 0 | 🟢 Complete |
 | **Ash-Thrash** | v5.0.1 | 0/5 complete | 0 | 📋 Planning |
 
 ### Key Metrics
@@ -412,7 +412,7 @@ The network connectivity between Ash-Dash and Ash-Vault (MinIO) has been verifie
 | Encrypted archive storage | 🟡 | MinIO accessible, ZFS backups failing |
 | 1-2-3 backup strategy | 🔴 | ZFS snapshot/replication failures |
 | Comprehensive testing suite | 🔲 | Ash-Thrash in development |
-| Production health monitoring | ✅ | Ash (Core) Phase 3 complete |
+| Production health monitoring | ✅ | Ash (Core) all 5 phases complete |
 
 ### Per-Component Criteria
 
@@ -451,11 +451,11 @@ See individual roadmaps for detailed success criteria:
 |----------|------|-----------|
 | ✅ Done | CRT-Accessible System Health | Ash (Core) / Ash-Dash |
 | ✅ Done | Discord Webhook Alerting | Ash (Core) |
+| ✅ Done | Phase 5: Metrics & History (SQLite) | Ash (Core) |
 | 🔴 High | ZFS backup investigation | Ash-Vault |
 | 🔴 High | Ash-Thrash Phase 1 | Ash-Thrash |
 | 🟡 Medium | Phase 9.2: Session Handoff | Ash-Bot |
 | 🟡 Medium | Phase 9.3: Follow-up Check-ins | Ash-Bot |
-| 🔄 Active | Phase 5: Metrics & History (SQLite) | Ash (Core) |
 
 ---
 
@@ -489,6 +489,7 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-18 | v5.0.12 | **Phase 5 COMPLETE** - Metrics & History fully operational; Bug fixes: recovery incidents no longer duplicated, recovery alerts bypass cooldown | Claude + PapaBearDoes |
 | 2026-01-18 | v5.0.11 | Phase 5 Step 5.1 complete - SQLite database schema and MetricsDatabase abstraction layer | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.10 | Phase 5 started - SQLite selected for metrics storage, PostgreSQL migration guidelines documented | Claude + PapaBearDoes |
 | 2026-01-17 | v5.0.9 | Phase 4 complete - Discord webhook alerting tested and verified, per-module webhook secrets implemented | Claude + PapaBearDoes |
