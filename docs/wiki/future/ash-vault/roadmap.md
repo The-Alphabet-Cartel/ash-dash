@@ -409,9 +409,9 @@ See [enhancements.md](enhancements.md) for detailed planning.
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-12 | v5.0.2 | Roadmap restructured to hybrid template format, added Known Issues section | Claude + PapaBearDoes |
-| 2026-01-09 | v5.0.1 | All 5 phases complete | Claude + PapaBearDoes |
-| 2026-01-09 | v5.0.0 | Initial roadmap and implementation | Claude + PapaBearDoes |
+| 2026-01-12 | v5.0.2 | Roadmap restructured to hybrid template format, added Known Issues section | PapaBearDoes |
+| 2026-01-09 | v5.0.1 | All 5 phases complete | PapaBearDoes |
+| 2026-01-09 | v5.0.0 | Initial roadmap and implementation | PapaBearDoes |
 
 ---
 

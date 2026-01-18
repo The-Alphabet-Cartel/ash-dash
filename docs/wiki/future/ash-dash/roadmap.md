@@ -525,19 +525,19 @@ See [enhancements.md](enhancements.md) for detailed planning.
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-12 | v5.0.12 | Roadmap restructured to hybrid template format, added Known Issues section | Claude + PapaBearDoes |
-| 2026-01-10 | v5.0.11 | Phase 11 complete - Polish, accessibility, documentation | Claude + PapaBearDoes |
-| 2026-01-10 | v5.0.10 | Phase 10 complete - OIDC auth, RBAC, admin UI | Claude + PapaBearDoes |
-| 2026-01-10 | v5.0.9 | Phase 9 complete - Archive system, encryption | Claude + PapaBearDoes |
-| 2026-01-09 | v5.0.8 | Phase 8 complete - Syn VM, MinIO, Ash-Vault | Claude + PapaBearDoes |
-| 2026-01-09 | v5.0.7 | Phase 7 complete - Wiki system, PDF export | Claude + PapaBearDoes |
-| 2026-01-08 | v5.0.6 | Phase 6 complete - TipTap notes, auto-save | Claude + PapaBearDoes |
-| 2026-01-07 | v5.0.5 | Phase 5 complete - Session management | Claude + PapaBearDoes |
-| 2026-01-07 | v5.0.4 | Phase 4 complete - Dashboard, charts | Claude + PapaBearDoes |
-| 2026-01-07 | v5.0.3 | Phase 3 complete - Vue.js frontend | Claude + PapaBearDoes |
-| 2026-01-07 | v5.0.2 | Phase 2 complete - Data layer | Claude + PapaBearDoes |
-| 2026-01-06 | v5.0.1 | Phase 1 complete - Foundation | Claude + PapaBearDoes |
-| 2026-01-06 | v5.0.0 | Initial roadmap created | Claude + PapaBearDoes |
+| 2026-01-12 | v5.0.12 | Roadmap restructured to hybrid template format, added Known Issues section | PapaBearDoes |
+| 2026-01-10 | v5.0.11 | Phase 11 complete - Polish, accessibility, documentation | PapaBearDoes |
+| 2026-01-10 | v5.0.10 | Phase 10 complete - OIDC auth, RBAC, admin UI | PapaBearDoes |
+| 2026-01-10 | v5.0.9 | Phase 9 complete - Archive system, encryption | PapaBearDoes |
+| 2026-01-09 | v5.0.8 | Phase 8 complete - Syn VM, MinIO, Ash-Vault | PapaBearDoes |
+| 2026-01-09 | v5.0.7 | Phase 7 complete - Wiki system, PDF export | PapaBearDoes |
+| 2026-01-08 | v5.0.6 | Phase 6 complete - TipTap notes, auto-save | PapaBearDoes |
+| 2026-01-07 | v5.0.5 | Phase 5 complete - Session management | PapaBearDoes |
+| 2026-01-07 | v5.0.4 | Phase 4 complete - Dashboard, charts | PapaBearDoes |
+| 2026-01-07 | v5.0.3 | Phase 3 complete - Vue.js frontend | PapaBearDoes |
+| 2026-01-07 | v5.0.2 | Phase 2 complete - Data layer | PapaBearDoes |
+| 2026-01-06 | v5.0.1 | Phase 1 complete - Foundation | PapaBearDoes |
+| 2026-01-06 | v5.0.0 | Initial roadmap created | PapaBearDoes |
 
 ---
 

@@ -489,18 +489,18 @@ Enhancement tracking for each component:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-18 | v5.0.12 | **Phase 5 COMPLETE** - Metrics & History fully operational; Bug fixes: recovery incidents no longer duplicated, recovery alerts bypass cooldown | Claude + PapaBearDoes |
-| 2026-01-18 | v5.0.11 | Phase 5 Step 5.1 complete - SQLite database schema and MetricsDatabase abstraction layer | Claude + PapaBearDoes |
-| 2026-01-17 | v5.0.10 | Phase 5 started - SQLite selected for metrics storage, PostgreSQL migration guidelines documented | Claude + PapaBearDoes |
-| 2026-01-17 | v5.0.9 | Phase 4 complete - Discord webhook alerting tested and verified, per-module webhook secrets implemented | Claude + PapaBearDoes |
-| 2026-01-17 | v5.0.8 | Phase 4 code complete - Discord webhook alerting for ecosystem health changes | Claude + PapaBearDoes |
-| 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | Claude + PapaBearDoes |
-| 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | Claude + PapaBearDoes |
-| 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | Claude + PapaBearDoes |
-| 2026-01-16 | v5.0.4 | Phase 1 complete, updated known issues with ZFS backup failures discovered during testing | Claude + PapaBearDoes |
-| 2026-01-14 | v5.0.2 | Added Ash (Core) Ecosystem Health API, Phase 1 planning, updated port allocation (30887 for Ash, 30888 for Ash-Thrash) | Claude + PapaBearDoes |
-| 2026-01-12 | v5.0.1 | Created ecosystem roadmap from hybrid template | Claude + PapaBearDoes |
-| 2026-01-11 | v5.0.0 | Initial ecosystem roadmap (template only) | Claude + PapaBearDoes |
+| 2026-01-18 | v5.0.12 | **Phase 5 COMPLETE** - Metrics & History fully operational; Bug fixes: recovery incidents no longer duplicated, recovery alerts bypass cooldown | PapaBearDoes |
+| 2026-01-18 | v5.0.11 | Phase 5 Step 5.1 complete - SQLite database schema and MetricsDatabase abstraction layer | PapaBearDoes |
+| 2026-01-17 | v5.0.10 | Phase 5 started - SQLite selected for metrics storage, PostgreSQL migration guidelines documented | PapaBearDoes |
+| 2026-01-17 | v5.0.9 | Phase 4 complete - Discord webhook alerting tested and verified, per-module webhook secrets implemented | PapaBearDoes |
+| 2026-01-17 | v5.0.8 | Phase 4 code complete - Discord webhook alerting for ecosystem health changes | PapaBearDoes |
+| 2026-01-17 | v5.0.7 | Phase 3 complete - CRT-accessible System Health, pivoted from public status page | PapaBearDoes |
+| 2026-01-17 | v5.0.6 | Phase 2 complete - Backend proxy pattern implemented, ServiceCard display fixes | PapaBearDoes |
+| 2026-01-15 | v5.0.5 | Phase 2 implementation - Ash-Dash System Health page refactored | PapaBearDoes |
+| 2026-01-16 | v5.0.4 | Phase 1 complete, updated known issues with ZFS backup failures discovered during testing | PapaBearDoes |
+| 2026-01-14 | v5.0.2 | Added Ash (Core) Ecosystem Health API, Phase 1 planning, updated port allocation (30887 for Ash, 30888 for Ash-Thrash) | PapaBearDoes |
+| 2026-01-12 | v5.0.1 | Created ecosystem roadmap from hybrid template | PapaBearDoes |
+| 2026-01-11 | v5.0.0 | Initial ecosystem roadmap (template only) | PapaBearDoes |
 
 ---
 

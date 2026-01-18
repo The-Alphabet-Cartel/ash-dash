@@ -429,17 +429,17 @@ See [enhancements.md](enhancements.md) for detailed planning.
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-12 | v5.0.10 | Roadmap restructured to hybrid template format | Claude + PapaBearDoes |
-| 2026-01-02 | v5.0.9 | Phase 5 complete - Integration tests | Claude + PapaBearDoes |
-| 2026-01-02 | v5.0.8 | Phase 5 unit tests complete | Claude + PapaBearDoes |
-| 2026-01-02 | v5.0.7 | Phase 5 Discord escalation alerting | Claude + PapaBearDoes |
-| 2026-01-02 | v5.0.6 | Phase 5 engine integration | Claude + PapaBearDoes |
-| 2026-01-01 | v5.0.5 | Phase 5 core implementation | Claude + PapaBearDoes |
-| 2026-01-01 | v5.0.4 | Phase 5 planning completed | Claude + PapaBearDoes |
-| 2026-01-01 | v5.0.3 | Phase 4 complete - Consensus, conflict, explainability | Claude + PapaBearDoes |
-| 2026-01-01 | v5.0.2 | Phase 3 complete - API and Docker | Claude + PapaBearDoes |
-| 2025-12-31 | v5.0.1 | Phase 2 complete - Model migration | Claude + PapaBearDoes |
-| 2025-12-30 | v5.0.0 | Initial roadmap, Phases 0-1 complete | Claude + PapaBearDoes |
+| 2026-01-12 | v5.0.10 | Roadmap restructured to hybrid template format | PapaBearDoes |
+| 2026-01-02 | v5.0.9 | Phase 5 complete - Integration tests | PapaBearDoes |
+| 2026-01-02 | v5.0.8 | Phase 5 unit tests complete | PapaBearDoes |
+| 2026-01-02 | v5.0.7 | Phase 5 Discord escalation alerting | PapaBearDoes |
+| 2026-01-02 | v5.0.6 | Phase 5 engine integration | PapaBearDoes |
+| 2026-01-01 | v5.0.5 | Phase 5 core implementation | PapaBearDoes |
+| 2026-01-01 | v5.0.4 | Phase 5 planning completed | PapaBearDoes |
+| 2026-01-01 | v5.0.3 | Phase 4 complete - Consensus, conflict, explainability | PapaBearDoes |
+| 2026-01-01 | v5.0.2 | Phase 3 complete - API and Docker | PapaBearDoes |
+| 2025-12-31 | v5.0.1 | Phase 2 complete - Model migration | PapaBearDoes |
+| 2025-12-30 | v5.0.0 | Initial roadmap, Phases 0-1 complete | PapaBearDoes |
 
 ---
 

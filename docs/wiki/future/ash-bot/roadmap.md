@@ -449,19 +449,19 @@ See [enhancements.md](enhancements.md) for detailed planning.
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-12 | v5.0.13 | Roadmap restructured to hybrid template format | Claude + PapaBearDoes |
-| 2026-01-05 | v5.0.12 | Phase 9.1 complete - CRT slash commands | Claude + PapaBearDoes |
-| 2026-01-05 | v5.0.11 | Phase 8 complete - PUID/PGID container support | Claude + PapaBearDoes |
-| 2026-01-05 | v5.0.10 | Phase 8 complete - Response metrics, weekly reports, data retention | Claude + PapaBearDoes |
-| 2026-01-05 | v5.0.9 | Phase 7 complete - Auto-initiate, user opt-out, channel sensitivity | Claude + PapaBearDoes |
-| 2026-01-04 | v5.0.8 | Phase 5 complete - Health, metrics, error recovery, documentation | Claude + PapaBearDoes |
-| 2026-01-04 | v5.0.7 | Phase 4 complete - Ash AI, Claude integration, 200+ total tests | Claude + PapaBearDoes |
-| 2026-01-04 | v5.0.6 | Phase 3 complete - Alert system, embeds, buttons, 130+ tests | Claude + PapaBearDoes |
-| 2026-01-04 | v5.0.5 | Phase 2 complete - Redis storage, history, 68 tests passing | Claude + PapaBearDoes |
-| 2026-01-03 | v5.0.4 | Phase 1 complete - Discord, NLP, 77 tests passing | Claude + PapaBearDoes |
-| 2026-01-03 | v5.0.3 | Phase 0 complete - headers, configs, Docker verified | Claude + PapaBearDoes |
-| 2026-01-03 | v5.0.2 | Added Docker dev environment to Phase 0 | Claude + PapaBearDoes |
-| 2026-01-03 | v5.0.1 | Initial roadmap created | Claude + PapaBearDoes |
+| 2026-01-12 | v5.0.13 | Roadmap restructured to hybrid template format | PapaBearDoes |
+| 2026-01-05 | v5.0.12 | Phase 9.1 complete - CRT slash commands | PapaBearDoes |
+| 2026-01-05 | v5.0.11 | Phase 8 complete - PUID/PGID container support | PapaBearDoes |
+| 2026-01-05 | v5.0.10 | Phase 8 complete - Response metrics, weekly reports, data retention | PapaBearDoes |
+| 2026-01-05 | v5.0.9 | Phase 7 complete - Auto-initiate, user opt-out, channel sensitivity | PapaBearDoes |
+| 2026-01-04 | v5.0.8 | Phase 5 complete - Health, metrics, error recovery, documentation | PapaBearDoes |
+| 2026-01-04 | v5.0.7 | Phase 4 complete - Ash AI, Claude integration, 200+ total tests | PapaBearDoes |
+| 2026-01-04 | v5.0.6 | Phase 3 complete - Alert system, embeds, buttons, 130+ tests | PapaBearDoes |
+| 2026-01-04 | v5.0.5 | Phase 2 complete - Redis storage, history, 68 tests passing | PapaBearDoes |
+| 2026-01-03 | v5.0.4 | Phase 1 complete - Discord, NLP, 77 tests passing | PapaBearDoes |
+| 2026-01-03 | v5.0.3 | Phase 0 complete - headers, configs, Docker verified | PapaBearDoes |
+| 2026-01-03 | v5.0.2 | Added Docker dev environment to Phase 0 | PapaBearDoes |
+| 2026-01-03 | v5.0.1 | Initial roadmap created | PapaBearDoes |
 
 ---
 

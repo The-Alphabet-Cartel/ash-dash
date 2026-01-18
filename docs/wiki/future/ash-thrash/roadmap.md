@@ -446,8 +446,8 @@ See [enhancements.md](enhancements.md) for detailed planning.
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-12 | v5.0.1 | Roadmap restructured to hybrid template format | Claude + PapaBearDoes |
-| 2026-01-11 | v5.0.0 | Initial v5.0 roadmap created | Claude + PapaBearDoes |
+| 2026-01-12 | v5.0.1 | Roadmap restructured to hybrid template format | PapaBearDoes |
+| 2026-01-11 | v5.0.0 | Initial v5.0 roadmap created | PapaBearDoes |
 
 ---
 
