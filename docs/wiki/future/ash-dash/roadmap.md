@@ -8,7 +8,7 @@ tags:
   - ash-dash
 author: "PapaBearDoes"
 version: "5.0"
-last_updated: "2026-01-12"
+last_updated: "2026-01-20"
 ---
 # Ash-Dash: v5.0 Development Roadmap
 
@@ -17,9 +17,9 @@ last_updated: "2026-01-12"
 **The Alphabet Cartel** - https://discord.gg/alphabetcartel | https://alphabetcartel.org
 ============================================================================
 
-**Document Version**: v5.0.12
+**Document Version**: v5.0.13
 **Created**: 2026-01-06
-**Last Updated**: 2026-01-12
+**Last Updated**: 2026-01-20
 **Status**: ✅ Complete (All 11 Phases)
 **Repository**: https://github.com/the-alphabet-cartel/ash-dash
 
@@ -72,7 +72,6 @@ Ash-Dash is the Crisis Response Dashboard for The Alphabet Cartel's Discord cris
 
 Ash-Dash v5.0 is **complete** and production ready. All 11 phases implemented with 101 tests passing, WCAG 2.1 AA accessibility compliance, and comprehensive documentation.
 
-> ⚠️ **Known Issue**: Ash-Vault connection requires verification - see [Known Issues](#-known-issues)
 
 ---
 
@@ -145,222 +144,6 @@ Ash-Dash v5.0 is **complete** and production ready. All 11 phases implemented wi
 | 9 | Archive System | Encryption, workflows, retention | ✅ Complete |
 | 10 | Authentication & Authorization | OIDC, RBAC, admin UI | ✅ Complete |
 | 11 | Polish & Documentation | QA, accessibility, docs | ✅ Complete |
-
----
-
-## 📋 Detailed Phase Breakdown
-
-### Phase 1: Foundation & Infrastructure ✅ Complete
-**Goal**: Establish project structure and core infrastructure
-
-- [x] Project directory structure (Clean Architecture compliant)
-- [x] Docker setup (Dockerfile, docker-compose.yml)
-- [x] FastAPI application skeleton
-- [x] Configuration management (JSON + environment variables)
-- [x] LoggingConfigManager integration
-- [x] Health check endpoints
-- [x] Basic test framework setup
-
-**Completed**: 2026-01-06
-**Documentation**: [Phase 1 Completion Report](phase1/complete.md)
-
----
-
-### Phase 2: Data Layer ✅ Complete
-**Goal**: Implement persistent storage and data access patterns
-
-- [x] PostgreSQL container setup
-- [x] SQLAlchemy 2.0 models with Mapped[] annotations
-- [x] Alembic migrations
-- [x] Database schema (Users, Sessions, Notes, Archives, AuditLog)
-- [x] Redis client for reading Ash-Bot data
-- [x] Data sync service (Redis → PostgreSQL before TTL)
-- [x] Repository pattern for data access
-- [x] API endpoints for sessions and users
-
-**Completed**: 2026-01-07
-**Documentation**: [Phase 2 Completion Report](phase2/complete.md)
-
----
-
-### Phase 3: Frontend Foundation ✅ Complete
-**Goal**: Set up Vue.js application with core UI components
-
-- [x] Vue.js 3 project initialization with Vite
-- [x] TailwindCSS configuration
-- [x] Layout components (Sidebar, Header, MainLayout)
-- [x] Dark/light mode toggle with persistence
-- [x] Responsive breakpoints
-- [x] Vue Router setup
-- [x] Pinia store for state management
-- [x] API client service (Axios)
-
-**Completed**: 2026-01-07
-**Documentation**: [Phase 3 Completion Report](phase3/complete.md)
-
----
-
-### Phase 4: Dashboard & Metrics ✅ Complete
-**Goal**: Build the main dashboard with metrics and visualizations
-
-- [x] Dashboard backend API endpoints
-- [x] Metric cards (active sessions, critical/high, weekly totals)
-- [x] Crisis trends chart (Chart.js stacked bar - 30 days)
-- [x] CRT activity chart (Chart.js horizontal bar - 7 days)
-- [x] Active sessions list with severity indicators
-- [x] Configurable dual polling (10s/30s)
-- [x] Dark/light mode chart theming
-
-**Completed**: 2026-01-07
-**Documentation**: [Phase 4 Completion Report](phase4/complete.md)
-
----
-
-### Phase 5: Session Management ✅ Complete
-**Goal**: Implement session history and detail views
-
-- [x] Sessions list page with search and filters
-- [x] Pagination with page size selector
-- [x] Session detail page with user info, history, analysis panels
-- [x] Session state management (active/closed/archived)
-- [x] Audit logging for state transitions
-
-**Completed**: 2026-01-07
-**Documentation**: [Phase 5 Completion Report](phase5/complete.md)
-
----
-
-### Phase 6: Notes System ✅ Complete
-**Goal**: Implement WYSIWYG note-taking for CRT members
-
-- [x] TipTap editor integration
-- [x] Note CRUD operations
-- [x] Auto-save functionality (2-second debounce)
-- [x] Note locking after session close
-- [x] Admin override for locked notes
-
-**Completed**: 2026-01-08
-**Documentation**: [Phase 6 Completion Report](phase6/complete.md)
-
----
-
-### Phase 7: Documentation Wiki ✅ Complete
-**Goal**: Build wiki system from Markdown files
-
-- [x] Markdown file scanner for `docs/wiki/` directory
-- [x] Frontmatter parser (title, category, tags)
-- [x] Search functionality with weighted scoring
-- [x] Markdown-to-HTML rendering with syntax highlighting
-- [x] PDF export via WeasyPrint
-
-**Completed**: 2026-01-09
-**Documentation**: [Phase 7 Completion Report](phase7/complete.md)
-
----
-
-### Phase 8: Archive Infrastructure ✅ Complete
-**Goal**: Set up Syn VM with ZFS, MinIO, and backup strategy
-
-**Syn** is a dedicated Debian Trixie VM named after the Norse goddess who guards doorways.
-
-#### Part A: VM Foundation
-- [x] Debian Trixie VM creation on Odin hypervisor
-- [x] ZFS pool with native AES-256-GCM encryption
-- [x] Encrypted dataset `syn/archives` with auto-mount
-- [x] Docker installation
-- [x] UFW firewall configuration
-
-#### Part B: MinIO Deployment
-- [x] MinIO container (ports 30884/30885)
-- [x] Buckets: ash-archives, ash-documents, ash-exports
-
-#### Part C: Ash-Dash Integration
-- [x] MinIOManager class
-- [x] Configuration in default.json
-- [x] SecretsManager MinIO credential methods
-
-#### Part D: Backup Infrastructure (via Ash-Vault)
-- [x] Ash-Vault project created
-- [x] ZFS snapshot automation
-- [x] ZFS replication to Lofn
-- [x] Backblaze B2 cloud sync
-
-**Completed**: 2026-01-09
-**Documentation**: [Phase 8 Planning](phase8/planning.md)
-
----
-
-### Phase 9: Archive System Implementation ✅ Complete
-**Goal**: Implement archive workflows in Ash-Dash
-
-- [x] Archive master key setup with Docker secrets
-- [x] AES-256-GCM encryption utilities (PBKDF2 key derivation)
-- [x] ArchiveManager for archive orchestration
-- [x] Database schema with queryable columns
-- [x] Archive API endpoints (13 total)
-- [x] "Save to Archive" button with retention tier selection
-- [x] Archive metadata storage in PostgreSQL
-- [x] Archive listing page with filters and pagination
-- [x] Archive retrieval and decryption (viewer page)
-- [x] Retention policy management (standard: 1yr, permanent: 7yr)
-- [x] Automated cleanup script and admin API
-- [x] Session protection (archived sessions cannot be reopened)
-
-**Completed**: 2026-01-10
-**Documentation**: [Phase 9 Completion Report](phase9/complete.md)
-
----
-
-### Phase 10: Authentication & Authorization ✅ Complete
-**Goal**: Enable Pocket-ID authentication and three-tier RBAC
-
-**Critical Discovery**: TinyAuth only sets a simple hash cookie without user claims. Solution: Native Pocket-ID OIDC integration directly in Ash-Dash.
-
-#### Pocket-ID Group → Role Mapping
-
-| Group | Role |
-|-------|------|
-| `cartel_crt` | CRT Member |
-| `cartel_crt_lead` | CRT Lead |
-| `cartel_crt_admin` | CRT Admin |
-
-#### Implementation
-- [x] Native Pocket-ID OIDC integration
-- [x] PKCE authorization flow with state/nonce protection
-- [x] JWT ID token validation via JWKS
-- [x] Redis-based server-side session management (DB 1)
-- [x] Three-tier RBAC (Member/Lead/Admin)
-- [x] User sync on login (create/update in PostgreSQL)
-- [x] Note ownership enforcement
-- [x] Audit log user tracking
-- [x] Admin UI - CRT roster (Lead+)
-- [x] Admin UI - Audit logs (Lead+)
-- [x] Admin UI - System health (Admin only)
-- [x] Browser vs API request handling
-- [x] Automatic token refresh
-
-**Completed**: 2026-01-10
-**Documentation**: [Phase 10 Completion Report](phase10/complete.md)
-
----
-
-### Phase 11: Polish & Documentation ✅ Complete
-**Goal**: Finalize for production deployment
-
-- [x] UI/UX refinement (collapsible sidebar, smooth transitions)
-- [x] Accessibility improvements (ARIA labels, keyboard nav, WCAG 2.1 AA)
-- [x] Performance optimization (Vite chunks, caching, minification)
-- [x] Error handling (ErrorMessage component with retry)
-- [x] Loading states (LoadingSpinner, SkeletonCard, SkeletonList, EmptyState)
-- [x] User documentation (3 CRT guides)
-- [x] Admin documentation (3 Admin guides)
-- [x] Operations documentation (4 deployment/operations guides)
-- [x] Test suite (101 tests across 7 files)
-- [x] QA review (functionality, security, accessibility)
-- [x] Dockerfile cleanup
-
-**Completed**: 2026-01-10
-**Documentation**: [Phase 11 Completion Report](phase11/completion_report.md)
 
 ---
 
@@ -483,41 +266,21 @@ All criteria met:
 
 ## ⚠️ Known Issues
 
-### Ash-Vault Connection Verification Required
+### ~~Ash-Vault Connection Verification Required~~ ✅ VERIFIED
 
-**Status**: 🟡 Needs Verification
-**Priority**: Medium
+**Status**: ✅ Verified (2026-01-20)
+**Priority**: ~~Medium~~ Closed
 **Affects**: Archive functionality (Phase 9)
 
-The connection between Ash-Dash and Ash-Vault (MinIO on Syn) experienced some failures during development. While the archive system is implemented and tested, the live connection requires verification to ensure:
-
-1. MinIO credentials are correctly configured in Docker secrets
-2. Network connectivity between Lofn and Syn is stable
-3. Archive upload/download operations complete successfully
-4. Retention policy cleanup jobs run correctly
-
-**Next Steps**:
-- [ ] Verify MinIO health endpoint from Ash-Dash container
-- [ ] Test archive creation workflow end-to-end
-- [ ] Test archive retrieval and decryption
-- [ ] Verify scheduled cleanup job execution
 
 ---
 
 ## 🔜 Future Enhancements
 
 See [enhancements.md](enhancements.md) for detailed planning.
+The connection between Ash-Dash and Ash-Vault (MinIO on Syn) has been fully verified and is operational.
 
-### Post-v5.0 Backlog
 
-- Real-time WebSocket updates (replace polling)
-- Advanced analytics and trend visualization
-- Session export to PDF
-- Bulk archive operations
-- Mobile-responsive improvements
-- Notification system for CRT
-- Integration with external ticketing systems
-- Performance monitoring dashboard
 
 ---
 
@@ -525,6 +288,7 @@ See [enhancements.md](enhancements.md) for detailed planning.
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
+| 2026-01-20 | v5.0.13 | **Ash-Vault Connection VERIFIED** - MinIO client, all 3 buckets accessible, archive functionality operational | PapaBearDoes |
 | 2026-01-12 | v5.0.12 | Roadmap restructured to hybrid template format, added Known Issues section | PapaBearDoes |
 | 2026-01-10 | v5.0.11 | Phase 11 complete - Polish, accessibility, documentation | PapaBearDoes |
 | 2026-01-10 | v5.0.10 | Phase 10 complete - OIDC auth, RBAC, admin UI | PapaBearDoes |
