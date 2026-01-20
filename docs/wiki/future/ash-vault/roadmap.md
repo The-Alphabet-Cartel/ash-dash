@@ -79,9 +79,6 @@ Ash-Vault was created as a dedicated service to separate archive/backup concerns
 | Recovery | Ad-hoc | Documented runbook |
 | Monitoring | None | Health endpoints + Discord alerts |
 
-### Current Status
-
-
 ---
 
 ## 🏗️ Architecture Overview
@@ -166,6 +163,13 @@ Ash-Vault v5.0 is **complete** and running on the Syn VM. All 5 phases implement
 ---
 
 ## 📊 1-2-3 Backup Strategy
+| Tier | Location | Schedule | Retention | Purpose |
+|------|----------|----------|-----------|---------|
+| **3** | Syn (On-Device) | Daily 3 AM | 7 daily, 4 weekly, 12 monthly | Quick recovery |
+| **2** | Lofn (Same-Site) | Nightly 4 AM | Mirrors Tier 3 | Hardware failure |
+| **1** | Backblaze B2 (Off-Site) | Weekly Sun 5 AM | 90 days | Disaster recovery |
+
+---
 
 ## 🔐 Security Considerations
 
@@ -272,11 +276,6 @@ All criteria met:
 8. ✅ Recovery runbook documented
 9. ✅ Operations guide complete
 10. ✅ All backup tiers tested
-| Tier | Location | Schedule | Retention | Purpose |
-|------|----------|----------|-----------|---------|
-| **3** | Syn (On-Device) | Daily 3 AM | 7 daily, 4 weekly, 12 monthly | Quick recovery |
-| **2** | Lofn (Same-Site) | Nightly 4 AM | Mirrors Tier 3 | Hardware failure |
-| **1** | Backblaze B2 (Off-Site) | Weekly Sun 5 AM | 90 days | Disaster recovery |
 
 ---
 
@@ -323,19 +322,6 @@ See [enhancements.md](enhancements.md) for detailed planning.
 | 2026-01-12 | v5.0.2 | Roadmap restructured to hybrid template format | PapaBearDoes |
 | 2026-01-09 | v5.0.1 | All 5 phases complete | PapaBearDoes |
 | 2026-01-09 | v5.0.0 | Initial roadmap and implementation | PapaBearDoes |
-
----
-
-## 🔗 Ash Ecosystem
-
-| Project | Purpose | Status |
-|---------|---------|--------|
-| [ash](https://github.com/the-alphabet-cartel/ash) | Parent repository | ✅ Active |
-| [ash-bot](https://github.com/the-alphabet-cartel/ash-bot) | Discord bot frontend | ✅ Complete |
-| [ash-nlp](https://github.com/the-alphabet-cartel/ash-nlp) | NLP classification | ✅ Complete |
-| [ash-dash](https://github.com/the-alphabet-cartel/ash-dash) | Crisis dashboard | ✅ Complete |
-| [ash-thrash](https://github.com/the-alphabet-cartel/ash-thrash) | Testing suite | 🟡 In Development |
-| **ash-vault** | Archive & backup | ✅ Complete |
 
 ---
 
