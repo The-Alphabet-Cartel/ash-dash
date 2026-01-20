@@ -280,7 +280,14 @@ All criteria met:
 See [enhancements.md](enhancements.md) for detailed planning.
 The connection between Ash-Dash and Ash-Vault (MinIO on Syn) has been fully verified and is operational.
 
+**Verified** ✅:
+- [x] MinIO health endpoint accessible from Ash-Dash container (91.44ms latency)
+- [x] Network connectivity between Lofn and Syn is stable
+- [x] MinIO client connects successfully
+- [x] All three buckets accessible: `ash-archives`, `ash-documents`, `ash-exports`
+- [x] ZFS backup infrastructure operational (fixed 2026-01-18)
 
+**Archive functionality is fully operational.**
 
 ---
 
