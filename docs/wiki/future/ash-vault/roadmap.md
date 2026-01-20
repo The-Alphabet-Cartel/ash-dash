@@ -79,6 +79,10 @@ Ash-Vault was created as a dedicated service to separate archive/backup concerns
 | Recovery | Ad-hoc | Documented runbook |
 | Monitoring | None | Health endpoints + Discord alerts |
 
+### Current Status
+
+Ash-Vault v5.0 is **complete** and running on the Syn VM. All 5 phases implemented in a single day. Backup jobs are scheduled and operational.
+
 ---
 
 ## 🏗️ Architecture Overview
@@ -132,6 +136,14 @@ Ash-Vault was created as a dedicated service to separate archive/backup concerns
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### 1-2-3 Backup Strategy
+
+| Tier | Location | Schedule | Retention | Purpose |
+|------|----------|----------|-----------|---------|
+| **3** | Syn (On-Device) | Daily 3 AM | 7 daily, 4 weekly, 12 monthly | Quick recovery |
+| **2** | Lofn (Same-Site) | Nightly 4 AM | Mirrors Tier 3 | Hardware failure |
+| **1** | Backblaze B2 (Off-Site) | Weekly Sun 5 AM | 90 days | Disaster recovery |
+
 ---
 
 ## 🛠️ Technology Stack
@@ -146,7 +158,6 @@ Ash-Vault was created as a dedicated service to separate archive/backup concerns
 | **Cloud Backup** | Backblaze B2 + rclone | Off-site replication |
 | **Containerization** | Docker | Service deployment |
 | **Encryption** | AES-256-GCM | ZFS native + application layer |
-Ash-Vault v5.0 is **complete** and running on the Syn VM. All 5 phases implemented. Backup jobs are scheduled and operational.
 
 ---
 
@@ -159,15 +170,6 @@ Ash-Vault v5.0 is **complete** and running on the Syn VM. All 5 phases implement
 | 3 | Backup Infrastructure | 1-2-3 strategy, automation | ✅ Complete |
 | 4 | Testing & Verification | Backup/restore validation | ✅ Complete |
 | 5 | Documentation & Polish | Runbooks, operations guide | ✅ Complete |
-
----
-
-## 📊 1-2-3 Backup Strategy
-| Tier | Location | Schedule | Retention | Purpose |
-|------|----------|----------|-----------|---------|
-| **3** | Syn (On-Device) | Daily 3 AM | 7 daily, 4 weekly, 12 monthly | Quick recovery |
-| **2** | Lofn (Same-Site) | Nightly 4 AM | Mirrors Tier 3 | Hardware failure |
-| **1** | Backblaze B2 (Off-Site) | Weekly Sun 5 AM | 90 days | Disaster recovery |
 
 ---
 
@@ -281,10 +283,13 @@ All criteria met:
 
 ## ⚠️ Known Issues
 
+---
+
 ### ~~Ash-Dash Connection Verification Required~~ ✅ VERIFIED
 
 **Status**: ✅ Verified (2026-01-20)
 **Priority**: ~~Medium~~ Closed
+**Affects**: Archive operations from Ash-Dash
 
 The connection between Ash-Dash (on Lofn) and Ash-Vault (MinIO on Syn) has been fully verified and is operational.
 
@@ -295,6 +300,7 @@ The connection between Ash-Dash (on Lofn) and Ash-Vault (MinIO on Syn) has been 
 - [x] All three buckets accessible: `ash-archives`, `ash-documents`, `ash-exports`
 - [x] ZFS backup infrastructure operational (fixed 2026-01-18)
 
+**Archive functionality is fully operational.**
 
 ---
 
@@ -308,7 +314,6 @@ See [enhancements.md](enhancements.md) for detailed planning.
 - Retention policy automation
 - Storage usage alerting
 - Compression optimization
-**Archive functionality is fully operational.**
 
 ---
 
@@ -317,9 +322,9 @@ See [enhancements.md](enhancements.md) for detailed planning.
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
 | 2026-01-20 | v5.0.5 | **Ash-Dash Connection VERIFIED** - MinIO client, all 3 buckets accessible from Ash-Dash | PapaBearDoes |
-| 2026-01-18 | v5.0.4 | **Alert Manager Fix** - Updated secret path to `ash_vault_discord_alert_token` | PapaBearDoes |
-| 2026-01-18 | v5.0.3 | **ZFS Fix** - Added zfsutils-linux to Docker container; Scheduled backup jobs now functional | PapaBearDoes |
-| 2026-01-12 | v5.0.2 | Roadmap restructured to hybrid template format | PapaBearDoes |
+| 2026-01-18 | v5.0.4 | **Alert Manager Fix** - Updated secret path to `ash_vault_discord_alert_token` for ecosystem naming consistency | PapaBearDoes |
+| 2026-01-18 | v5.0.3 | **ZFS Fix** - Added zfsutils-linux to Docker container; Updated base image to Trixie; Scheduled backup jobs now functional | PapaBearDoes |
+| 2026-01-12 | v5.0.2 | Roadmap restructured to hybrid template format, added Known Issues section | PapaBearDoes |
 | 2026-01-09 | v5.0.1 | All 5 phases complete | PapaBearDoes |
 | 2026-01-09 | v5.0.0 | Initial roadmap and implementation | PapaBearDoes |
 
