@@ -272,12 +272,6 @@ All criteria met:
 **Priority**: ~~Medium~~ Closed
 **Affects**: Archive functionality (Phase 9)
 
-
----
-
-## 🔜 Future Enhancements
-
-See [enhancements.md](enhancements.md) for detailed planning.
 The connection between Ash-Dash and Ash-Vault (MinIO on Syn) has been fully verified and is operational.
 
 **Verified** ✅:
@@ -288,6 +282,12 @@ The connection between Ash-Dash and Ash-Vault (MinIO on Syn) has been fully veri
 - [x] ZFS backup infrastructure operational (fixed 2026-01-18)
 
 **Archive functionality is fully operational.**
+
+---
+
+## 🔜 Future Enhancements
+
+See [enhancements.md](enhancements.md) for detailed planning.
 
 ---
 
