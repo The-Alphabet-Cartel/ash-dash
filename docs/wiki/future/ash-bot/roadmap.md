@@ -68,6 +68,7 @@ Ash-Bot is the Discord frontend for the Ash Crisis Detection Ecosystem. It serve
 
 ### Current Status
 
+Ash-Bot v5.0 is **complete** and running in production. All 9 phases complete with 600+ tests passing, including CRT workflow enhancements (slash commands, session handoff, follow-up check-ins).
 
 ---
 
@@ -140,7 +141,6 @@ Ash-Bot is the Discord frontend for the Ash Crisis Detection Ecosystem. It serve
 | Redis operations | < 50ms |
 | Concurrent Ash sessions | 10+ |
 | Claude API response | 1-3s |
-Ash-Bot v5.0 is **complete** and running in production. All 9 phases complete with 600+ tests passing, including CRT workflow enhancements (slash commands, session handoff, follow-up check-ins).
 
 ---
 
@@ -157,6 +157,7 @@ Ash-Bot v5.0 is **complete** and running in production. All 9 phases complete wi
 | 6 | Final Testing | End-to-end validation | ✅ Complete |
 | 7 | Core Safety | Auto-initiate, opt-out, sensitivity | ✅ Complete |
 | 8 | Metrics & Reporting | Response tracking, weekly reports | ✅ Complete |
+| 9 | CRT Workflow | Slash commands, handoff, check-ins | ✅ Complete |
 
 ---
 
@@ -220,7 +221,6 @@ ash-bot/
 ├── Dockerfile
 └── docker-compose.yml
 ```
-| 9 | CRT Workflow | Slash commands, handoff, check-ins | ✅ Complete |
 
 ---
 
@@ -262,14 +262,15 @@ Core functionality complete:
 11. ✅ Weekly CRT reports generated
 12. ✅ Data retention policies enforced
 13. ✅ CRT slash commands operational
+14. ✅ Session handoff between CRT members
+15. ✅ Follow-up check-in system
 
 ---
 
 ## 🔜 Future Enhancements
 
 See [enhancements.md](enhancements.md) for detailed planning.
-14. ✅ Session handoff between CRT members
-15. ✅ Follow-up check-in system
+
 
 ---
 
