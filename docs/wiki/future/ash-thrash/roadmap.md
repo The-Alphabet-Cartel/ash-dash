@@ -196,9 +196,9 @@ Phase 5 (Performance)
 
 - [ ] Project directory structure (Clean Architecture compliant)
 - [ ] Docker setup (Dockerfile, docker-compose.yml)
-- [ ] ConfigManager with full validation
+- [ ] ConfigManager rewrite with full validation
 - [ ] LoggingConfigManager with colorized output
-- [ ] SecretsManager for Docker secrets
+- [ ] SecretsManager rewrite for Docker secrets
 - [ ] NLPClientManager with HTTP client, retry logic, timeout handling
 - [ ] PhraseLoaderManager with JSON schema validation
 - [ ] Health check endpoint
@@ -336,7 +336,7 @@ Phase 5 (Performance)
 |---------|-------|
 | **Host** | Lofn (10.20.30.253) |
 | **Container** | ash-thrash |
-| **Port** | 30887 (API/Health) |
+| **Port** | 30888 (API/Health) |
 | **Health Check** | HTTP /health |
 
 ### Dependencies
@@ -360,7 +360,16 @@ ash-thrash/
 │   │       ├── low_priority.json
 │   │       ├── none_priority.json
 │   │       ├── edge_cases/
+│   │       |   ├── maybe_high_medium.json
+│   │       |   ├── maybe_low_none.json
+│   │       |   └── maybe_medium_low.json
 │   │       └── specialty/
+│   │           ├── cultural_slang.json
+│   │           ├── gaming_context.json
+│   │           ├── irony_sarcasm.json
+│   │           ├── language_hints.json
+│   │           ├── lgbtqia_specific.json
+│   │           └── songs_quotes.json
 │   ├── managers/
 │   │   ├── config_manager.py
 │   │   ├── secrets_manager.py
