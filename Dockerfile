@@ -136,16 +136,16 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Create non-root user (will be modified at runtime by entrypoint if PUID/PGID differ)
-RUN groupadd -g ${DEFAULT_GID} ashgroup && \
-    useradd -m -u ${DEFAULT_UID} -g ${DEFAULT_GID} ashuser && \
+RUN groupadd -g ${PGID} ash-dash && \
+    useradd -m -u ${PUID} -g ${PGID} ash-dash && \
     mkdir -p /app/logs /app/cache /app/frontend/dist && \
-    chown -R ${DEFAULT_UID}:${DEFAULT_GID} /app
+    chown -R ${PUID}:${PGID} /app
 
 # Copy application code
-COPY --chown=${DEFAULT_UID}:${DEFAULT_GID} . .
+COPY --chown=${PUID}:${PGID} . .
 
 # Copy built frontend from frontend stage
-COPY --from=frontend --chown=${DEFAULT_UID}:${DEFAULT_GID} /frontend/dist /app/frontend/dist
+COPY --from=frontend --chown=${PUID}:${PGID} /frontend/dist /app/frontend/dist
 
 # Copy and set up entrypoint script (Rule #13: Pure Python PUID/PGID handling)
 COPY docker-entrypoint.py /app/docker-entrypoint.py
