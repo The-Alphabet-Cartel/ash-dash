@@ -61,8 +61,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-WORKDIR /build
-
 # Install build dependencies (including WeasyPrint build deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -73,13 +71,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Create app directory
+WORKDIR /app
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 # Copy requirements first for layer caching
 COPY requirements.txt .
 
 # Install Python dependencies
-# Rule #10: Use python3.12 -m pip for version specificity
-RUN python3.12 -m pip install --upgrade pip && \
-    python3.12 -m pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 
 # =============================================================================
@@ -103,7 +107,8 @@ ARG DEFAULT_GID=1000
 # Set runtime environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app \
+    APP_HOME=/app \
+    PATH="/opt/venv/bin:$PATH" \
     # Application defaults
     DASH_HOST=0.0.0.0 \
     DASH_PORT=30883 \
@@ -116,8 +121,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     # Default PUID/PGID (LinuxServer.io style)
     PUID=${DEFAULT_UID} \
     PGID=${DEFAULT_GID}
-
-WORKDIR /app
 
 # Install runtime dependencies including WeasyPrint system libraries (Phase 7)
 # WeasyPrint requires: Pango, HarfBuzz, Cairo, GDK-PixBuf, Fontconfig
@@ -147,18 +150,24 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Create non-root user (will be modified at runtime by entrypoint if PUID/PGID differ)
 RUN groupadd -g ${PGID} ash-dash && \
     useradd -m -u ${PUID} -g ${PGID} ash-dash && \
-    mkdir -p /app/logs /app/cache /app/frontend/dist && \
-    chown -R ${PUID}:${PGID} /app
+    mkdir -p ${APP_HOME}/logs ${APP_HOME}/cache ${APP_HOME}/frontend/dist && \
+    chown -R ${PUID}:${PGID} ${APP_HOME}
 
 # Copy application code
 COPY --chown=${PUID}:${PGID} . .
 
 # Copy built frontend from frontend stage
-COPY --from=frontend --chown=${PUID}:${PGID} /frontend/dist /app/frontend/dist
+COPY --from=frontend --chown=${PUID}:${PGID} /frontend/dist ${APP_HOME}/frontend/dist
+
+# Set working directory
+WORKDIR ${APP_HOME}
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
 
 # Copy and set up entrypoint script (Rule #13: Pure Python PUID/PGID handling)
-COPY docker-entrypoint.py /app/docker-entrypoint.py
-RUN chmod +x /app/docker-entrypoint.py
+COPY docker-entrypoint.py ${APP_HOME}/docker-entrypoint.py
+RUN chmod +x ${APP_HOME}/docker-entrypoint.py
 
 # NOTE: We do NOT switch to USER ashuser here!
 # The entrypoint script handles user switching at runtime after fixing permissions.
