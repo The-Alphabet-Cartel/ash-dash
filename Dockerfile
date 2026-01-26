@@ -143,9 +143,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy installed packages from builder stage
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Set working directory
+WORKDIR ${APP_HOME}
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
 
 # Create non-root user (will be modified at runtime by entrypoint if PUID/PGID differ)
 RUN groupadd -g ${PGID} ash-dash && \
@@ -158,12 +160,6 @@ COPY --chown=${PUID}:${PGID} . .
 
 # Copy built frontend from frontend stage
 COPY --from=frontend --chown=${PUID}:${PGID} /frontend/dist ${APP_HOME}/frontend/dist
-
-# Set working directory
-WORKDIR ${APP_HOME}
-
-# Copy virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
 
 # Copy and set up entrypoint script (Rule #13: Pure Python PUID/PGID handling)
 COPY docker-entrypoint.py ${APP_HOME}/docker-entrypoint.py
