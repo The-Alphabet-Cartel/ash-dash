@@ -195,9 +195,9 @@ Integrate with Ash Core monitoring and finalize documentation.
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2026-01-25 | v5.0.3 | Reordered Phase 1 steps for sequential workflow (Fresh Pass now 1.2) | PapaBearDoes + Claude |
-| 2026-01-25 | v5.0.2 | Restructured phases based on design decisions; Port confirmed as 30882; GPU confirmed as RTX 5060 | PapaBearDoes + Claude |
-| 2026-01-24 | v5.0.1 | Initial roadmap created | PapaBearDoes + Claude |
+| 2026-01-25 | v5.0.3 | Reordered Phase 1 steps for sequential workflow (Fresh Pass now 1.2) | PapaBearDoes |
+| 2026-01-25 | v5.0.2 | Restructured phases based on design decisions; Port confirmed as 30882; GPU confirmed as RTX 5060 | PapaBearDoes |
+| 2026-01-24 | v5.0.1 | Initial roadmap created | PapaBearDoes |
 
 ---
 
