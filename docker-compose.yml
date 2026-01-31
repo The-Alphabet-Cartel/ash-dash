@@ -9,16 +9,16 @@
 #
 # USAGE:
 #   # Start services
-#   docker-compose up -d
+#   docker compose up -d
 #
 #   # View logs
-#   docker-compose logs -f ash-dash
+#   docker compose logs -f ash-dash
 #
 #   # Stop services
-#   docker-compose down
+#   docker compose down
 #
 #   # Rebuild and start (after frontend changes)
-#   docker-compose up -d --build
+#   docker compose up -d --build
 #
 # DOCKER-FIRST PHILOSOPHY:
 #   - Frontend built inside Docker (no Node.js on host)
@@ -125,9 +125,9 @@ services:
 
     # Labels for organization
     labels:
-      - "org.alphabetcartel.service=ash-dash"
-      - "org.alphabetcartel.version=5.0.0"
-      - "org.alphabetcartel.description=Ash Crisis Detection Dashboard"
+      - "net.alphabetcartel.service=ash-dash"
+      - "net.alphabetcartel.version=5.0.0"
+      - "net.alphabetcartel.description=Ash Crisis Detection Dashboard"
 
     # Dependencies - wait for database to be healthy
     depends_on:
@@ -178,8 +178,8 @@ services:
 
     # Labels
     labels:
-      - "org.alphabetcartel.service=ash-dash-db"
-      - "org.alphabetcartel.description=Ash-Dash PostgreSQL Database"
+      - "net.alphabetcartel.service=ash-dash-db"
+      - "net.alphabetcartel.description=Ash-Dash PostgreSQL Database"
 
 # =============================================================================
 # Volumes

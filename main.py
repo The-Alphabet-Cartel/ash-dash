@@ -26,7 +26,7 @@ USAGE:
     python -m uvicorn main:app --host 0.0.0.0 --port 30883 --reload
 
     # Run with Docker (production)
-    docker-compose up -d
+    docker compose up -d
 
 ENVIRONMENT VARIABLES:
     DASH_ENVIRONMENT    - Environment name (production, testing, development)
@@ -450,7 +450,7 @@ def main() -> None:
     """
     Main entry point for running the service directly.
 
-    For production, use: docker-compose up -d
+    For production, use: docker compose up -d
     For development, use: python -m uvicorn main:app --reload
     """
     import uvicorn
